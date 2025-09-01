@@ -1,0 +1,506 @@
+================================================================================
+                    DOCUMENTACIÓN COMPLETA DE RESOLVERS GRAPHQL
+                           SISTEMA MUDRAS - BACKEND API
+================================================================================
+
+ÍNDICE:
+1. UsuariosResolver
+2. ClientesResolver  
+3. CuentasCorrientesResolver
+4. ContabilidadResolver
+5. VentasResolver
+6. ArticulosResolver
+7. ProveedoresResolver
+8. StockResolver
+9. RubrosResolver
+
+================================================================================
+1. USUARIOS RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Maneja toda la gestión de usuarios del sistema, incluyendo autenticación, roles
+y permisos. Permite crear usuarios con diferentes roles (admin, caja, depósito,
+diseñador gráfico, programador) y gestionar su acceso al sistema.
+
+RAZONAMIENTO:
+El sistema de usuarios es fundamental para la seguridad y control de acceso.
+Cada usuario tiene un rol específico que determina qué funcionalidades puede
+usar en el frontend. La autenticación se basa en username/email + password
+con hash bcrypt para seguridad.
+
+QUERIES:
+- usuarios: Usuario[]
+  Variables: ninguna
+  Descripción: Obtiene todos los usuarios del sistema con sus relaciones
+  
+- usuario(id: Int!): Usuario
+  Variables: id (número entero requerido)
+  Descripción: Obtiene un usuario específico por su ID
+  
+- usuariosPorRol(rol: RolUsuario!): Usuario[]
+  Variables: rol (enum: ADMINISTRADOR, CAJA, DEPOSITO, DISEÑADOR_GRAFICO, PROGRAMADOR)
+  Descripción: Filtra usuarios por su rol específico
+
+MUTATIONS:
+- createUsuario(createUsuarioInput: CreateUsuarioDto!): Usuario
+  Variables: nombre, apellido, username, email, password, rol, salario?, fechaIngreso?
+  Descripción: Crea un nuevo usuario en el sistema
+  
+- updateUsuario(id: Int!, updateUsuarioInput: UpdateUsuarioDto!): Usuario
+  Variables: id + campos opcionales del usuario a actualizar
+  Descripción: Actualiza datos de un usuario existente
+  
+- removeUsuario(id: Int!): Boolean
+  Variables: id (número entero requerido)
+  Descripción: Elimina un usuario del sistema
+  
+- login(loginInput: LoginDto!): Usuario
+  Variables: usernameOrEmail, password
+  Descripción: Autentica un usuario y actualiza su último acceso
+  
+- crearUsuariosEjemplo: Boolean
+  Variables: ninguna
+  Descripción: Crea usuarios de ejemplo para testing con diferentes roles
+
+================================================================================
+2. CLIENTES RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Gestiona la información de clientes del sistema, incluyendo datos personales,
+tipos de cliente (particular/empresa), estados (activo/inactivo/moroso) y
+límites de crédito para cuentas corrientes.
+
+RAZONAMIENTO:
+Los clientes son entidades centrales del negocio. Pueden ser particulares o
+empresas, cada uno con diferentes campos requeridos. El sistema maneja estados
+para controlar morosos y límites de crédito para ventas a cuenta corriente.
+
+QUERIES:
+- clientes: Cliente[]
+  Variables: ninguna
+  Descripción: Obtiene todos los clientes con sus relaciones
+  
+- cliente(id: Int!): Cliente
+  Variables: id (número entero requerido)
+  Descripción: Obtiene un cliente específico por ID
+  
+- clientesPorTipo(tipo: TipoCliente!): Cliente[]
+  Variables: tipo (enum: PARTICULAR, EMPRESA)
+  Descripción: Filtra clientes por tipo
+  
+- clientesPorEstado(estado: EstadoCliente!): Cliente[]
+  Variables: estado (enum: ACTIVO, INACTIVO, MOROSO)
+  Descripción: Filtra clientes por estado
+  
+- clientesMorosos: Cliente[]
+  Variables: ninguna
+  Descripción: Obtiene clientes con estado moroso ordenados por saldo
+  
+- buscarClientesPorNombre(nombre: String!): Cliente[]
+  Variables: nombre (texto para búsqueda)
+  Descripción: Busca clientes por nombre, apellido o razón social
+
+MUTATIONS:
+- createCliente(createClienteInput: CreateClienteDto!): Cliente
+  Variables: nombre, apellido?, razonSocial?, tipo, email?, telefono?, direccion?, etc.
+  Descripción: Crea un nuevo cliente
+  
+- updateCliente(id: Int!, updateClienteInput: UpdateClienteDto!): Cliente
+  Variables: id + campos opcionales del cliente
+  Descripción: Actualiza datos de un cliente
+  
+- actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente
+  Variables: id, nuevoSaldo
+  Descripción: Actualiza el saldo actual del cliente y su estado si es necesario
+  
+- removeCliente(id: Int!): Boolean
+  Variables: id
+  Descripción: Elimina un cliente del sistema
+
+================================================================================
+3. CUENTAS CORRIENTES RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Maneja las cuentas corrientes de clientes y proveedores, incluyendo saldos,
+límites de crédito y movimientos. Permite registrar débitos y créditos con
+diferentes conceptos y mantener un historial completo.
+
+RAZONAMIENTO:
+Las cuentas corrientes son esenciales para el manejo de créditos y pagos
+diferidos. Cada movimiento actualiza el saldo y mantiene un registro de
+saldo anterior/nuevo para auditoría. Se controlan límites de crédito.
+
+QUERIES:
+- cuentasCorrientes: CuentaCorriente[]
+  Variables: ninguna
+  Descripción: Obtiene todas las cuentas corrientes
+  
+- cuentaCorriente(id: Int!): CuentaCorriente
+  Variables: id
+  Descripción: Obtiene una cuenta corriente específica
+  
+- cuentasPorCliente(clienteId: Int!): CuentaCorriente[]
+  Variables: clienteId
+  Descripción: Obtiene cuentas corrientes de un cliente
+  
+- cuentasPorProveedor(proveedorId: Int!): CuentaCorriente[]
+  Variables: proveedorId
+  Descripción: Obtiene cuentas corrientes de un proveedor
+  
+- saldoCuentaCorriente(cuentaId: Int!): Float
+  Variables: cuentaId
+  Descripción: Obtiene el saldo actual de una cuenta
+  
+- movimientosCuentaCorriente(cuentaId: Int!): MovimientoCuentaCorriente[]
+  Variables: cuentaId
+  Descripción: Obtiene historial de movimientos de una cuenta
+
+MUTATIONS:
+- crearCuentaCliente(clienteId: Int!, usuarioId: Int!, limiteCredito: Float = 0): CuentaCorriente
+  Variables: clienteId, usuarioId, limiteCredito (opcional)
+  Descripción: Crea una cuenta corriente para un cliente
+  
+- crearCuentaProveedor(proveedorId: Int!, usuarioId: Int!, limiteCredito: Float = 0): CuentaCorriente
+  Variables: proveedorId, usuarioId, limiteCredito (opcional)
+  Descripción: Crea una cuenta corriente para un proveedor
+  
+- registrarMovimiento(cuentaId: Int!, tipo: TipoMovimiento!, concepto: ConceptoMovimiento!, monto: Float!, descripcion: String!, usuarioId: Int!, numeroComprobante: String?): MovimientoCuentaCorriente
+  Variables: cuentaId, tipo (DEBITO/CREDITO), concepto, monto, descripcion, usuarioId, numeroComprobante (opcional)
+  Descripción: Registra un movimiento en la cuenta corriente
+  
+- cerrarCuenta(id: Int!): CuentaCorriente
+  Variables: id
+  Descripción: Cierra una cuenta corriente (solo si saldo = 0)
+  
+- suspenderCuenta(id: Int!): CuentaCorriente
+  Variables: id
+  Descripción: Suspende una cuenta corriente
+  
+- activarCuenta(id: Int!): CuentaCorriente
+  Variables: id
+  Descripción: Activa una cuenta corriente suspendida
+
+================================================================================
+4. CONTABILIDAD RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Maneja el sistema contable completo incluyendo plan de cuentas, asientos
+contables y balance general. Implementa contabilidad por partida doble
+donde cada asiento debe estar balanceado (Debe = Haber).
+
+RAZONAMIENTO:
+La contabilidad es fundamental para el control financiero. Cada operación
+genera asientos contables que afectan diferentes cuentas. El sistema
+valida que los asientos estén balanceados y mantiene saldos actualizados
+de todas las cuentas para generar balances automáticamente.
+
+QUERIES:
+- cuentasContables: CuentaContable[]
+  Variables: ninguna
+  Descripción: Obtiene el plan de cuentas completo
+  
+- cuentaContable(id: Int!): CuentaContable
+  Variables: id
+  Descripción: Obtiene una cuenta contable específica
+  
+- asientosContables: AsientoContable[]
+  Variables: ninguna
+  Descripción: Obtiene todos los asientos contables
+  
+- asientoContable(id: Int!): AsientoContable
+  Variables: id
+  Descripción: Obtiene un asiento contable específico
+  
+- balanceGeneral: BalanceGeneral
+  Variables: ninguna
+  Descripción: Genera el balance general con activos, pasivos y patrimonio
+
+MUTATIONS:
+- crearCuentaContable(codigo: String!, nombre: String!, tipo: TipoCuentaContable!, cuentaPadreId: Int?): CuentaContable
+  Variables: codigo, nombre, tipo (ACTIVO/PASIVO/PATRIMONIO/INGRESO/EGRESO), cuentaPadreId (opcional)
+  Descripción: Crea una nueva cuenta en el plan de cuentas
+  
+- crearAsientoContable(tipo: TipoAsientoContable!, descripcion: String!, usuarioId: Int!, detalles: [DetalleAsientoInput!]!): AsientoContable
+  Variables: tipo, descripcion, usuarioId, detalles (array con cuentaContableId, tipoMovimiento, monto, descripcion)
+  Descripción: Crea un asiento contable balanceado
+  
+- anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable
+  Variables: id, usuarioId
+  Descripción: Anula un asiento contable revirtiendo sus efectos
+  
+- crearCuentasContablesBasicas: Boolean
+  Variables: ninguna
+  Descripción: Crea el plan de cuentas básico del sistema
+
+================================================================================
+5. VENTAS RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Maneja todo el sistema de ventas incluyendo creación de ventas, detalles,
+diferentes tipos de pago, estados y reportes. Integra con el sistema POS
+para procesar ventas completas con múltiples artículos y descuentos.
+
+RAZONAMIENTO:
+Las ventas son el core del negocio. Cada venta puede tener múltiples artículos
+con cantidades, precios y descuentos individuales. Se manejan diferentes
+tipos de pago y estados para controlar el flujo desde creación hasta entrega.
+Los reportes permiten análisis de rendimiento.
+
+QUERIES:
+- ventas: Venta[]
+  Variables: ninguna
+  Descripción: Obtiene todas las ventas del sistema
+  
+- venta(id: Int!): Venta
+  Variables: id
+  Descripción: Obtiene una venta específica con sus detalles
+  
+- ventasPorCliente(clienteId: Int!): Venta[]
+  Variables: clienteId
+  Descripción: Obtiene ventas de un cliente específico
+  
+- ventasPorUsuario(usuarioId: Int!): Venta[]
+  Variables: usuarioId
+  Descripción: Obtiene ventas realizadas por un usuario
+  
+- ventasPorFecha(fechaDesde: DateTime!, fechaHasta: DateTime!): Venta[]
+  Variables: fechaDesde, fechaHasta
+  Descripción: Filtra ventas por rango de fechas
+  
+- resumenVentas(fechaDesde: DateTime!, fechaHasta: DateTime!): ResumenVentas
+  Variables: fechaDesde, fechaHasta
+  Descripción: Genera resumen estadístico de ventas
+  
+- topArticulos(fechaDesde: DateTime!, fechaHasta: DateTime!, limite: Int = 10): TopArticulo[]
+  Variables: fechaDesde, fechaHasta, limite (opcional)
+  Descripción: Obtiene artículos más vendidos en un período
+
+MUTATIONS:
+- crearVenta(clienteId: Int!, usuarioId: Int!, tipoPago: TipoPago!, detalles: [DetalleVentaInput!]!, descuentoGeneral: Float = 0, observaciones: String?): Venta
+  Variables: clienteId, usuarioId, tipoPago, detalles (array), descuentoGeneral (opcional), observaciones (opcional)
+  Descripción: Crea una nueva venta completa
+  
+- confirmarVenta(id: Int!): Venta
+  Variables: id
+  Descripción: Confirma una venta pendiente
+  
+- cancelarVenta(id: Int!, motivoCancelacion: String!): Venta
+  Variables: id, motivoCancelacion
+  Descripción: Cancela una venta con motivo
+
+================================================================================
+6. ARTICULOS RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Gestiona el catálogo de productos/artículos del sistema, incluyendo precios,
+stock, proveedores, rubros y estados. Cada artículo puede tener múltiples
+precios y estar asociado a un proveedor y rubro específico.
+
+RAZONAMIENTO:
+Los artículos son la base del inventario. Cada artículo tiene información
+completa incluyendo códigos, precios de compra/venta, stock mínimo y actual,
+y relaciones con proveedores y rubros para organización y reportes.
+
+QUERIES:
+- articulos: Articulo[]
+  Variables: ninguna
+  Descripción: Obtiene todos los artículos
+  
+- articulo(id: Int!): Articulo
+  Variables: id
+  Descripción: Obtiene un artículo específico
+  
+- articulosPorProveedor(proveedorId: Int!): Articulo[]
+  Variables: proveedorId
+  Descripción: Filtra artículos por proveedor
+  
+- articulosPorRubro(rubroId: Int!): Articulo[]
+  Variables: rubroId
+  Descripción: Filtra artículos por rubro
+  
+- buscarArticulos(termino: String!): Articulo[]
+  Variables: termino
+  Descripción: Busca artículos por nombre o código
+
+MUTATIONS:
+- createArticulo(createArticuloInput: CreateArticuloDto!): Articulo
+  Variables: nombre, codigo?, descripcion?, precioCompra, precioVenta, stock, stockMinimo, proveedorId, rubroId
+  Descripción: Crea un nuevo artículo
+  
+- updateArticulo(id: Int!, updateArticuloInput: UpdateArticuloDto!): Articulo
+  Variables: id + campos opcionales del artículo
+  Descripción: Actualiza un artículo existente
+  
+- removeArticulo(id: Int!): Boolean
+  Variables: id
+  Descripción: Elimina un artículo del sistema
+
+================================================================================
+7. PROVEEDORES RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Maneja la información de proveedores del sistema, incluyendo datos de contacto,
+estados y relaciones con artículos y cuentas corrientes. Los proveedores
+suministran los artículos que se venden.
+
+RAZONAMIENTO:
+Los proveedores son esenciales para la cadena de suministro. Cada proveedor
+puede suministrar múltiples artículos y tener cuentas corrientes para
+manejo de pagos diferidos. Se controlan estados para gestionar relaciones
+comerciales activas/inactivas.
+
+QUERIES:
+- proveedores: Proveedor[]
+  Variables: ninguna
+  Descripción: Obtiene todos los proveedores
+  
+- proveedor(id: Int!): Proveedor
+  Variables: id
+  Descripción: Obtiene un proveedor específico
+  
+- proveedoresPorEstado(estado: EstadoProveedor!): Proveedor[]
+  Variables: estado (ACTIVO/INACTIVO)
+  Descripción: Filtra proveedores por estado
+
+MUTATIONS:
+- createProveedor(createProveedorInput: CreateProveedorDto!): Proveedor
+  Variables: nombre, contacto?, telefono?, email?, direccion?
+  Descripción: Crea un nuevo proveedor
+  
+- updateProveedor(id: Int!, updateProveedorInput: UpdateProveedorDto!): Proveedor
+  Variables: id + campos opcionales del proveedor
+  Descripción: Actualiza un proveedor existente
+  
+- removeProveedor(id: Int!): Boolean
+  Variables: id
+  Descripción: Elimina un proveedor del sistema
+
+================================================================================
+8. STOCK RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Controla todos los movimientos de stock del sistema, incluyendo entradas,
+salidas, ajustes y transferencias. Mantiene un historial completo de
+movimientos para auditoría y control de inventario.
+
+RAZONAMIENTO:
+El control de stock es crítico para el negocio. Cada movimiento (venta,
+compra, ajuste, devolución) debe registrarse para mantener exactitud en
+el inventario. Se registran costos, cantidades y conceptos para análisis
+detallado de movimientos.
+
+QUERIES:
+- movimientosStock: MovimientoStock[]
+  Variables: ninguna
+  Descripción: Obtiene todos los movimientos de stock
+  
+- movimientoStock(id: Int!): MovimientoStock
+  Variables: id
+  Descripción: Obtiene un movimiento específico
+  
+- movimientosPorArticulo(articuloId: Int!): MovimientoStock[]
+  Variables: articuloId
+  Descripción: Obtiene movimientos de un artículo específico
+  
+- movimientosPorFecha(fechaDesde: DateTime!, fechaHasta: DateTime!): MovimientoStock[]
+  Variables: fechaDesde, fechaHasta
+  Descripción: Filtra movimientos por rango de fechas
+
+MUTATIONS:
+- registrarMovimientoStock(articuloId: Int!, tipo: TipoMovimientoStock!, concepto: ConceptoMovimientoStock!, cantidad: Float!, costoUnitario: Float!, usuarioId: Int!, observaciones: String?): MovimientoStock
+  Variables: articuloId, tipo (ENTRADA/SALIDA), concepto, cantidad, costoUnitario, usuarioId, observaciones (opcional)
+  Descripción: Registra un movimiento de stock
+  
+- ajustarStock(articuloId: Int!, nuevaCantidad: Float!, usuarioId: Int!, motivo: String!): MovimientoStock
+  Variables: articuloId, nuevaCantidad, usuarioId, motivo
+  Descripción: Ajusta el stock de un artículo a una cantidad específica
+
+================================================================================
+9. RUBROS RESOLVER
+================================================================================
+
+DESCRIPCIÓN:
+Maneja las categorías o rubros de artículos para organizar el catálogo de
+productos. Permite agrupar artículos similares para facilitar búsquedas
+y reportes por categoría.
+
+RAZONAMIENTO:
+Los rubros organizan el catálogo de productos en categorías lógicas.
+Esto facilita la navegación, búsqueda y generación de reportes por
+categoría de productos. Cada artículo pertenece a un rubro específico.
+
+QUERIES:
+- rubros: Rubro[]
+  Variables: ninguna
+  Descripción: Obtiene todos los rubros
+  
+- rubro(id: Int!): Rubro
+  Variables: id
+  Descripción: Obtiene un rubro específico
+  
+- rubrosPorEstado(estado: EstadoRubro!): Rubro[]
+  Variables: estado (ACTIVO/INACTIVO)
+  Descripción: Filtra rubros por estado
+
+MUTATIONS:
+- createRubro(createRubroInput: CreateRubroDto!): Rubro
+  Variables: nombre, codigo?, descripcion?
+  Descripción: Crea un nuevo rubro
+  
+- updateRubro(id: Int!, updateRubroInput: UpdateRubroDto!): Rubro
+  Variables: id + campos opcionales del rubro
+  Descripción: Actualiza un rubro existente
+  
+- removeRubro(id: Int!): Boolean
+  Variables: id
+  Descripción: Elimina un rubro del sistema
+
+================================================================================
+SEGURIDAD Y AUTENTICACIÓN
+================================================================================
+
+TODOS LOS RESOLVERS REQUIEREN:
+- Header: X-Secret-Key con valor: mudras_secret_key_2024_secure_connection_frontend_backend
+- Este header se añade automáticamente desde el frontend via Apollo Client
+- Sin este header, todas las peticiones serán rechazadas con error 401
+
+TIPOS DE DATOS COMUNES:
+- DateTime: Fechas en formato ISO 8601
+- Float: Números decimales para precios y montos
+- Int: Números enteros para IDs
+- String: Texto general
+- Boolean: Verdadero/Falso
+
+ENUMS PRINCIPALES:
+- RolUsuario: ADMINISTRADOR, CAJA, DEPOSITO, DISEÑADOR_GRAFICO, PROGRAMADOR
+- TipoCliente: PARTICULAR, EMPRESA
+- EstadoCliente: ACTIVO, INACTIVO, MOROSO
+- TipoPago: EFECTIVO, TARJETA_DEBITO, TARJETA_CREDITO, TRANSFERENCIA, CUENTA_CORRIENTE, MIXTO
+- EstadoVenta: PENDIENTE, CONFIRMADA, ENTREGADA, CANCELADA
+- TipoMovimientoStock: ENTRADA, SALIDA
+- TipoCuentaContable: ACTIVO, PASIVO, PATRIMONIO, INGRESO, EGRESO
+
+================================================================================
+NOTAS IMPORTANTES
+================================================================================
+
+1. Todas las operaciones mantienen auditoría con timestamps de creación/actualización
+2. Los saldos se calculan automáticamente en movimientos de cuentas corrientes
+3. Los asientos contables deben estar balanceados (Debe = Haber)
+4. Los movimientos de stock actualizan automáticamente el stock del artículo
+5. Las ventas generan automáticamente movimientos de stock de salida
+6. Los precios se manejan con precisión decimal (12,2)
+7. Todos los resolvers incluyen validaciones de negocio en los servicios
+8. Las relaciones se cargan automáticamente según las necesidades de cada query
+
+================================================================================
+FIN DE DOCUMENTACIÓN
+================================================================================

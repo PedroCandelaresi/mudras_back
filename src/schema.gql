@@ -1,0 +1,700 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input ActualizarArticuloDto {
+  Codigo: String
+  Descripcion: String
+  EnPromocion: Boolean
+  Marca: String
+  PrecioCompra: Float
+  Rubro: String
+  Unidad: String
+  cantidadPorEmpaque: Float
+  codigoBarras: String
+  descripcionTienda: String
+  descuentoMonto: Float
+  descuentoPorcentaje: Float
+  estado: EstadoArticulo
+  fechaFinPromocion: String
+  fechaInicioPromocion: String
+  id: ID!
+  idProveedor: Float
+  imagenesUrls: [String!]
+  manejaStock: Boolean
+  precioVenta: Float
+  publicadoEnTienda: Boolean
+  rubroId: Float
+  stock: Float
+  stockMinimo: Float
+  tipoEmpaque: String
+  unidadMedida: String
+}
+
+type Articulo {
+  AlicuotaIva: Float
+  Calculado: Boolean
+  Codigo: String!
+  CodigoProv: String
+  Combustible: Boolean
+  Compuesto: Boolean
+  CostoEnDolares: Boolean
+  CostoPromedio: Float
+  Deposito: Float
+  Descripcion: String
+  Dto1: Float
+  Dto2: Float
+  Dto3: Float
+  EnPromocion: Boolean
+  FechaCompra: DateTime
+  FechaModif: DateTime
+  Impuesto: Float
+  ImpuestoPorcentual: Boolean
+  Lista1EnDolares: Boolean
+  Lista2: Float
+  Lista3: Float
+  Lista4: Float
+  Marca: String
+  PorcentajeGanancia: Float
+  PrecioCompra: Float
+  PrecioListaProveedor: Float
+  PrecioVenta: Float
+  Rubro: String
+  StockInicial: Float
+  StockMinimo: Float
+  Ubicacion: String
+  Unidad: String
+  UsaTalle: Boolean
+  id: ID!
+  idProveedor: Int
+  movimientosStock: [MovimientoStock!]
+  proveedor: Proveedor
+}
+
+type ArticulosConPaginacion {
+  articulos: [Articulo!]!
+  total: Int!
+}
+
+type AsientoContable {
+  actualizadoEn: DateTime!
+  creadoEn: DateTime!
+  descripcion: String
+  detalles: [DetalleAsientoContable!]
+  estado: EstadoAsientoContable!
+  fecha: DateTime!
+  fechaAnulacion: DateTime
+  id: ID!
+  numero: String!
+  numeroComprobante: String
+  tipo: TipoAsientoContable!
+  totalDebe: Float!
+  totalHaber: Float!
+  usuario: Usuario!
+}
+
+type BalanceGeneral {
+  activos: [CuentaContable!]!
+  diferencia: Float!
+  pasivos: [CuentaContable!]!
+  patrimonio: [CuentaContable!]!
+  totalActivos: Float!
+  totalPasivos: Float!
+  totalPatrimonio: Float!
+}
+
+type Cliente {
+  actualizadoEn: DateTime!
+  apellido: String
+  ciudad: String
+  codigoPostal: String
+  creadoEn: DateTime!
+  cuentasCorrientes: [CuentaCorriente!]
+  cuit: String
+  descuentoGeneral: Float!
+  direccion: String
+  email: String
+  estado: EstadoCliente!
+  fechaNacimiento: DateTime
+  id: ID!
+  limiteCredito: Float!
+  nombre: String!
+  observaciones: String
+  provincia: String
+  razonSocial: String
+  saldoActual: Float!
+  telefono: String
+  tipo: TipoCliente!
+  ventas: [Venta!]
+}
+
+"""Concepto del movimiento en cuenta corriente"""
+enum ConceptoMovimientoCuentaCorriente {
+  AJUSTE
+  COMPRA
+  DESCUENTO
+  INTERES
+  PAGO
+  VENTA
+}
+
+"""Conceptos de movimientos de stock"""
+enum ConceptoMovimientoStock {
+  AJUSTE_INVENTARIO
+  COMPRA
+  DEVOLUCION_CLIENTE
+  DEVOLUCION_PROVEEDOR
+  PRODUCCION
+  ROTURA
+  TRANSFERENCIA
+  VENCIMIENTO
+  VENTA
+}
+
+input CrearArticuloDto {
+  Codigo: String!
+  Descripcion: String!
+  EnPromocion: Boolean! = false
+  Marca: String
+  PrecioCompra: Float
+  Rubro: String
+  Unidad: String
+  cantidadPorEmpaque: Float! = 1
+  codigoBarras: String
+  descripcionTienda: String
+  descuentoMonto: Float! = 0
+  descuentoPorcentaje: Float! = 0
+  estado: EstadoArticulo! = ACTIVO
+  fechaFinPromocion: String
+  fechaInicioPromocion: String
+  idProveedor: Float
+  imagenesUrls: [String!]
+  manejaStock: Boolean! = true
+  precioVenta: Float!
+  publicadoEnTienda: Boolean! = false
+  rubroId: Float
+  stock: Float!
+  stockMinimo: Float!
+  tipoEmpaque: String! = "unidad"
+  unidadMedida: String! = "unidad"
+}
+
+input CreateClienteDto {
+  apellido: String
+  ciudad: String
+  codigoPostal: String
+  cuit: String
+  descuentoGeneral: Float! = 0
+  direccion: String
+  email: String
+  estado: EstadoCliente! = ACTIVO
+  fechaNacimiento: String
+  limiteCredito: Float! = 0
+  nombre: String!
+  observaciones: String
+  provincia: String
+  razonSocial: String
+  telefono: String
+  tipo: TipoCliente! = MINORISTA
+}
+
+input CreateUsuarioDto {
+  apellido: String!
+  direccion: String
+  email: String!
+  estado: EstadoUsuario! = ACTIVO
+  fechaIngreso: String
+  nombre: String!
+  password: String!
+  rol: RolUsuario!
+  salario: Float! = 0
+  telefono: String
+  username: String!
+}
+
+type CuentaContable {
+  aceptaMovimientos: Boolean!
+  actualizadoEn: DateTime!
+  codigo: String!
+  creadoEn: DateTime!
+  cuentaPadreId: Float
+  descripcion: String
+  detallesAsientos: [DetalleAsientoContable!]
+  estado: EstadoCuentaContable!
+  id: ID!
+  nivel: Float!
+  nombre: String!
+  saldoActual: Float!
+  tipo: TipoCuentaContable!
+}
+
+type CuentaCorriente {
+  actualizadoEn: DateTime!
+  cliente: Cliente
+  creadoEn: DateTime!
+  estado: EstadoCuentaCorriente!
+  fechaVencimiento: DateTime
+  id: ID!
+  limiteCredito: Float!
+  movimientos: [MovimientoCuentaCorriente!]
+  observaciones: String
+  proveedor: Proveedor
+  saldoActual: Float!
+  tipo: TipoCuentaCorriente!
+  usuario: Usuario!
+}
+
+"""Date custom scalar type"""
+scalar DateTime
+
+type DetalleAsientoContable {
+  asientoContable: AsientoContable!
+  creadoEn: DateTime!
+  cuentaContable: CuentaContable!
+  descripcion: String
+  id: ID!
+  monto: Float!
+  tipo: TipoMovimientoContable!
+}
+
+input DetalleAsientoInput {
+  cuentaContableId: Int!
+  descripcion: String
+  monto: Float!
+  tipoMovimiento: TipoMovimientoContable!
+}
+
+type DetalleVenta {
+  articulo: Articulo!
+  cantidad: Float!
+  creadoEn: DateTime!
+  descuentoMonto: Float!
+  descuentoPorcentaje: Float!
+  id: ID!
+  precioUnitario: Float!
+  subtotal: Float!
+  venta: Venta!
+}
+
+input DetalleVentaInput {
+  articuloId: Int!
+  cantidad: Float!
+  descuentoMonto: Float
+  descuentoPorcentaje: Float
+  precioUnitario: Float!
+}
+
+type EstadisticasArticulos {
+  articulosActivos: Int!
+  articulosConStock: Int!
+  articulosEnPromocion: Int!
+  articulosPublicadosEnTienda: Int!
+  articulosSinStock: Int!
+  articulosStockBajo: Int!
+  totalArticulos: Int!
+  valorTotalStock: Float!
+}
+
+"""Estados disponibles para artículos"""
+enum EstadoArticulo {
+  ACTIVO
+  DESCONTINUADO
+  INACTIVO
+}
+
+"""Estados de asientos contables"""
+enum EstadoAsientoContable {
+  ANULADO
+  BORRADOR
+  CONFIRMADO
+}
+
+"""Estados disponibles para clientes"""
+enum EstadoCliente {
+  ACTIVO
+  INACTIVO
+  MOROSO
+}
+
+"""Estados de cuentas contables"""
+enum EstadoCuentaContable {
+  ACTIVA
+  INACTIVA
+}
+
+"""Estado de la cuenta corriente"""
+enum EstadoCuentaCorriente {
+  ACTIVA
+  CERRADA
+  SUSPENDIDA
+}
+
+"""Estados disponibles para usuarios"""
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+  SUSPENDIDO
+}
+
+"""Estados de ventas"""
+enum EstadoVenta {
+  CANCELADA
+  CONFIRMADA
+  ENTREGADA
+  PENDIENTE
+}
+
+input FiltrosArticuloDto {
+  busqueda: String
+  codigo: String
+  descripcion: String
+  direccionOrden: String! = "ASC"
+  estado: EstadoArticulo
+  limite: Float! = 50
+  marca: String
+  ordenarPor: String! = "Descripcion"
+  pagina: Float! = 0
+  precioMaximo: Float
+  precioMinimo: Float
+  proveedorId: Float
+  rubroId: Float
+  soloConStock: Boolean
+  soloEnPromocion: Boolean
+  soloPublicadosEnTienda: Boolean
+  soloStockBajo: Boolean
+}
+
+input LoginDto {
+  password: String!
+  usernameOrEmail: String!
+}
+
+type MovimientoCuentaCorriente {
+  concepto: ConceptoMovimientoCuentaCorriente!
+  creadoEn: DateTime!
+  cuentaCorriente: CuentaCorriente!
+  descripcion: String
+  fecha: DateTime!
+  id: ID!
+  monto: Float!
+  numeroComprobante: String
+  saldoAnterior: Float!
+  saldoNuevo: Float!
+  tipo: TipoMovimientoCuentaCorriente!
+  usuario: Usuario!
+}
+
+type MovimientoStock {
+  articulo: Articulo!
+  cantidad: Float!
+  concepto: ConceptoMovimientoStock!
+  costoTotal: Float
+  costoUnitario: Float
+  creadoEn: DateTime!
+  fecha: DateTime!
+  id: ID!
+  numeroComprobante: String
+  observaciones: String
+  stockAnterior: Float!
+  stockNuevo: Float!
+  tipo: TipoMovimientoStock!
+  usuario: Usuario!
+}
+
+type Mutation {
+  activarCuenta(id: Int!): CuentaCorriente!
+  actualizarArticulo(actualizarArticuloDto: ActualizarArticuloDto!): Articulo!
+  actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente!
+  actualizarStockArticulo(id: Int!, nuevoStock: Float!): Articulo!
+  anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable!
+  cancelarVenta(id: Int!, motivoCancelacion: String!): Venta!
+  cerrarCuenta(id: Int!): CuentaCorriente!
+  confirmarVenta(id: Int!): Venta!
+  crearArticulo(crearArticuloDto: CrearArticuloDto!): Articulo!
+  crearAsientoContable(descripcion: String!, detalles: [DetalleAsientoInput!]!, tipo: TipoAsientoContable!, usuarioId: Int!): AsientoContable!
+  crearCuentaCliente(clienteId: Int!, limiteCredito: Float! = 0, usuarioId: Int!): CuentaCorriente!
+  crearCuentaContable(codigo: String!, cuentaPadreId: Int, nombre: String!, tipo: TipoCuentaContable!): CuentaContable!
+  crearCuentaProveedor(limiteCredito: Float! = 0, proveedorId: Int!, usuarioId: Int!): CuentaCorriente!
+  crearCuentasContablesBasicas: Boolean!
+  crearUsuariosEjemplo: Boolean!
+  crearVenta(clienteId: Int!, descuentoGeneral: Float! = 0, detalles: [DetalleVentaInput!]!, observaciones: String, tipoPago: TipoPago!, usuarioId: Int!): Venta!
+  createCliente(createClienteInput: CreateClienteDto!): Cliente!
+  createUsuario(createUsuarioInput: CreateUsuarioDto!): Usuario!
+  eliminarArticulo(id: Int!): Boolean!
+  login(loginInput: LoginDto!): Usuario!
+  registrarMovimiento(concepto: ConceptoMovimientoCuentaCorriente!, cuentaId: Int!, descripcion: String!, monto: Float!, numeroComprobante: String, tipo: TipoMovimientoCuentaCorriente!, usuarioId: Int!): MovimientoCuentaCorriente!
+  removeCliente(id: Int!): Boolean!
+  removeUsuario(id: Int!): Boolean!
+  suspenderCuenta(id: Int!): CuentaCorriente!
+  updateCliente(id: Int!, updateClienteInput: UpdateClienteDto!): Cliente!
+  updateUsuario(id: Int!, updateUsuarioInput: UpdateUsuarioDto!): Usuario!
+}
+
+type Proveedor {
+  CP: String
+  CUIT: String
+  Celular: String
+  Codigo: Int
+  Contacto: String
+  Direccion: String
+  Fax: String
+  FechaModif: DateTime
+  IdProveedor: ID!
+  Localidad: String
+  Mail: String
+  Nombre: String
+  Observaciones: String
+  Pais: String
+  Provincia: String
+  Rubro: String
+  Saldo: Float
+  Telefono: String
+  TipoIva: Int
+  Web: String
+  articulos: [Articulo!]
+  cuentasCorrientes: [CuentaCorriente!]
+}
+
+type Query {
+  articulo(id: Int!): Articulo!
+  articuloPorCodigo(codigo: String!): Articulo!
+  articuloPorCodigoBarras(codigoBarras: String!): Articulo
+  articulos: [Articulo!]!
+  articulosConStock: [Articulo!]!
+  articulosEnPromocion: [Articulo!]!
+  articulosPorDescripcion(descripcion: String!): [Articulo!]!
+  articulosPorProveedor(idProveedor: Int!): [Articulo!]!
+  articulosPorRubro(rubro: String!): [Articulo!]!
+  articulosSinStock: [Articulo!]!
+  articulosStockBajo: [Articulo!]!
+  asientoContable(id: Int!): AsientoContable!
+  asientosContables: [AsientoContable!]!
+  balanceGeneral: BalanceGeneral!
+  buscarArticulos(filtros: FiltrosArticuloDto!): ArticulosConPaginacion!
+  buscarClientesPorNombre(nombre: String!): [Cliente!]!
+  cliente(id: Int!): Cliente!
+  clientes: [Cliente!]!
+  clientesMorosos: [Cliente!]!
+  clientesPorEstado(estado: EstadoCliente!): [Cliente!]!
+  clientesPorTipo(tipo: TipoCliente!): [Cliente!]!
+  cuentaContable(id: Int!): CuentaContable!
+  cuentaCorriente(id: Int!): CuentaCorriente!
+  cuentasContables: [CuentaContable!]!
+  cuentasCorrientes: [CuentaCorriente!]!
+  cuentasPorCliente(clienteId: Int!): [CuentaCorriente!]!
+  cuentasPorProveedor(proveedorId: Int!): [CuentaCorriente!]!
+  estadisticasArticulos: EstadisticasArticulos!
+  movimientoStock(id: Int!): Stock!
+  movimientosCuentaCorriente(cuentaId: Int!): [MovimientoCuentaCorriente!]!
+  movimientosPorCodigo(codigo: String!): [Stock!]!
+  movimientosPorFecha(fechaFin: DateTime!, fechaInicio: DateTime!): [Stock!]!
+  movimientosStock: [Stock!]!
+  proveedor(id: Int!): Proveedor!
+  proveedorPorCodigo(codigo: Int!): Proveedor!
+  proveedores: [Proveedor!]!
+  proveedoresPorNombre(nombre: String!): [Proveedor!]!
+  resumenVentas(fechaDesde: DateTime!, fechaHasta: DateTime!): ResumenVentas!
+  rubro(id: Int!): Rubro!
+  rubroPorNombre(rubro: String!): Rubro!
+  rubros: [Rubro!]!
+  saldoCuentaCorriente(cuentaId: Int!): Float!
+  topArticulos(fechaDesde: DateTime!, fechaHasta: DateTime!, limite: Int! = 10): [TopArticulo!]!
+  ultimoMovimientoPorCodigo(codigo: String!): Stock!
+  usuario(id: Int!): Usuario!
+  usuarios: [Usuario!]!
+  usuariosPorRol(rol: RolUsuario!): [Usuario!]!
+  venta(id: Int!): Venta!
+  ventas: [Venta!]!
+  ventasPorCliente(clienteId: Int!): [Venta!]!
+  ventasPorFecha(fechaDesde: DateTime!, fechaHasta: DateTime!): [Venta!]!
+  ventasPorUsuario(usuarioId: Int!): [Venta!]!
+}
+
+type ResumenVentas {
+  montoTotal: Float!
+  promedioVenta: Float!
+  totalVentas: Float!
+  ventasCanceladas: Float!
+  ventasConfirmadas: Float!
+  ventasPendientes: Float!
+  ventasPorTipoPago: VentasPorTipoPago!
+}
+
+"""Roles disponibles para usuarios del sistema"""
+enum RolUsuario {
+  ADMINISTRADOR
+  CAJA
+  DEPOSITO
+  DIS_GRAFICO
+  PROGRAMADOR
+}
+
+type Rubro {
+  Codigo: String
+  Id: ID!
+  Rubro: String
+}
+
+type Stock {
+  Codigo: String
+  Fecha: DateTime
+  Id: ID!
+  Stock: Float
+  StockAnterior: Float
+  Usuario: Int
+}
+
+"""Tipos de asientos contables"""
+enum TipoAsientoContable {
+  AJUSTE
+  APERTURA_CAJA
+  CIERRE_CAJA
+  COBRO
+  COMPRA
+  PAGO
+  VENTA
+}
+
+"""Tipos de cliente disponibles"""
+enum TipoCliente {
+  DISTRIBUIDOR
+  MAYORISTA
+  MINORISTA
+}
+
+"""Tipos de cuentas contables"""
+enum TipoCuentaContable {
+  ACTIVO
+  EGRESO
+  INGRESO
+  PASIVO
+  PATRIMONIO
+}
+
+"""Tipo de cuenta corriente"""
+enum TipoCuentaCorriente {
+  CLIENTE
+  PROVEEDOR
+}
+
+"""Tipo de movimiento contable"""
+enum TipoMovimientoContable {
+  DEBE
+  HABER
+}
+
+"""Tipo de movimiento en cuenta corriente"""
+enum TipoMovimientoCuentaCorriente {
+  CREDITO
+  DEBITO
+}
+
+"""Tipos de movimientos de stock"""
+enum TipoMovimientoStock {
+  AJUSTE_NEGATIVO
+  AJUSTE_POSITIVO
+  ENTRADA
+  SALIDA
+  TRANSFERENCIA_ENTRADA
+  TRANSFERENCIA_SALIDA
+}
+
+"""Tipos de pago disponibles"""
+enum TipoPago {
+  CUENTA_CORRIENTE
+  EFECTIVO
+  MIXTO
+  TARJETA_CREDITO
+  TARJETA_DEBITO
+  TRANSFERENCIA
+}
+
+type TopArticulo {
+  articuloId: Float!
+  articuloNombre: String!
+  cantidadVendida: Float!
+  montoTotal: Float!
+  numeroVentas: Float!
+}
+
+input UpdateClienteDto {
+  apellido: String
+  ciudad: String
+  codigoPostal: String
+  cuit: String
+  descuentoGeneral: Float = 0
+  direccion: String
+  email: String
+  estado: EstadoCliente = ACTIVO
+  fechaNacimiento: String
+  limiteCredito: Float = 0
+  nombre: String
+  observaciones: String
+  provincia: String
+  razonSocial: String
+  telefono: String
+  tipo: TipoCliente = MINORISTA
+}
+
+input UpdateUsuarioDto {
+  apellido: String
+  direccion: String
+  email: String
+  estado: EstadoUsuario = ACTIVO
+  fechaIngreso: String
+  nombre: String
+  password: String
+  rol: RolUsuario
+  salario: Float = 0
+  telefono: String
+  username: String
+}
+
+type Usuario {
+  actualizadoEn: DateTime!
+  apellido: String!
+  asientosContables: [AsientoContable!]
+  creadoEn: DateTime!
+  cuentasCorrientes: [CuentaCorriente!]
+  direccion: String
+  email: String!
+  estado: EstadoUsuario!
+  fechaIngreso: DateTime
+  id: ID!
+  nombre: String!
+  rol: RolUsuario!
+  salario: Float!
+  telefono: String
+  ultimoAcceso: DateTime
+  username: String!
+}
+
+type Venta {
+  actualizadoEn: DateTime!
+  cambio: Float!
+  cliente: Cliente!
+  creadoEn: DateTime!
+  descuentoMonto: Float!
+  descuentoPorcentaje: Float!
+  detalles: [DetalleVenta!]
+  estado: EstadoVenta!
+  fecha: DateTime!
+  id: ID!
+  montoCuentaCorriente: Float!
+  montoEfectivo: Float!
+  montoTarjeta: Float!
+  montoTransferencia: Float!
+  numero: String!
+  observaciones: String
+  subtotal: Float!
+  tipoPago: TipoPago!
+  total: Float!
+  usuario: Usuario!
+}
+
+type VentasPorTipoPago {
+  cuentaCorriente: Float!
+  efectivo: Float!
+  tarjeta: Float!
+  transferencia: Float!
+}
