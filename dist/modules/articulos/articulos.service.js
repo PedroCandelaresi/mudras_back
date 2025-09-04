@@ -92,6 +92,137 @@ let ArticulosService = class ArticulosService {
             order: { Descripcion: 'ASC' },
         });
     }
+    async crear(crearArticuloDto) {
+        const articuloExistente = await this.articulosRepository.findOne({
+            where: { Codigo: crearArticuloDto.Codigo }
+        });
+        if (articuloExistente) {
+            throw new common_1.BadRequestException(`Ya existe un artículo con el código ${crearArticuloDto.Codigo}`);
+        }
+        const articulo = this.articulosRepository.create({
+            ...crearArticuloDto,
+        });
+        return this.articulosRepository.save(articulo);
+    }
+    async actualizar(actualizarArticuloDto) {
+        const articulo = await this.articulosRepository.findOne({
+            where: { id: actualizarArticuloDto.id }
+        });
+        if (!articulo) {
+            throw new common_1.NotFoundException(`Artículo con ID ${actualizarArticuloDto.id} no encontrado`);
+        }
+        if (actualizarArticuloDto.Codigo && actualizarArticuloDto.Codigo !== articulo.Codigo) {
+            const articuloExistente = await this.articulosRepository.findOne({
+                where: { Codigo: actualizarArticuloDto.Codigo }
+            });
+            if (articuloExistente) {
+                throw new common_1.BadRequestException(`Ya existe un artículo con el código ${actualizarArticuloDto.Codigo}`);
+            }
+        }
+        const datosActualizados = {
+            ...actualizarArticuloDto,
+        };
+        await this.articulosRepository.update(actualizarArticuloDto.id, datosActualizados);
+        return this.articulosRepository.findOne({
+            where: { id: actualizarArticuloDto.id },
+            relations: ['proveedor']
+        });
+    }
+    async eliminar(id) {
+        const articulo = await this.articulosRepository.findOne({ where: { id } });
+        if (!articulo) {
+            throw new common_1.NotFoundException(`Artículo con ID ${id} no encontrado`);
+        }
+        await this.articulosRepository.delete(id);
+        return true;
+    }
+    async buscarConFiltros(filtros) {
+        const queryBuilder = this.articulosRepository.createQueryBuilder('articulo')
+            .leftJoinAndSelect('articulo.proveedor', 'proveedor');
+        if (filtros.busqueda) {
+            queryBuilder.andWhere('(articulo.Descripcion LIKE :busqueda OR articulo.Codigo LIKE :busqueda OR articulo.Marca LIKE :busqueda)', { busqueda: `%${filtros.busqueda}%` });
+        }
+        if (filtros.codigo) {
+            queryBuilder.andWhere('articulo.Codigo LIKE :codigo', { codigo: `%${filtros.codigo}%` });
+        }
+        if (filtros.descripcion) {
+            queryBuilder.andWhere('articulo.Descripcion LIKE :descripcion', { descripcion: `%${filtros.descripcion}%` });
+        }
+        if (filtros.marca) {
+            queryBuilder.andWhere('articulo.Marca LIKE :marca', { marca: `%${filtros.marca}%` });
+        }
+        if (filtros.rubroId) {
+            queryBuilder.andWhere('articulo.Rubro = :rubro', { rubro: filtros.rubroId });
+        }
+        if (filtros.proveedorId) {
+            queryBuilder.andWhere('articulo.idProveedor = :proveedorId', { proveedorId: filtros.proveedorId });
+        }
+        if (filtros.soloConStock) {
+            queryBuilder.andWhere('articulo.Deposito > 0');
+        }
+        if (filtros.soloStockBajo) {
+            queryBuilder.andWhere('articulo.Deposito <= articulo.StockMinimo AND articulo.StockMinimo > 0');
+        }
+        if (filtros.soloEnPromocion) {
+            queryBuilder.andWhere('articulo.EnPromocion = true');
+        }
+        if (filtros.precioMinimo) {
+            queryBuilder.andWhere('articulo.PrecioVenta >= :precioMinimo', { precioMinimo: filtros.precioMinimo });
+        }
+        if (filtros.precioMaximo) {
+            queryBuilder.andWhere('articulo.PrecioVenta <= :precioMaximo', { precioMaximo: filtros.precioMaximo });
+        }
+        const total = await queryBuilder.getCount();
+        const articulos = await queryBuilder
+            .orderBy(`articulo.${filtros.ordenarPor}`, filtros.direccionOrden)
+            .skip(filtros.pagina * filtros.limite)
+            .take(filtros.limite)
+            .getMany();
+        return { articulos, total };
+    }
+    async obtenerEstadisticas() {
+        const [totalArticulos, articulosActivos, articulosConStock, articulosSinStock, articulosStockBajo, articulosEnPromocion, articulosPublicadosEnTienda, valorTotalStock] = await Promise.all([
+            this.articulosRepository.count(),
+            this.articulosRepository.count(),
+            this.articulosRepository.count({ where: { Deposito: (0, typeorm_2.Between)(0.01, 999999) } }),
+            this.articulosRepository.count({ where: { Deposito: 0 } }),
+            this.articulosRepository
+                .createQueryBuilder('articulo')
+                .where('articulo.Deposito <= articulo.StockMinimo AND articulo.StockMinimo > 0')
+                .getCount(),
+            this.articulosRepository.count({ where: { EnPromocion: true } }),
+            this.articulosRepository.count({ where: { EnPromocion: true } }),
+            this.articulosRepository
+                .createQueryBuilder('articulo')
+                .select('SUM(articulo.Deposito * articulo.PrecioVenta)', 'total')
+                .getRawOne()
+                .then(result => parseFloat(result.total) || 0)
+        ]);
+        return {
+            totalArticulos,
+            articulosActivos,
+            articulosConStock,
+            articulosSinStock,
+            articulosStockBajo,
+            articulosEnPromocion,
+            articulosPublicadosEnTienda,
+            valorTotalStock
+        };
+    }
+    async buscarPorCodigoBarras(codigoBarras) {
+        return this.articulosRepository.findOne({
+            where: { Codigo: codigoBarras },
+            relations: ['proveedor']
+        });
+    }
+    async actualizarStock(id, nuevoStock) {
+        const articulo = await this.articulosRepository.findOne({ where: { id } });
+        if (!articulo) {
+            throw new common_1.NotFoundException(`Artículo con ID ${id} no encontrado`);
+        }
+        await this.articulosRepository.update(id, { Deposito: nuevoStock });
+        return this.articulosRepository.findOne({ where: { id }, relations: ['proveedor'] });
+    }
 };
 exports.ArticulosService = ArticulosService;
 exports.ArticulosService = ArticulosService = __decorate([

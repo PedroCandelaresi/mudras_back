@@ -9,9 +9,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Proveedor = void 0;
+exports.Proveedor = exports.EstadoProveedor = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
+const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
+const cuenta_corriente_entity_1 = require("../../cuentas-corrientes/entities/cuenta-corriente.entity");
+var EstadoProveedor;
+(function (EstadoProveedor) {
+    EstadoProveedor["ACTIVO"] = "activo";
+    EstadoProveedor["INACTIVO"] = "inactivo";
+    EstadoProveedor["SUSPENDIDO"] = "suspendido";
+})(EstadoProveedor || (exports.EstadoProveedor = EstadoProveedor = {}));
+(0, graphql_1.registerEnumType)(EstadoProveedor, {
+    name: 'EstadoProveedor',
+    description: 'Estados disponibles para proveedores',
+});
 let Proveedor = class Proveedor {
 };
 exports.Proveedor = Proveedor;
@@ -115,6 +127,16 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'date', nullable: true }),
     __metadata("design:type", Date)
 ], Proveedor.prototype, "FechaModif", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => articulo_entity_1.Articulo, articulo => articulo.proveedor),
+    (0, graphql_1.Field)(() => [articulo_entity_1.Articulo], { nullable: true }),
+    __metadata("design:type", Array)
+], Proveedor.prototype, "articulos", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => cuenta_corriente_entity_1.CuentaCorriente, cuentaCorriente => cuentaCorriente.proveedor),
+    (0, graphql_1.Field)(() => [cuenta_corriente_entity_1.CuentaCorriente], { nullable: true }),
+    __metadata("design:type", Array)
+], Proveedor.prototype, "cuentasCorrientes", void 0);
 exports.Proveedor = Proveedor = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('tbproveedores')

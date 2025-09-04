@@ -6,7 +6,7 @@ const common_1 = require("@nestjs/common");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors({
-        origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+        origin: true,
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({
@@ -14,8 +14,8 @@ async function bootstrap() {
         whitelist: true,
         forbidNonWhitelisted: true,
     }));
-    await app.listen(4000);
-    console.log('🚀 Servidor GraphQL ejecutándose en http://localhost:4000/graphql');
+    await app.listen(4000, '0.0.0.0');
+    console.log('🚀 Servidor GraphQL ejecutándose en http://0.0.0.0:4000/graphql');
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

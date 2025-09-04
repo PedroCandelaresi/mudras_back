@@ -1,3 +1,10 @@
+import { Articulo } from '../../articulos/entities/articulo.entity';
+import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
+export declare enum EstadoProveedor {
+    ACTIVO = "activo",
+    INACTIVO = "inactivo",
+    SUSPENDIDO = "suspendido"
+}
 export declare class Proveedor {
     IdProveedor: number;
     Codigo: number;
@@ -19,4 +26,6 @@ export declare class Proveedor {
     Pais: string;
     Fax: string;
     FechaModif: Date;
+    articulos?: Articulo[];
+    cuentasCorrientes?: CuentaCorriente[];
 }

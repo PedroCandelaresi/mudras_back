@@ -16,6 +16,10 @@ exports.ArticulosResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const articulos_service_1 = require("./articulos.service");
 const articulo_entity_1 = require("./entities/articulo.entity");
+const crear_articulo_dto_1 = require("./dto/crear-articulo.dto");
+const actualizar_articulo_dto_1 = require("./dto/actualizar-articulo.dto");
+const filtros_articulo_dto_1 = require("./dto/filtros-articulo.dto");
+const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
 let ArticulosResolver = class ArticulosResolver {
     constructor(articulosService) {
         this.articulosService = articulosService;
@@ -49,6 +53,27 @@ let ArticulosResolver = class ArticulosResolver {
     }
     findEnPromocion() {
         return this.articulosService.findEnPromocion();
+    }
+    crearArticulo(crearArticuloDto) {
+        return this.articulosService.crear(crearArticuloDto);
+    }
+    actualizarArticulo(actualizarArticuloDto) {
+        return this.articulosService.actualizar(actualizarArticuloDto);
+    }
+    eliminarArticulo(id) {
+        return this.articulosService.eliminar(id);
+    }
+    buscarArticulos(filtros) {
+        return this.articulosService.buscarConFiltros(filtros);
+    }
+    estadisticasArticulos() {
+        return this.articulosService.obtenerEstadisticas();
+    }
+    articuloPorCodigoBarras(codigoBarras) {
+        return this.articulosService.buscarPorCodigoBarras(codigoBarras);
+    }
+    actualizarStockArticulo(id, nuevoStock) {
+        return this.articulosService.actualizarStock(id, nuevoStock);
     }
 };
 exports.ArticulosResolver = ArticulosResolver;
@@ -117,8 +142,111 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "findEnPromocion", null);
+__decorate([
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
+    __param(0, (0, graphql_1.Args)('crearArticuloDto')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [crear_articulo_dto_1.CrearArticuloDto]),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "crearArticulo", null);
+__decorate([
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
+    __param(0, (0, graphql_1.Args)('actualizarArticuloDto')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [actualizar_articulo_dto_1.ActualizarArticuloDto]),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "actualizarArticulo", null);
+__decorate([
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, graphql_1.Mutation)(() => Boolean),
+    __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "eliminarArticulo", null);
+__decorate([
+    (0, graphql_1.Query)(() => ArticulosConPaginacion),
+    __param(0, (0, graphql_1.Args)('filtros')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [filtros_articulo_dto_1.FiltrosArticuloDto]),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "buscarArticulos", null);
+__decorate([
+    (0, graphql_1.Query)(() => EstadisticasArticulos),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "estadisticasArticulos", null);
+__decorate([
+    (0, graphql_1.Query)(() => articulo_entity_1.Articulo, { nullable: true }),
+    __param(0, (0, graphql_1.Args)('codigoBarras')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "articuloPorCodigoBarras", null);
+__decorate([
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
+    __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
+    __param(1, (0, graphql_1.Args)('nuevoStock')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", void 0)
+], ArticulosResolver.prototype, "actualizarStockArticulo", null);
 exports.ArticulosResolver = ArticulosResolver = __decorate([
     (0, graphql_1.Resolver)(() => articulo_entity_1.Articulo),
     __metadata("design:paramtypes", [articulos_service_1.ArticulosService])
 ], ArticulosResolver);
+let ArticulosConPaginacion = class ArticulosConPaginacion {
+};
+__decorate([
+    (0, graphql_1.Field)(() => [articulo_entity_1.Articulo]),
+    __metadata("design:type", Array)
+], ArticulosConPaginacion.prototype, "articulos", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], ArticulosConPaginacion.prototype, "total", void 0);
+ArticulosConPaginacion = __decorate([
+    (0, graphql_1.ObjectType)()
+], ArticulosConPaginacion);
+let EstadisticasArticulos = class EstadisticasArticulos {
+};
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "totalArticulos", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "articulosActivos", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "articulosConStock", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "articulosSinStock", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "articulosStockBajo", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "articulosEnPromocion", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "articulosPublicadosEnTienda", void 0);
+__decorate([
+    (0, graphql_1.Field)(),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "valorTotalStock", void 0);
+EstadisticasArticulos = __decorate([
+    (0, graphql_1.ObjectType)()
+], EstadisticasArticulos);
 //# sourceMappingURL=articulos.resolver.js.map

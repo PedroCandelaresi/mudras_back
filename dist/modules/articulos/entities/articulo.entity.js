@@ -9,10 +9,21 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Articulo = void 0;
+exports.Articulo = exports.EstadoArticulo = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const proveedor_entity_1 = require("../../proveedores/entities/proveedor.entity");
+const movimiento_stock_entity_1 = require("../../stock/entities/movimiento-stock.entity");
+var EstadoArticulo;
+(function (EstadoArticulo) {
+    EstadoArticulo["ACTIVO"] = "activo";
+    EstadoArticulo["INACTIVO"] = "inactivo";
+    EstadoArticulo["DESCONTINUADO"] = "descontinuado";
+})(EstadoArticulo || (exports.EstadoArticulo = EstadoArticulo = {}));
+(0, graphql_1.registerEnumType)(EstadoArticulo, {
+    name: 'EstadoArticulo',
+    description: 'Estados disponibles para artículos',
+});
 let Articulo = class Articulo {
 };
 exports.Articulo = Articulo;
@@ -56,11 +67,6 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
     __metadata("design:type", Number)
 ], Articulo.prototype, "StockMinimo", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
-    (0, typeorm_1.Column)({ type: 'float', nullable: true }),
-    __metadata("design:type", Number)
-], Articulo.prototype, "Stock", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
@@ -198,10 +204,15 @@ __decorate([
 ], Articulo.prototype, "ImpuestoPorcentual", void 0);
 __decorate([
     (0, graphql_1.Field)(() => proveedor_entity_1.Proveedor, { nullable: true }),
-    (0, typeorm_1.ManyToOne)(() => proveedor_entity_1.Proveedor),
+    (0, typeorm_1.ManyToOne)(() => proveedor_entity_1.Proveedor, proveedor => proveedor.articulos),
     (0, typeorm_1.JoinColumn)({ name: 'idProveedor' }),
     __metadata("design:type", proveedor_entity_1.Proveedor)
 ], Articulo.prototype, "proveedor", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => movimiento_stock_entity_1.MovimientoStock, movimiento => movimiento.articulo),
+    (0, graphql_1.Field)(() => [movimiento_stock_entity_1.MovimientoStock], { nullable: true }),
+    __metadata("design:type", Array)
+], Articulo.prototype, "movimientosStock", void 0);
 exports.Articulo = Articulo = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('tbarticulos')
