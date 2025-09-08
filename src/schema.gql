@@ -31,6 +31,15 @@ input ActualizarArticuloDto {
   unidadMedida: String
 }
 
+input ActualizarPromocionInput {
+  descuento: Float
+  estado: String
+  fin: String
+  id: ID!
+  inicio: String
+  nombre: String
+}
+
 type Articulo {
   AlicuotaIva: Float
   Calculado: Boolean
@@ -177,6 +186,14 @@ input CrearArticuloDto {
   stockMinimo: Float!
   tipoEmpaque: String! = "unidad"
   unidadMedida: String! = "unidad"
+}
+
+input CrearPromocionInput {
+  descuento: Float!
+  estado: String
+  fin: String!
+  inicio: String!
+  nombre: String!
 }
 
 input CreateClienteDto {
@@ -329,6 +346,12 @@ enum EstadoCuentaCorriente {
   SUSPENDIDA
 }
 
+enum EstadoPromocion {
+  ACTIVA
+  FINALIZADA
+  PROGRAMADA
+}
+
 """Estados disponibles para usuarios"""
 enum EstadoUsuario {
   ACTIVO
@@ -405,6 +428,7 @@ type MovimientoStock {
 type Mutation {
   activarCuenta(id: Int!): CuentaCorriente!
   actualizarArticulo(actualizarArticuloDto: ActualizarArticuloDto!): Articulo!
+  actualizarPromocion(id: String!, input: ActualizarPromocionInput!): Promocion!
   actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente!
   actualizarStockArticulo(id: Int!, nuevoStock: Float!): Articulo!
   anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable!
@@ -417,11 +441,13 @@ type Mutation {
   crearCuentaContable(codigo: String!, cuentaPadreId: Int, nombre: String!, tipo: TipoCuentaContable!): CuentaContable!
   crearCuentaProveedor(limiteCredito: Float! = 0, proveedorId: Int!, usuarioId: Int!): CuentaCorriente!
   crearCuentasContablesBasicas: Boolean!
+  crearPromocion(input: CrearPromocionInput!): Promocion!
   crearUsuariosEjemplo: Boolean!
   crearVenta(clienteId: Int!, descuentoGeneral: Float! = 0, detalles: [DetalleVentaInput!]!, observaciones: String, tipoPago: TipoPago!, usuarioId: Int!): Venta!
   createCliente(createClienteInput: CreateClienteDto!): Cliente!
   createUsuario(createUsuarioInput: CreateUsuarioDto!): Usuario!
   eliminarArticulo(id: Int!): Boolean!
+  eliminarPromocion(id: String!): Boolean!
   login(loginInput: LoginDto!): Usuario!
   registrarMovimiento(concepto: ConceptoMovimientoCuentaCorriente!, cuentaId: Int!, descripcion: String!, monto: Float!, numeroComprobante: String, tipo: TipoMovimientoCuentaCorriente!, usuarioId: Int!): MovimientoCuentaCorriente!
   removeCliente(id: Int!): Boolean!
@@ -429,6 +455,17 @@ type Mutation {
   suspenderCuenta(id: Int!): CuentaCorriente!
   updateCliente(id: Int!, updateClienteInput: UpdateClienteDto!): Cliente!
   updateUsuario(id: Int!, updateUsuarioInput: UpdateUsuarioDto!): Usuario!
+}
+
+type Promocion {
+  createdAt: DateTime!
+  descuento: Float!
+  estado: EstadoPromocion!
+  fin: String!
+  id: ID!
+  inicio: String!
+  nombre: String!
+  updatedAt: DateTime!
 }
 
 type Proveedor {
@@ -490,6 +527,7 @@ type Query {
   movimientosPorCodigo(codigo: String!): [Stock!]!
   movimientosPorFecha(fechaFin: DateTime!, fechaInicio: DateTime!): [Stock!]!
   movimientosStock: [Stock!]!
+  promociones: [Promocion!]!
   proveedor(id: Int!): Proveedor!
   proveedorPorCodigo(codigo: Int!): Proveedor!
   proveedores: [Proveedor!]!
