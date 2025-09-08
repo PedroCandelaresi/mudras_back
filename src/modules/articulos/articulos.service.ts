@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Between, FindManyOptions } from 'typeorm';
 import { Articulo, EstadoArticulo } from './entities/articulo.entity';
@@ -12,6 +12,7 @@ export class ArticulosService {
     @InjectRepository(Articulo)
     private articulosRepository: Repository<Articulo>,
   ) {}
+  private readonly logger = new Logger(ArticulosService.name);
 
   async findAll(): Promise<Articulo[]> {
     return this.articulosRepository.find({
@@ -156,6 +157,7 @@ export class ArticulosService {
   }
 
   async buscarConFiltros(filtros: FiltrosArticuloDto): Promise<{ articulos: Articulo[], total: number }> {
+    this.logger.debug(`buscarConFiltros -> pagina=${filtros.pagina} limite=${filtros.limite} ordenarPor=${filtros.ordenarPor} dir=${filtros.direccionOrden} busqueda=${filtros.busqueda ?? ''}`);
     const queryBuilder = this.articulosRepository.createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor');
 
@@ -196,6 +198,10 @@ export class ArticulosService {
       queryBuilder.andWhere('articulo.Deposito <= articulo.StockMinimo AND articulo.StockMinimo > 0');
     }
 
+    if (filtros.soloSinStock) {
+      queryBuilder.andWhere('(articulo.Deposito <= 0 OR articulo.Deposito IS NULL)');
+    }
+
     if (filtros.soloEnPromocion) {
       queryBuilder.andWhere('articulo.EnPromocion = true');
     }
@@ -218,7 +224,7 @@ export class ArticulosService {
       .skip(filtros.pagina * filtros.limite)
       .take(filtros.limite)
       .getMany();
-
+    this.logger.debug(`buscarConFiltros <- devueltos=${articulos.length} de total=${total}`);
     return { articulos, total };
   }
 

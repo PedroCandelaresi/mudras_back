@@ -9,6 +9,7 @@ export declare class FiltrosArticuloDto {
     estado?: EstadoArticulo;
     soloConStock?: boolean;
     soloStockBajo?: boolean;
+    soloSinStock?: boolean;
     soloEnPromocion?: boolean;
     soloPublicadosEnTienda?: boolean;
     precioMinimo?: number;

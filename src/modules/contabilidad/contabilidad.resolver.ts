@@ -4,13 +4,20 @@ import { AsientoContable, TipoAsientoContable } from './entities/asiento-contabl
 import { CuentaContable, TipoCuentaContable } from './entities/cuenta-contable.entity';
 import { TipoMovimientoContable } from './entities/detalle-asiento-contable.entity';
 import { RequireSecretKey } from '../../common/decorators/secret-key.decorator';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permisos } from '../auth/decorators/permissions.decorator';
 
 @Resolver(() => AsientoContable)
 @RequireSecretKey()
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class ContabilidadResolver {
   constructor(private readonly contabilidadService: ContabilidadService) {}
 
   @Mutation(() => CuentaContable)
+  @Permisos('contabilidad.create')
   crearCuentaContable(
     @Args('codigo') codigo: string,
     @Args('nombre') nombre: string,
@@ -21,16 +28,19 @@ export class ContabilidadResolver {
   }
 
   @Query(() => [CuentaContable], { name: 'cuentasContables' })
+  @Permisos('contabilidad.read')
   obtenerCuentasContables() {
     return this.contabilidadService.obtenerCuentasContables();
   }
 
   @Query(() => CuentaContable, { name: 'cuentaContable' })
+  @Permisos('contabilidad.read')
   obtenerCuentaContable(@Args('id', { type: () => Int }) id: number) {
     return this.contabilidadService.obtenerCuentaContable(id);
   }
 
   @Mutation(() => AsientoContable)
+  @Permisos('contabilidad.create')
   crearAsientoContable(
     @Args('tipo', { type: () => TipoAsientoContable }) tipo: TipoAsientoContable,
     @Args('descripcion') descripcion: string,
@@ -41,16 +51,19 @@ export class ContabilidadResolver {
   }
 
   @Query(() => [AsientoContable], { name: 'asientosContables' })
+  @Permisos('contabilidad.read')
   obtenerAsientosContables() {
     return this.contabilidadService.obtenerAsientosContables();
   }
 
   @Query(() => AsientoContable, { name: 'asientoContable' })
+  @Permisos('contabilidad.read')
   obtenerAsientoContable(@Args('id', { type: () => Int }) id: number) {
     return this.contabilidadService.obtenerAsientoContable(id);
   }
 
   @Mutation(() => AsientoContable)
+  @Permisos('contabilidad.update')
   anularAsientoContable(
     @Args('id', { type: () => Int }) id: number,
     @Args('usuarioId', { type: () => Int }) usuarioId: number,
@@ -59,11 +72,13 @@ export class ContabilidadResolver {
   }
 
   @Query(() => BalanceGeneral, { name: 'balanceGeneral' })
+  @Permisos('contabilidad.read')
   obtenerBalanceGeneral() {
     return this.contabilidadService.obtenerBalanceGeneral();
   }
 
   @Mutation(() => Boolean)
+  @Permisos('contabilidad.create')
   async crearCuentasContablesBasicas() {
     await this.contabilidadService.crearCuentasContablesBasicas();
     return true;

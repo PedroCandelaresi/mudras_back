@@ -11,15 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var ArticulosService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticulosService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const articulo_entity_1 = require("./entities/articulo.entity");
-let ArticulosService = class ArticulosService {
+let ArticulosService = ArticulosService_1 = class ArticulosService {
     constructor(articulosRepository) {
         this.articulosRepository = articulosRepository;
+        this.logger = new common_1.Logger(ArticulosService_1.name);
     }
     async findAll() {
         return this.articulosRepository.find({
@@ -137,6 +139,7 @@ let ArticulosService = class ArticulosService {
         return true;
     }
     async buscarConFiltros(filtros) {
+        this.logger.debug(`buscarConFiltros -> pagina=${filtros.pagina} limite=${filtros.limite} ordenarPor=${filtros.ordenarPor} dir=${filtros.direccionOrden} busqueda=${filtros.busqueda ?? ''}`);
         const queryBuilder = this.articulosRepository.createQueryBuilder('articulo')
             .leftJoinAndSelect('articulo.proveedor', 'proveedor');
         if (filtros.busqueda) {
@@ -163,6 +166,9 @@ let ArticulosService = class ArticulosService {
         if (filtros.soloStockBajo) {
             queryBuilder.andWhere('articulo.Deposito <= articulo.StockMinimo AND articulo.StockMinimo > 0');
         }
+        if (filtros.soloSinStock) {
+            queryBuilder.andWhere('(articulo.Deposito <= 0 OR articulo.Deposito IS NULL)');
+        }
         if (filtros.soloEnPromocion) {
             queryBuilder.andWhere('articulo.EnPromocion = true');
         }
@@ -178,6 +184,7 @@ let ArticulosService = class ArticulosService {
             .skip(filtros.pagina * filtros.limite)
             .take(filtros.limite)
             .getMany();
+        this.logger.debug(`buscarConFiltros <- devueltos=${articulos.length} de total=${total}`);
         return { articulos, total };
     }
     async obtenerEstadisticas() {
@@ -225,7 +232,7 @@ let ArticulosService = class ArticulosService {
     }
 };
 exports.ArticulosService = ArticulosService;
-exports.ArticulosService = ArticulosService = __decorate([
+exports.ArticulosService = ArticulosService = ArticulosService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
     __metadata("design:paramtypes", [typeorm_2.Repository])

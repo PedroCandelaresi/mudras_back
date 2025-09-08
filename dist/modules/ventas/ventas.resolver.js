@@ -17,6 +17,11 @@ const graphql_1 = require("@nestjs/graphql");
 const ventas_service_1 = require("./ventas.service");
 const venta_entity_1 = require("./entities/venta.entity");
 const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
+const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 let VentasResolver = class VentasResolver {
     constructor(ventasService) {
         this.ventasService = ventasService;
@@ -55,6 +60,7 @@ let VentasResolver = class VentasResolver {
 exports.VentasResolver = VentasResolver;
 __decorate([
     (0, graphql_1.Mutation)(() => venta_entity_1.Venta),
+    (0, permissions_decorator_1.Permisos)('ventas.create'),
     __param(0, (0, graphql_1.Args)('clienteId', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
     __param(2, (0, graphql_1.Args)('tipoPago', { type: () => venta_entity_1.TipoPago })),
@@ -67,12 +73,14 @@ __decorate([
 ], VentasResolver.prototype, "crearVenta", null);
 __decorate([
     (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventas' }),
+    (0, permissions_decorator_1.Permisos)('ventas.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], VentasResolver.prototype, "findAll", null);
 __decorate([
     (0, graphql_1.Query)(() => venta_entity_1.Venta, { name: 'venta' }),
+    (0, permissions_decorator_1.Permisos)('ventas.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -80,6 +88,7 @@ __decorate([
 ], VentasResolver.prototype, "obtenerVenta", null);
 __decorate([
     (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventasPorCliente' }),
+    (0, permissions_decorator_1.Permisos)('ventas.read'),
     __param(0, (0, graphql_1.Args)('clienteId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -87,6 +96,7 @@ __decorate([
 ], VentasResolver.prototype, "obtenerVentasPorCliente", null);
 __decorate([
     (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventasPorUsuario' }),
+    (0, permissions_decorator_1.Permisos)('ventas.read'),
     __param(0, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -94,6 +104,7 @@ __decorate([
 ], VentasResolver.prototype, "obtenerVentasPorUsuario", null);
 __decorate([
     (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventasPorFecha' }),
+    (0, permissions_decorator_1.Permisos)('ventas.read'),
     __param(0, (0, graphql_1.Args)('fechaDesde')),
     __param(1, (0, graphql_1.Args)('fechaHasta')),
     __metadata("design:type", Function),
@@ -103,6 +114,7 @@ __decorate([
 ], VentasResolver.prototype, "obtenerVentasPorFecha", null);
 __decorate([
     (0, graphql_1.Mutation)(() => venta_entity_1.Venta),
+    (0, permissions_decorator_1.Permisos)('ventas.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -110,6 +122,7 @@ __decorate([
 ], VentasResolver.prototype, "confirmarVenta", null);
 __decorate([
     (0, graphql_1.Mutation)(() => venta_entity_1.Venta),
+    (0, permissions_decorator_1.Permisos)('ventas.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('motivoCancelacion')),
     __metadata("design:type", Function),
@@ -138,6 +151,7 @@ __decorate([
 exports.VentasResolver = VentasResolver = __decorate([
     (0, graphql_1.Resolver)(() => venta_entity_1.Venta),
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [ventas_service_1.VentasService])
 ], VentasResolver);
 const graphql_2 = require("@nestjs/graphql");

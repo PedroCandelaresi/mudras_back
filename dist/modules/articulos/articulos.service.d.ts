@@ -6,6 +6,7 @@ import { FiltrosArticuloDto } from './dto/filtros-articulo.dto';
 export declare class ArticulosService {
     private articulosRepository;
     constructor(articulosRepository: Repository<Articulo>);
+    private readonly logger;
     findAll(): Promise<Articulo[]>;
     findOne(id: number): Promise<Articulo>;
     findByCodigo(codigo: string): Promise<Articulo>;

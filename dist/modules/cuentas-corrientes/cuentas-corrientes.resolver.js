@@ -18,6 +18,11 @@ const cuentas_corrientes_service_1 = require("./cuentas-corrientes.service");
 const cuenta_corriente_entity_1 = require("./entities/cuenta-corriente.entity");
 const movimiento_cuenta_corriente_entity_1 = require("./entities/movimiento-cuenta-corriente.entity");
 const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
+const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 let CuentasCorrientesResolver = class CuentasCorrientesResolver {
     constructor(cuentasCorrientesService) {
         this.cuentasCorrientesService = cuentasCorrientesService;
@@ -62,6 +67,7 @@ let CuentasCorrientesResolver = class CuentasCorrientesResolver {
 exports.CuentasCorrientesResolver = CuentasCorrientesResolver;
 __decorate([
     (0, graphql_1.Mutation)(() => cuenta_corriente_entity_1.CuentaCorriente),
+    (0, permissions_decorator_1.Permisos)('cuentas.create'),
     __param(0, (0, graphql_1.Args)('clienteId', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
     __param(2, (0, graphql_1.Args)('limiteCredito', { defaultValue: 0 })),
@@ -71,6 +77,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "crearCuentaCliente", null);
 __decorate([
     (0, graphql_1.Mutation)(() => cuenta_corriente_entity_1.CuentaCorriente),
+    (0, permissions_decorator_1.Permisos)('cuentas.create'),
     __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
     __param(2, (0, graphql_1.Args)('limiteCredito', { defaultValue: 0 })),
@@ -80,12 +87,14 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "crearCuentaProveedor", null);
 __decorate([
     (0, graphql_1.Query)(() => [cuenta_corriente_entity_1.CuentaCorriente], { name: 'cuentasCorrientes' }),
+    (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], CuentasCorrientesResolver.prototype, "findAll", null);
 __decorate([
     (0, graphql_1.Query)(() => cuenta_corriente_entity_1.CuentaCorriente, { name: 'cuentaCorriente' }),
+    (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -93,6 +102,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "findOne", null);
 __decorate([
     (0, graphql_1.Query)(() => [cuenta_corriente_entity_1.CuentaCorriente], { name: 'cuentasPorCliente' }),
+    (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __param(0, (0, graphql_1.Args)('clienteId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -100,6 +110,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "findByCliente", null);
 __decorate([
     (0, graphql_1.Query)(() => [cuenta_corriente_entity_1.CuentaCorriente], { name: 'cuentasPorProveedor' }),
+    (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -107,6 +118,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "findByProveedor", null);
 __decorate([
     (0, graphql_1.Mutation)(() => movimiento_cuenta_corriente_entity_1.MovimientoCuentaCorriente),
+    (0, permissions_decorator_1.Permisos)('cuentas.update'),
     __param(0, (0, graphql_1.Args)('cuentaId', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('tipo', { type: () => movimiento_cuenta_corriente_entity_1.TipoMovimientoCuentaCorriente })),
     __param(2, (0, graphql_1.Args)('concepto', { type: () => movimiento_cuenta_corriente_entity_1.ConceptoMovimientoCuentaCorriente })),
@@ -120,6 +132,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "registrarMovimiento", null);
 __decorate([
     (0, graphql_1.Query)(() => Number, { name: 'saldoCuentaCorriente' }),
+    (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __param(0, (0, graphql_1.Args)('cuentaId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -127,6 +140,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "obtenerSaldo", null);
 __decorate([
     (0, graphql_1.Query)(() => [movimiento_cuenta_corriente_entity_1.MovimientoCuentaCorriente], { name: 'movimientosCuentaCorriente' }),
+    (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __param(0, (0, graphql_1.Args)('cuentaId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -134,6 +148,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "obtenerMovimientos", null);
 __decorate([
     (0, graphql_1.Mutation)(() => cuenta_corriente_entity_1.CuentaCorriente),
+    (0, permissions_decorator_1.Permisos)('cuentas.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -141,6 +156,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "cerrarCuenta", null);
 __decorate([
     (0, graphql_1.Mutation)(() => cuenta_corriente_entity_1.CuentaCorriente),
+    (0, permissions_decorator_1.Permisos)('cuentas.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -148,6 +164,7 @@ __decorate([
 ], CuentasCorrientesResolver.prototype, "suspenderCuenta", null);
 __decorate([
     (0, graphql_1.Mutation)(() => cuenta_corriente_entity_1.CuentaCorriente),
+    (0, permissions_decorator_1.Permisos)('cuentas.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -156,6 +173,7 @@ __decorate([
 exports.CuentasCorrientesResolver = CuentasCorrientesResolver = __decorate([
     (0, graphql_1.Resolver)(() => cuenta_corriente_entity_1.CuentaCorriente),
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [cuentas_corrientes_service_1.CuentasCorrientesService])
 ], CuentasCorrientesResolver);
 //# sourceMappingURL=cuentas-corrientes.resolver.js.map

@@ -4,8 +4,7 @@ export class CreateMudrasAuthTables1714848000000 implements MigrationInterface {
   name = 'CreateMudrasAuthTables1714848000000'
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.startTransaction();
-    try {
+    
       // mudras_auth_users
       await queryRunner.query(`
         CREATE TABLE IF NOT EXISTS mudras_auth_users (
@@ -104,28 +103,16 @@ export class CreateMudrasAuthTables1714848000000 implements MigrationInterface {
           CONSTRAINT fk_refresh_user FOREIGN KEY (user_id) REFERENCES mudras_auth_users(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
       `);
-
-      await queryRunner.commitTransaction();
-    } catch (e) {
-      await queryRunner.rollbackTransaction();
-      throw e;
-    }
+    
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.startTransaction();
-    try {
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_refresh_tokens`);
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_user_providers`);
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_role_permissions`);
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_user_roles`);
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_permissions`);
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_roles`);
-      await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_users`);
-      await queryRunner.commitTransaction();
-    } catch (e) {
-      await queryRunner.rollbackTransaction();
-      throw e;
-    }
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_refresh_tokens`);
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_user_providers`);
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_role_permissions`);
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_user_roles`);
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_permissions`);
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_roles`);
+    await queryRunner.query(`DROP TABLE IF EXISTS mudras_auth_users`);
   }
 }

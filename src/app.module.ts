@@ -16,6 +16,12 @@ import { ClientesModule } from './modules/clientes/clientes.module';
 import { CuentasCorrientesModule } from './modules/cuentas-corrientes/cuentas-corrientes.module';
 import { ContabilidadModule } from './modules/contabilidad/contabilidad.module';
 import { VentasModule } from './modules/ventas/ventas.module';
+import { PromocionesModule } from './modules/promociones/promociones.module';
+// RBAC / Auth
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersAuthModule } from './modules/users-auth/users-auth.module';
+import { RolesModule } from './modules/roles/roles.module';
+import { PermissionsModule } from './modules/permissions/permissions.module';
 
 // Entidades
 import { Articulo } from './modules/articulos/entities/articulo.entity';
@@ -31,7 +37,15 @@ import { DetalleAsientoContable } from './modules/contabilidad/entities/detalle-
 import { CuentaContable } from './modules/contabilidad/entities/cuenta-contable.entity';
 import { Venta } from './modules/ventas/entities/venta.entity';
 import { DetalleVenta } from './modules/ventas/entities/detalle-venta.entity';
+import { Promocion } from './modules/promociones/entities/promocion.entity';
 import { MovimientoStock } from './modules/stock/entities/movimiento-stock.entity';
+import { UserAuth } from './modules/users-auth/entities/user.entity';
+import { Role } from './modules/roles/entities/role.entity';
+import { Permission } from './modules/permissions/entities/permission.entity';
+import { RolePermission } from './modules/roles/entities/role-permission.entity';
+import { UserRole } from './modules/users-auth/entities/user-role.entity';
+import { UserProvider } from './modules/users-auth/entities/user-provider.entity';
+import { RefreshToken } from './modules/users-auth/entities/refresh-token.entity';
 
 @Module({
   imports: [
@@ -62,7 +76,16 @@ import { MovimientoStock } from './modules/stock/entities/movimiento-stock.entit
         CuentaContable,
         Venta,
         DetalleVenta,
+        Promocion,
         MovimientoStock,
+        // RBAC entities
+        UserAuth,
+        Role,
+        Permission,
+        RolePermission,
+        UserRole,
+        UserProvider,
+        RefreshToken,
       ],
       synchronize: false, // No modificar estructura de BD existente
       logging: true,
@@ -87,6 +110,12 @@ import { MovimientoStock } from './modules/stock/entities/movimiento-stock.entit
     CuentasCorrientesModule,
     ContabilidadModule,
     VentasModule,
+    PromocionesModule,
+    // RBAC / Auth modules
+    AuthModule,
+    UsersAuthModule,
+    RolesModule,
+    PermissionsModule,
   ],
   providers: [DateTimeScalar],
 })

@@ -16,6 +16,11 @@ exports.ProveedoresResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const proveedores_service_1 = require("./proveedores.service");
 const proveedor_entity_1 = require("./entities/proveedor.entity");
+const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 let ProveedoresResolver = class ProveedoresResolver {
     constructor(proveedoresService) {
         this.proveedoresService = proveedoresService;
@@ -36,12 +41,14 @@ let ProveedoresResolver = class ProveedoresResolver {
 exports.ProveedoresResolver = ProveedoresResolver;
 __decorate([
     (0, graphql_1.Query)(() => [proveedor_entity_1.Proveedor], { name: 'proveedores' }),
+    (0, permissions_decorator_1.Permisos)('proveedores.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ProveedoresResolver.prototype, "findAll", null);
 __decorate([
     (0, graphql_1.Query)(() => proveedor_entity_1.Proveedor, { name: 'proveedor' }),
+    (0, permissions_decorator_1.Permisos)('proveedores.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -49,6 +56,7 @@ __decorate([
 ], ProveedoresResolver.prototype, "findOne", null);
 __decorate([
     (0, graphql_1.Query)(() => proveedor_entity_1.Proveedor, { name: 'proveedorPorCodigo' }),
+    (0, permissions_decorator_1.Permisos)('proveedores.read'),
     __param(0, (0, graphql_1.Args)('codigo', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -56,6 +64,7 @@ __decorate([
 ], ProveedoresResolver.prototype, "findByCodigo", null);
 __decorate([
     (0, graphql_1.Query)(() => [proveedor_entity_1.Proveedor], { name: 'proveedoresPorNombre' }),
+    (0, permissions_decorator_1.Permisos)('proveedores.read'),
     __param(0, (0, graphql_1.Args)('nombre')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -63,6 +72,7 @@ __decorate([
 ], ProveedoresResolver.prototype, "findByNombre", null);
 exports.ProveedoresResolver = ProveedoresResolver = __decorate([
     (0, graphql_1.Resolver)(() => proveedor_entity_1.Proveedor),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [proveedores_service_1.ProveedoresService])
 ], ProveedoresResolver);
 //# sourceMappingURL=proveedores.resolver.js.map

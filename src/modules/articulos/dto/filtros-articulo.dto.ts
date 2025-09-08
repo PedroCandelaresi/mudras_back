@@ -52,6 +52,11 @@ export class FiltrosArticuloDto {
   @Field({ nullable: true })
   @IsOptional()
   @IsBoolean()
+  soloSinStock?: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
   soloEnPromocion?: boolean;
 
   @Field({ nullable: true })
@@ -85,3 +90,4 @@ export class FiltrosArticuloDto {
   @IsString()
   direccionOrden: 'ASC' | 'DESC';
 }
+

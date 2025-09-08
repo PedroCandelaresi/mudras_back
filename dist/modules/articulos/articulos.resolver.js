@@ -14,12 +14,18 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ArticulosResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
+const common_1 = require("@nestjs/common");
 const articulos_service_1 = require("./articulos.service");
 const articulo_entity_1 = require("./entities/articulo.entity");
 const crear_articulo_dto_1 = require("./dto/crear-articulo.dto");
 const actualizar_articulo_dto_1 = require("./dto/actualizar-articulo.dto");
 const filtros_articulo_dto_1 = require("./dto/filtros-articulo.dto");
 const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
 let ArticulosResolver = class ArticulosResolver {
     constructor(articulosService) {
         this.articulosService = articulosService;
@@ -79,12 +85,14 @@ let ArticulosResolver = class ArticulosResolver {
 exports.ArticulosResolver = ArticulosResolver;
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulos' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "findAll", null);
 __decorate([
     (0, graphql_1.Query)(() => articulo_entity_1.Articulo, { name: 'articulo' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -92,6 +100,7 @@ __decorate([
 ], ArticulosResolver.prototype, "findOne", null);
 __decorate([
     (0, graphql_1.Query)(() => articulo_entity_1.Articulo, { name: 'articuloPorCodigo' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('codigo')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -99,6 +108,7 @@ __decorate([
 ], ArticulosResolver.prototype, "findByCodigo", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosPorRubro' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('rubro')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -106,6 +116,7 @@ __decorate([
 ], ArticulosResolver.prototype, "findByRubro", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosPorDescripcion' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('descripcion')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -113,6 +124,7 @@ __decorate([
 ], ArticulosResolver.prototype, "findByDescripcion", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosPorProveedor' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('idProveedor', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -120,30 +132,36 @@ __decorate([
 ], ArticulosResolver.prototype, "findByProveedor", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosConStock' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "findConStock", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosSinStock' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "findSinStock", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosStockBajo' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "findStockBajo", null);
 __decorate([
     (0, graphql_1.Query)(() => [articulo_entity_1.Articulo], { name: 'articulosEnPromocion' }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "findEnPromocion", null);
 __decorate([
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, roles_decorator_1.Roles)('administrador'),
+    (0, permissions_decorator_1.Permisos)('productos.create'),
     (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
     __param(0, (0, graphql_1.Args)('crearArticuloDto')),
     __metadata("design:type", Function),
@@ -152,6 +170,8 @@ __decorate([
 ], ArticulosResolver.prototype, "crearArticulo", null);
 __decorate([
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, roles_decorator_1.Roles)('administrador'),
+    (0, permissions_decorator_1.Permisos)('productos.update'),
     (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
     __param(0, (0, graphql_1.Args)('actualizarArticuloDto')),
     __metadata("design:type", Function),
@@ -160,6 +180,8 @@ __decorate([
 ], ArticulosResolver.prototype, "actualizarArticulo", null);
 __decorate([
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, roles_decorator_1.Roles)('administrador'),
+    (0, permissions_decorator_1.Permisos)('productos.delete'),
     (0, graphql_1.Mutation)(() => Boolean),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
@@ -168,6 +190,7 @@ __decorate([
 ], ArticulosResolver.prototype, "eliminarArticulo", null);
 __decorate([
     (0, graphql_1.Query)(() => ArticulosConPaginacion),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('filtros')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [filtros_articulo_dto_1.FiltrosArticuloDto]),
@@ -175,12 +198,14 @@ __decorate([
 ], ArticulosResolver.prototype, "buscarArticulos", null);
 __decorate([
     (0, graphql_1.Query)(() => EstadisticasArticulos),
+    (0, permissions_decorator_1.Permisos)('dashboard.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "estadisticasArticulos", null);
 __decorate([
     (0, graphql_1.Query)(() => articulo_entity_1.Articulo, { nullable: true }),
+    (0, permissions_decorator_1.Permisos)('productos.read'),
     __param(0, (0, graphql_1.Args)('codigoBarras')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -188,6 +213,8 @@ __decorate([
 ], ArticulosResolver.prototype, "articuloPorCodigoBarras", null);
 __decorate([
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, roles_decorator_1.Roles)('administrador'),
+    (0, permissions_decorator_1.Permisos)('stock.update'),
     (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('nuevoStock')),
@@ -197,6 +224,7 @@ __decorate([
 ], ArticulosResolver.prototype, "actualizarStockArticulo", null);
 exports.ArticulosResolver = ArticulosResolver = __decorate([
     (0, graphql_1.Resolver)(() => articulo_entity_1.Articulo),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [articulos_service_1.ArticulosService])
 ], ArticulosResolver);
 let ArticulosConPaginacion = class ArticulosConPaginacion {

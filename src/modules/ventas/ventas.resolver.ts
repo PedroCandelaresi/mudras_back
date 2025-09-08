@@ -2,13 +2,20 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { VentasService } from './ventas.service';
 import { Venta, EstadoVenta, TipoPago } from './entities/venta.entity';
 import { RequireSecretKey } from '../../common/decorators/secret-key.decorator';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permisos } from '../auth/decorators/permissions.decorator';
 
 @Resolver(() => Venta)
 @RequireSecretKey()
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class VentasResolver {
   constructor(private readonly ventasService: VentasService) {}
 
   @Mutation(() => Venta)
+  @Permisos('ventas.create')
   crearVenta(
     @Args('clienteId', { type: () => Int }) clienteId: number,
     @Args('usuarioId', { type: () => Int }) usuarioId: number,
@@ -28,26 +35,31 @@ export class VentasResolver {
   }
 
   @Query(() => [Venta], { name: 'ventas' })
+  @Permisos('ventas.read')
   findAll() {
     return this.ventasService.findAll();
   }
 
   @Query(() => Venta, { name: 'venta' })
+  @Permisos('ventas.read')
   obtenerVenta(@Args('id', { type: () => Int }) id: number) {
     return this.ventasService.obtenerVenta(id);
   }
 
   @Query(() => [Venta], { name: 'ventasPorCliente' })
+  @Permisos('ventas.read')
   obtenerVentasPorCliente(@Args('clienteId', { type: () => Int }) clienteId: number) {
     return this.ventasService.obtenerVentasPorCliente(clienteId);
   }
 
   @Query(() => [Venta], { name: 'ventasPorUsuario' })
+  @Permisos('ventas.read')
   obtenerVentasPorUsuario(@Args('usuarioId', { type: () => Int }) usuarioId: number) {
     return this.ventasService.obtenerVentasPorUsuario(usuarioId);
   }
 
   @Query(() => [Venta], { name: 'ventasPorFecha' })
+  @Permisos('ventas.read')
   obtenerVentasPorFecha(
     @Args('fechaDesde') fechaDesde: Date,
     @Args('fechaHasta') fechaHasta: Date,
@@ -56,11 +68,13 @@ export class VentasResolver {
   }
 
   @Mutation(() => Venta)
+  @Permisos('ventas.update')
   confirmarVenta(@Args('id', { type: () => Int }) id: number) {
     return this.ventasService.confirmarVenta(id);
   }
 
   @Mutation(() => Venta)
+  @Permisos('ventas.update')
   cancelarVenta(
     @Args('id', { type: () => Int }) id: number,
     @Args('motivoCancelacion') motivoCancelacion: string,

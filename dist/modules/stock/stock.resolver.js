@@ -16,6 +16,11 @@ exports.StockResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const stock_service_1 = require("./stock.service");
 const stock_entity_1 = require("./entities/stock.entity");
+const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 let StockResolver = class StockResolver {
     constructor(stockService) {
         this.stockService = stockService;
@@ -39,12 +44,14 @@ let StockResolver = class StockResolver {
 exports.StockResolver = StockResolver;
 __decorate([
     (0, graphql_1.Query)(() => [stock_entity_1.Stock], { name: 'movimientosStock' }),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], StockResolver.prototype, "findAll", null);
 __decorate([
     (0, graphql_1.Query)(() => stock_entity_1.Stock, { name: 'movimientoStock' }),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -52,6 +59,7 @@ __decorate([
 ], StockResolver.prototype, "findOne", null);
 __decorate([
     (0, graphql_1.Query)(() => [stock_entity_1.Stock], { name: 'movimientosPorCodigo' }),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('codigo')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -59,6 +67,7 @@ __decorate([
 ], StockResolver.prototype, "findByCodigo", null);
 __decorate([
     (0, graphql_1.Query)(() => [stock_entity_1.Stock], { name: 'movimientosPorFecha' }),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('fechaInicio')),
     __param(1, (0, graphql_1.Args)('fechaFin')),
     __metadata("design:type", Function),
@@ -68,6 +77,7 @@ __decorate([
 ], StockResolver.prototype, "findMovimientosPorFecha", null);
 __decorate([
     (0, graphql_1.Query)(() => stock_entity_1.Stock, { name: 'ultimoMovimientoPorCodigo' }),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('codigo')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
@@ -75,6 +85,7 @@ __decorate([
 ], StockResolver.prototype, "findUltimoMovimientoPorCodigo", null);
 exports.StockResolver = StockResolver = __decorate([
     (0, graphql_1.Resolver)(() => stock_entity_1.Stock),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [stock_service_1.StockService])
 ], StockResolver);
 //# sourceMappingURL=stock.resolver.js.map

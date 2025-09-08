@@ -23,6 +23,11 @@ const clientes_module_1 = require("./modules/clientes/clientes.module");
 const cuentas_corrientes_module_1 = require("./modules/cuentas-corrientes/cuentas-corrientes.module");
 const contabilidad_module_1 = require("./modules/contabilidad/contabilidad.module");
 const ventas_module_1 = require("./modules/ventas/ventas.module");
+const promociones_module_1 = require("./modules/promociones/promociones.module");
+const auth_module_1 = require("./modules/auth/auth.module");
+const users_auth_module_1 = require("./modules/users-auth/users-auth.module");
+const roles_module_1 = require("./modules/roles/roles.module");
+const permissions_module_1 = require("./modules/permissions/permissions.module");
 const articulo_entity_1 = require("./modules/articulos/entities/articulo.entity");
 const proveedor_entity_1 = require("./modules/proveedores/entities/proveedor.entity");
 const stock_entity_1 = require("./modules/stock/entities/stock.entity");
@@ -36,7 +41,15 @@ const detalle_asiento_contable_entity_1 = require("./modules/contabilidad/entiti
 const cuenta_contable_entity_1 = require("./modules/contabilidad/entities/cuenta-contable.entity");
 const venta_entity_1 = require("./modules/ventas/entities/venta.entity");
 const detalle_venta_entity_1 = require("./modules/ventas/entities/detalle-venta.entity");
+const promocion_entity_1 = require("./modules/promociones/entities/promocion.entity");
 const movimiento_stock_entity_1 = require("./modules/stock/entities/movimiento-stock.entity");
+const user_entity_1 = require("./modules/users-auth/entities/user.entity");
+const role_entity_1 = require("./modules/roles/entities/role.entity");
+const permission_entity_1 = require("./modules/permissions/entities/permission.entity");
+const role_permission_entity_1 = require("./modules/roles/entities/role-permission.entity");
+const user_role_entity_1 = require("./modules/users-auth/entities/user-role.entity");
+const user_provider_entity_1 = require("./modules/users-auth/entities/user-provider.entity");
+const refresh_token_entity_1 = require("./modules/users-auth/entities/refresh-token.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -67,7 +80,15 @@ exports.AppModule = AppModule = __decorate([
                     cuenta_contable_entity_1.CuentaContable,
                     venta_entity_1.Venta,
                     detalle_venta_entity_1.DetalleVenta,
+                    promocion_entity_1.Promocion,
                     movimiento_stock_entity_1.MovimientoStock,
+                    user_entity_1.UserAuth,
+                    role_entity_1.Role,
+                    permission_entity_1.Permission,
+                    role_permission_entity_1.RolePermission,
+                    user_role_entity_1.UserRole,
+                    user_provider_entity_1.UserProvider,
+                    refresh_token_entity_1.RefreshToken,
                 ],
                 synchronize: false,
                 logging: true,
@@ -88,6 +109,11 @@ exports.AppModule = AppModule = __decorate([
             cuentas_corrientes_module_1.CuentasCorrientesModule,
             contabilidad_module_1.ContabilidadModule,
             ventas_module_1.VentasModule,
+            promociones_module_1.PromocionesModule,
+            auth_module_1.AuthModule,
+            users_auth_module_1.UsersAuthModule,
+            roles_module_1.RolesModule,
+            permissions_module_1.PermissionsModule,
         ],
         providers: [date_scalar_1.DateTimeScalar],
     })

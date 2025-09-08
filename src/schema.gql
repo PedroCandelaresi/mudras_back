@@ -361,6 +361,7 @@ input FiltrosArticuloDto {
   soloConStock: Boolean
   soloEnPromocion: Boolean
   soloPublicadosEnTienda: Boolean
+  soloSinStock: Boolean
   soloStockBajo: Boolean
 }
 

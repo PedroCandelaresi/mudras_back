@@ -19,6 +19,11 @@ const asiento_contable_entity_1 = require("./entities/asiento-contable.entity");
 const cuenta_contable_entity_1 = require("./entities/cuenta-contable.entity");
 const detalle_asiento_contable_entity_1 = require("./entities/detalle-asiento-contable.entity");
 const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
+const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 let ContabilidadResolver = class ContabilidadResolver {
     constructor(contabilidadService) {
         this.contabilidadService = contabilidadService;
@@ -55,6 +60,7 @@ let ContabilidadResolver = class ContabilidadResolver {
 exports.ContabilidadResolver = ContabilidadResolver;
 __decorate([
     (0, graphql_1.Mutation)(() => cuenta_contable_entity_1.CuentaContable),
+    (0, permissions_decorator_1.Permisos)('contabilidad.create'),
     __param(0, (0, graphql_1.Args)('codigo')),
     __param(1, (0, graphql_1.Args)('nombre')),
     __param(2, (0, graphql_1.Args)('tipo', { type: () => cuenta_contable_entity_1.TipoCuentaContable })),
@@ -65,12 +71,14 @@ __decorate([
 ], ContabilidadResolver.prototype, "crearCuentaContable", null);
 __decorate([
     (0, graphql_1.Query)(() => [cuenta_contable_entity_1.CuentaContable], { name: 'cuentasContables' }),
+    (0, permissions_decorator_1.Permisos)('contabilidad.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ContabilidadResolver.prototype, "obtenerCuentasContables", null);
 __decorate([
     (0, graphql_1.Query)(() => cuenta_contable_entity_1.CuentaContable, { name: 'cuentaContable' }),
+    (0, permissions_decorator_1.Permisos)('contabilidad.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -78,6 +86,7 @@ __decorate([
 ], ContabilidadResolver.prototype, "obtenerCuentaContable", null);
 __decorate([
     (0, graphql_1.Mutation)(() => asiento_contable_entity_1.AsientoContable),
+    (0, permissions_decorator_1.Permisos)('contabilidad.create'),
     __param(0, (0, graphql_1.Args)('tipo', { type: () => asiento_contable_entity_1.TipoAsientoContable })),
     __param(1, (0, graphql_1.Args)('descripcion')),
     __param(2, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
@@ -88,12 +97,14 @@ __decorate([
 ], ContabilidadResolver.prototype, "crearAsientoContable", null);
 __decorate([
     (0, graphql_1.Query)(() => [asiento_contable_entity_1.AsientoContable], { name: 'asientosContables' }),
+    (0, permissions_decorator_1.Permisos)('contabilidad.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ContabilidadResolver.prototype, "obtenerAsientosContables", null);
 __decorate([
     (0, graphql_1.Query)(() => asiento_contable_entity_1.AsientoContable, { name: 'asientoContable' }),
+    (0, permissions_decorator_1.Permisos)('contabilidad.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -101,6 +112,7 @@ __decorate([
 ], ContabilidadResolver.prototype, "obtenerAsientoContable", null);
 __decorate([
     (0, graphql_1.Mutation)(() => asiento_contable_entity_1.AsientoContable),
+    (0, permissions_decorator_1.Permisos)('contabilidad.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
@@ -109,12 +121,14 @@ __decorate([
 ], ContabilidadResolver.prototype, "anularAsientoContable", null);
 __decorate([
     (0, graphql_1.Query)(() => BalanceGeneral, { name: 'balanceGeneral' }),
+    (0, permissions_decorator_1.Permisos)('contabilidad.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], ContabilidadResolver.prototype, "obtenerBalanceGeneral", null);
 __decorate([
     (0, graphql_1.Mutation)(() => Boolean),
+    (0, permissions_decorator_1.Permisos)('contabilidad.create'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -122,6 +136,7 @@ __decorate([
 exports.ContabilidadResolver = ContabilidadResolver = __decorate([
     (0, graphql_1.Resolver)(() => asiento_contable_entity_1.AsientoContable),
     (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [contabilidad_service_1.ContabilidadService])
 ], ContabilidadResolver);
 const graphql_2 = require("@nestjs/graphql");
