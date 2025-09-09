@@ -15,7 +15,9 @@ export class ProveedoresService {
       order: { IdProveedor: 'ASC' },
     });
   }
-
+// console.log(this.proveedoresRepository.findOne({
+//   where: { IdProveedor: id },
+// }));
   async findOne(id: number): Promise<Proveedor> {
     return this.proveedoresRepository.findOne({
       where: { IdProveedor: id },
