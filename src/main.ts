@@ -6,9 +6,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
   // Configurar CORS para permitir conexión con frontend
+  const corsOrigin = process.env.CORS_ORIGIN || process.env.NODE_ENV === 'production' 
+    ? ['https://mudras.nqn.net.ar'] 
+    : true;
+    
   app.enableCors({
-    origin: true, // Permite cualquier origen en desarrollo
+    origin: corsOrigin,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Secret-Key'],
   });
 
   // Pipe global de validación

@@ -13,22 +13,15 @@ jobs:
       - name: Build API image
         run: docker build -t mudras_api:latest .
 
-      # (Opcional) Migraciones TypeORM o Prisma:
-      # - name: TypeORM migrations
+      # Ejemplo de migraciones (opcional):
+      # - name: Run migrations
       #   run: |
       #     docker run --rm --network host \
-      #       -e DB_HOST="${DB_HOST}" -e DB_PORT="${DB_PORT}" \
-      #       -e DB_USER="${DB_USER}" -e DB_PASS="${DB_PASS}" -e DB_NAME="${DB_NAME}" \
+      #       --env-file /home/mudras/env/back/.env \
       #       mudras_api:latest npm run migration:run
-      #
-      # - name: Prisma migrate
-      #   run: |
-      #     docker run --rm --network host \
-      #       -e DATABASE_URL="${DATABASE_URL}" \
-      #       mudras_api:latest npx prisma migrate deploy
 
       - name: Up API with compose
-        run: docker compose --env-file ~/deploy/mudras/.env -f ~/deploy/mudras/docker-compose.yml up -d api
+        run: docker compose -f /home/mudras/deploy/mudras/docker-compose.yml up -d api
 
       - name: Prune old images
         run: docker image prune -f
