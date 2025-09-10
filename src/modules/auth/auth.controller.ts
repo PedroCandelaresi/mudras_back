@@ -18,8 +18,20 @@ export class AuthController {
     const { user } = req;
     const tokens = await this.authService.emitirTokens(user);
     // Setear cookies HTTP-only además de devolver JSON para clientes que las usen
-    res.cookie('mudras_token', tokens.accessToken, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
-    res.cookie('mudras_refresh', tokens.refreshToken, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+    res.cookie('mudras_token', tokens.accessToken, { 
+      httpOnly: true, 
+      sameSite: 'none', 
+      secure: true,
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    res.cookie('mudras_refresh', tokens.refreshToken, { 
+      httpOnly: true, 
+      sameSite: 'none', 
+      secure: true,
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
     return res.json({ usuario: { id: user.id, username: user.username, displayName: user.displayName, roles: await this.authService.getUserRolesSlugs(user.id) }, ...tokens });
   }
 
@@ -45,9 +57,18 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Body() dto: RefreshDto) {
+  async logout(@Body() dto: RefreshDto, @Res() res: Response) {
     await this.authService.logout(dto.refreshToken);
-    return { ok: true };
+    // Limpiar cookies al hacer logout
+    res.clearCookie('mudras_token', {
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    res.clearCookie('mudras_refresh', {
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    return res.json({ ok: true });
   }
 
   // OAuth Google
