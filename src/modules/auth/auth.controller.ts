@@ -51,14 +51,56 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body() dto: RefreshDto) {
-    const tokens = await this.authService.refrescarTokens(dto.refreshToken);
-    return tokens;
+  async refresh(@Body() dto: RefreshDto, @Req() req: any, @Res() res: Response) {
+    // Intentar obtener refreshToken del body o de las cookies
+    let refreshToken = dto.refreshToken;
+    
+    if (!refreshToken && req.cookies?.mudras_refresh) {
+      refreshToken = req.cookies.mudras_refresh;
+    }
+    
+    if (!refreshToken) {
+      return res.status(400).json({ 
+        message: ['refreshToken is required'], 
+        error: 'Bad Request', 
+        statusCode: 400 
+      });
+    }
+    
+    const tokens = await this.authService.refrescarTokens(refreshToken);
+    
+    // Actualizar cookies con los nuevos tokens
+    res.cookie('mudras_token', tokens.accessToken, { 
+      httpOnly: true, 
+      sameSite: 'none', 
+      secure: true,
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    res.cookie('mudras_refresh', tokens.refreshToken, { 
+      httpOnly: true, 
+      sameSite: 'none', 
+      secure: true,
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    
+    return res.json(tokens);
   }
 
   @Post('logout')
-  async logout(@Body() dto: RefreshDto, @Res() res: Response) {
-    await this.authService.logout(dto.refreshToken);
+  async logout(@Body() dto: RefreshDto, @Req() req: any, @Res() res: Response) {
+    // Intentar obtener refreshToken del body o de las cookies
+    let refreshToken = dto.refreshToken;
+    
+    if (!refreshToken && req.cookies?.mudras_refresh) {
+      refreshToken = req.cookies.mudras_refresh;
+    }
+    
+    if (refreshToken) {
+      await this.authService.logout(refreshToken);
+    }
+    
     // Limpiar cookies al hacer logout
     res.clearCookie('mudras_token', {
       domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
