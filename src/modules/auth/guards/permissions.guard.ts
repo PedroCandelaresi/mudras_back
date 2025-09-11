@@ -21,12 +21,24 @@ export class PermissionsGuard implements CanActivate {
     const userPerms = user?.perms ?? [];
     const roles = (user?.roles ?? []).map((r) => r.toLowerCase());
 
+    // Debug logs
+    console.log('🔐 [PERMISSIONS_GUARD] Permisos requeridos:', requiredPerms);
+    console.log('🔐 [PERMISSIONS_GUARD] Usuario:', user ? 'presente' : 'ausente');
+    console.log('🔐 [PERMISSIONS_GUARD] Roles del usuario:', roles);
+    console.log('🔐 [PERMISSIONS_GUARD] Permisos del usuario:', userPerms);
+
     // 1) Si trae permisos explícitos en el token, evalúa directo
     const hasByPerms = requiredPerms.some((p) => userPerms.includes(p));
-    if (hasByPerms) return true;
+    if (hasByPerms) {
+      console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por permisos explícitos');
+      return true;
+    }
 
     // 2) Política por roles (fallback): 'administrador' todo permitido
-    if (roles.includes('administrador')) return true;
+    if (roles.includes('administrador')) {
+      console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por rol administrador');
+      return true;
+    }
 
     // 3) Mapeo básico de roles -> permisos (extensible si hace falta)
     const rolePermsMap: Record<string, string[]> = {
@@ -36,10 +48,17 @@ export class PermissionsGuard implements CanActivate {
     };
     for (const role of roles) {
       const grants = rolePermsMap[role] || [];
-      if (grants.includes('*')) return true;
-      if (requiredPerms.some((p) => grants.includes(p))) return true;
+      if (grants.includes('*')) {
+        console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por mapeo de rol (*)');
+        return true;
+      }
+      if (requiredPerms.some((p) => grants.includes(p))) {
+        console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por mapeo de rol específico');
+        return true;
+      }
     }
 
+    console.log('🔐 [PERMISSIONS_GUARD] Acceso DENEGADO');
     return false;
   }
 }
