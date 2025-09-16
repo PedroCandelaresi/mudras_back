@@ -12,13 +12,8 @@ export declare class AuthController {
     permisos(req: any): Promise<{
         permisos: string[];
     }>;
-    refresh(dto: RefreshDto): Promise<{
-        accessToken: string;
-        refreshToken: string;
-    }>;
-    logout(dto: RefreshDto): Promise<{
-        ok: boolean;
-    }>;
+    refresh(dto: RefreshDto, req: any, res: Response): Promise<Response<any, Record<string, any>>>;
+    logout(dto: RefreshDto, req: any, res: Response): Promise<Response<any, Record<string, any>>>;
     googleAuth(): Promise<void>;
     googleCallback(req: any, res: Response): Promise<void>;
     instagramAuth(): Promise<void>;

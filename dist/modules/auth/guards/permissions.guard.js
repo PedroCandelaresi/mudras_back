@@ -30,21 +30,34 @@ let PermissionsGuard = class PermissionsGuard {
         const user = req.user;
         const userPerms = user?.perms ?? [];
         const roles = (user?.roles ?? []).map((r) => r.toLowerCase());
+        console.log('🔐 [PERMISSIONS_GUARD] Permisos requeridos:', requiredPerms);
+        console.log('🔐 [PERMISSIONS_GUARD] Usuario:', user ? 'presente' : 'ausente');
+        console.log('🔐 [PERMISSIONS_GUARD] Roles del usuario:', roles);
+        console.log('🔐 [PERMISSIONS_GUARD] Permisos del usuario:', userPerms);
         const hasByPerms = requiredPerms.some((p) => userPerms.includes(p));
-        if (hasByPerms)
+        if (hasByPerms) {
+            console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por permisos explícitos');
             return true;
-        if (roles.includes('administrador'))
+        }
+        if (roles.includes('administrador')) {
+            console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por rol administrador');
             return true;
+        }
         const rolePermsMap = {
             administrador: ['*'],
         };
         for (const role of roles) {
             const grants = rolePermsMap[role] || [];
-            if (grants.includes('*'))
+            if (grants.includes('*')) {
+                console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por mapeo de rol (*)');
                 return true;
-            if (requiredPerms.some((p) => grants.includes(p)))
+            }
+            if (requiredPerms.some((p) => grants.includes(p))) {
+                console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por mapeo de rol específico');
                 return true;
+            }
         }
+        console.log('🔐 [PERMISSIONS_GUARD] Acceso DENEGADO');
         return false;
     }
 };

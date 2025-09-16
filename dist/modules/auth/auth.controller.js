@@ -27,8 +27,20 @@ let AuthController = class AuthController {
     async login(_dto, req, res) {
         const { user } = req;
         const tokens = await this.authService.emitirTokens(user);
-        res.cookie('mudras_token', tokens.accessToken, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
-        res.cookie('mudras_refresh', tokens.refreshToken, { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+        res.cookie('mudras_token', tokens.accessToken, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        res.cookie('mudras_refresh', tokens.refreshToken, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
         return res.json({ usuario: { id: user.id, username: user.username, displayName: user.displayName, roles: await this.authService.getUserRolesSlugs(user.id) }, ...tokens });
     }
     perfil(req) {
@@ -39,13 +51,52 @@ let AuthController = class AuthController {
         const permisos = await this.authService.obtenerPermisosEfectivos(userId);
         return { permisos };
     }
-    async refresh(dto) {
-        const tokens = await this.authService.refrescarTokens(dto.refreshToken);
-        return tokens;
+    async refresh(dto, req, res) {
+        let refreshToken = dto.refreshToken;
+        if (!refreshToken && req.cookies?.mudras_refresh) {
+            refreshToken = req.cookies.mudras_refresh;
+        }
+        if (!refreshToken) {
+            return res.status(400).json({
+                message: ['refreshToken is required'],
+                error: 'Bad Request',
+                statusCode: 400
+            });
+        }
+        const tokens = await this.authService.refrescarTokens(refreshToken);
+        res.cookie('mudras_token', tokens.accessToken, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        res.cookie('mudras_refresh', tokens.refreshToken, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        return res.json(tokens);
     }
-    async logout(dto) {
-        await this.authService.logout(dto.refreshToken);
-        return { ok: true };
+    async logout(dto, req, res) {
+        let refreshToken = dto.refreshToken;
+        if (!refreshToken && req.cookies?.mudras_refresh) {
+            refreshToken = req.cookies.mudras_refresh;
+        }
+        if (refreshToken) {
+            await this.authService.logout(refreshToken);
+        }
+        res.clearCookie('mudras_token', {
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        res.clearCookie('mudras_refresh', {
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        return res.json({ ok: true });
     }
     async googleAuth() {
         return;
@@ -98,15 +149,19 @@ __decorate([
 __decorate([
     (0, common_1.Post)('refresh'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [refresh_dto_1.RefreshDto]),
+    __metadata("design:paramtypes", [refresh_dto_1.RefreshDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refresh", null);
 __decorate([
     (0, common_1.Post)('logout'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [refresh_dto_1.RefreshDto]),
+    __metadata("design:paramtypes", [refresh_dto_1.RefreshDto, Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "logout", null);
 __decorate([

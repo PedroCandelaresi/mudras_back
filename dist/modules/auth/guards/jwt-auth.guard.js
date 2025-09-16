@@ -14,7 +14,10 @@ let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
     getRequest(context) {
         const ctx = graphql_1.GqlExecutionContext.create(context);
         const gqlReq = ctx.getContext()?.req;
-        return gqlReq ?? context.switchToHttp().getRequest();
+        const req = gqlReq ?? context.switchToHttp().getRequest();
+        console.log('🔐 [JWT_GUARD] Headers:', req?.headers?.authorization ? 'Authorization presente' : 'Sin Authorization header');
+        console.log('🔐 [JWT_GUARD] Cookies:', Object.keys(req?.cookies || {}));
+        return req;
     }
 };
 exports.JwtAuthGuard = JwtAuthGuard;

@@ -24,6 +24,7 @@ const cuentas_corrientes_module_1 = require("./modules/cuentas-corrientes/cuenta
 const contabilidad_module_1 = require("./modules/contabilidad/contabilidad.module");
 const ventas_module_1 = require("./modules/ventas/ventas.module");
 const promociones_module_1 = require("./modules/promociones/promociones.module");
+const caja_registradora_module_1 = require("./modules/caja-registradora/caja-registradora.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const users_auth_module_1 = require("./modules/users-auth/users-auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
@@ -50,6 +51,13 @@ const role_permission_entity_1 = require("./modules/roles/entities/role-permissi
 const user_role_entity_1 = require("./modules/users-auth/entities/user-role.entity");
 const user_provider_entity_1 = require("./modules/users-auth/entities/user-provider.entity");
 const refresh_token_entity_1 = require("./modules/users-auth/entities/refresh-token.entity");
+const venta_caja_entity_1 = require("./modules/caja-registradora/entities/venta-caja.entity");
+const detalle_venta_caja_entity_1 = require("./modules/caja-registradora/entities/detalle-venta-caja.entity");
+const pago_caja_entity_1 = require("./modules/caja-registradora/entities/pago-caja.entity");
+const puesto_venta_entity_1 = require("./modules/caja-registradora/entities/puesto-venta.entity");
+const comprobante_afip_entity_1 = require("./modules/caja-registradora/entities/comprobante-afip.entity");
+const movimiento_inventario_entity_1 = require("./modules/caja-registradora/entities/movimiento-inventario.entity");
+const snapshot_inventario_entity_1 = require("./modules/caja-registradora/entities/snapshot-inventario.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -89,6 +97,13 @@ exports.AppModule = AppModule = __decorate([
                     user_role_entity_1.UserRole,
                     user_provider_entity_1.UserProvider,
                     refresh_token_entity_1.RefreshToken,
+                    venta_caja_entity_1.VentaCaja,
+                    detalle_venta_caja_entity_1.DetalleVentaCaja,
+                    pago_caja_entity_1.PagoCaja,
+                    puesto_venta_entity_1.PuestoVenta,
+                    comprobante_afip_entity_1.ComprobanteAfip,
+                    movimiento_inventario_entity_1.MovimientoInventario,
+                    snapshot_inventario_entity_1.SnapshotInventarioMensual,
                 ],
                 synchronize: false,
                 logging: true,
@@ -110,6 +125,7 @@ exports.AppModule = AppModule = __decorate([
             contabilidad_module_1.ContabilidadModule,
             ventas_module_1.VentasModule,
             promociones_module_1.PromocionesModule,
+            caja_registradora_module_1.CajaRegistradoraModule,
             auth_module_1.AuthModule,
             users_auth_module_1.UsersAuthModule,
             roles_module_1.RolesModule,

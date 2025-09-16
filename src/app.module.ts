@@ -17,6 +17,7 @@ import { CuentasCorrientesModule } from './modules/cuentas-corrientes/cuentas-co
 import { ContabilidadModule } from './modules/contabilidad/contabilidad.module';
 import { VentasModule } from './modules/ventas/ventas.module';
 import { PromocionesModule } from './modules/promociones/promociones.module';
+import { CajaRegistradoraModule } from './modules/caja-registradora/caja-registradora.module';
 // RBAC / Auth
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersAuthModule } from './modules/users-auth/users-auth.module';
@@ -46,6 +47,13 @@ import { RolePermission } from './modules/roles/entities/role-permission.entity'
 import { UserRole } from './modules/users-auth/entities/user-role.entity';
 import { UserProvider } from './modules/users-auth/entities/user-provider.entity';
 import { RefreshToken } from './modules/users-auth/entities/refresh-token.entity';
+import { VentaCaja } from './modules/caja-registradora/entities/venta-caja.entity';
+import { DetalleVentaCaja } from './modules/caja-registradora/entities/detalle-venta-caja.entity';
+import { PagoCaja } from './modules/caja-registradora/entities/pago-caja.entity';
+import { PuestoVenta } from './modules/caja-registradora/entities/puesto-venta.entity';
+import { ComprobanteAfip } from './modules/caja-registradora/entities/comprobante-afip.entity';
+import { MovimientoInventario } from './modules/caja-registradora/entities/movimiento-inventario.entity';
+import { SnapshotInventarioMensual } from './modules/caja-registradora/entities/snapshot-inventario.entity';
 
 @Module({
   imports: [
@@ -86,6 +94,14 @@ import { RefreshToken } from './modules/users-auth/entities/refresh-token.entity
         UserRole,
         UserProvider,
         RefreshToken,
+        // Caja Registradora entities
+        VentaCaja,
+        DetalleVentaCaja,
+        PagoCaja,
+        PuestoVenta,
+        ComprobanteAfip,
+        MovimientoInventario,
+        SnapshotInventarioMensual,
       ],
       synchronize: false, // No modificar estructura de BD existente
       logging: true,
@@ -111,6 +127,7 @@ import { RefreshToken } from './modules/users-auth/entities/refresh-token.entity
     ContabilidadModule,
     VentasModule,
     PromocionesModule,
+    CajaRegistradoraModule,
     // RBAC / Auth modules
     AuthModule,
     UsersAuthModule,

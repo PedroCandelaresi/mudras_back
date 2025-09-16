@@ -15,6 +15,7 @@ class RefreshDto {
 }
 exports.RefreshDto = RefreshDto;
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], RefreshDto.prototype, "refreshToken", void 0);
