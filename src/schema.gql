@@ -40,6 +40,18 @@ input ActualizarPromocionInput {
   nombre: String
 }
 
+input ActualizarPuntoMudrasInput {
+  activo: Boolean
+  descripcion: String
+  direccion: String
+  email: String
+  id: Float!
+  nombre: String
+  permiteVentasOnline: Boolean
+  requiereAutorizacion: Boolean
+  telefono: String
+}
+
 type Articulo {
   AlicuotaIva: Float
   Calculado: Boolean
@@ -268,6 +280,18 @@ input CrearPromocionInput {
   nombre: String!
 }
 
+input CrearPuntoMudrasInput {
+  activo: Boolean
+  descripcion: String
+  direccion: String
+  email: String
+  nombre: String!
+  permiteVentasOnline: Boolean
+  requiereAutorizacion: Boolean
+  telefono: String
+  tipo: String!
+}
+
 input CrearVentaCajaInput {
   clienteId: Float!
   cuitCliente: String
@@ -419,6 +443,16 @@ type EstadisticasArticulos {
   valorTotalStock: Float!
 }
 
+type EstadisticasPuntosMudras {
+  articulosConStock: Int!
+  depositos: Int!
+  movimientosHoy: Int!
+  puntosActivos: Int!
+  puntosVenta: Int!
+  totalPuntos: Int!
+  valorTotalInventario: Float!
+}
+
 """Estados disponibles para artículos"""
 enum EstadoArticulo {
   ACTIVO
@@ -524,6 +558,16 @@ input FiltrosHistorialInput {
   usuarioId: Float
 }
 
+input FiltrosPuntosMudrasInput {
+  activo: Boolean
+  busqueda: String
+  direccionOrden: String
+  limite: Int
+  offset: Int
+  ordenarPor: String
+  tipo: TipoPuntoMudras
+}
+
 type HistorialVentasResponse {
   paginaActual: Float!
   total: Float!
@@ -578,10 +622,28 @@ type MovimientoStock {
   usuario: Usuario!
 }
 
+type MovimientoStockPunto {
+  articuloId: Int!
+  cantidad: Float!
+  cantidadAnterior: Float
+  cantidadNueva: Float
+  fechaMovimiento: DateTime!
+  id: Int!
+  motivo: String
+  puntoDestino: PuntoMudras
+  puntoMudrasDestinoId: Int
+  puntoMudrasOrigenId: Int
+  puntoOrigen: PuntoMudras
+  referenciaExterna: String
+  tipoMovimiento: TipoMovimientoStockPunto!
+  usuarioId: Int
+}
+
 type Mutation {
   activarCuenta(id: Int!): CuentaCorriente!
   actualizarArticulo(actualizarArticuloDto: ActualizarArticuloDto!): Articulo!
   actualizarPromocion(id: String!, input: ActualizarPromocionInput!): Promocion!
+  actualizarPuntoMudras(input: ActualizarPuntoMudrasInput!): PuntoMudras!
   actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente!
   actualizarStockArticulo(id: Int!, nuevoStock: Float!): Articulo!
   anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable!
@@ -596,6 +658,7 @@ type Mutation {
   crearCuentaProveedor(limiteCredito: Float! = 0, proveedorId: Int!, usuarioId: Int!): CuentaCorriente!
   crearCuentasContablesBasicas: Boolean!
   crearPromocion(input: CrearPromocionInput!): Promocion!
+  crearPuntoMudras(input: CrearPuntoMudrasInput!): PuntoMudras!
   crearUsuariosEjemplo: Boolean!
   crearVenta(clienteId: Int!, descuentoGeneral: Float! = 0, detalles: [DetalleVentaInput!]!, observaciones: String, tipoPago: TipoPago!, usuarioId: Int!): Venta!
   crearVentaCaja(input: CrearVentaCajaInput!): VentaCaja!
@@ -603,6 +666,7 @@ type Mutation {
   createUsuario(createUsuarioInput: CreateUsuarioDto!): Usuario!
   eliminarArticulo(id: Int!): Boolean!
   eliminarPromocion(id: String!): Boolean!
+  eliminarPuntoMudras(id: Int!): Boolean!
   login(loginInput: LoginDto!): Usuario!
   procesarDevolucion(articulosDevolver: String!, motivo: String, ventaOriginalId: Int!): VentaCaja!
   registrarMovimiento(concepto: ConceptoMovimientoCuentaCorriente!, cuentaId: Int!, descripcion: String!, monto: Float!, numeroComprobante: String, tipo: TipoMovimientoCuentaCorriente!, usuarioId: Int!): MovimientoCuentaCorriente!
@@ -691,6 +755,32 @@ type PuestoVenta {
   ventas: [VentaCaja!]
 }
 
+type PuntoMudras {
+  activo: Boolean!
+  descripcion: String
+  direccion: String!
+  email: String
+  fechaActualizacion: DateTime!
+  fechaCreacion: DateTime!
+  id: Int!
+  manejaStockFisico: Boolean!
+  movimientosDestino: [MovimientoStockPunto!]
+  movimientosOrigen: [MovimientoStockPunto!]
+  nombre: String!
+  permiteVentasOnline: Boolean!
+  requiereAutorizacion: Boolean!
+  stock: [StockPuntoMudras!]
+  telefono: String
+  tipo: TipoPuntoMudras!
+  totalArticulos: Int
+  valorInventario: Float
+}
+
+type PuntosMudrasResponse {
+  puntos: [PuntoMudras!]!
+  total: Int!
+}
+
 type Query {
   articulo(id: Int!): Articulo!
   articuloPorCodigo(codigo: String!): Articulo!
@@ -729,8 +819,11 @@ type Query {
   obtenerComprobantesAfip(ventaId: Int!): [ComprobanteAfip!]!
   obtenerComprobantesPendientes: [ComprobanteAfip!]!
   obtenerDetalleVenta(id: Int!): VentaCaja
+  obtenerEstadisticasPuntosMudras: EstadisticasPuntosMudras!
   obtenerHistorialVentas(filtros: FiltrosHistorialInput!): HistorialVentasResponse!
   obtenerPuestosVenta: [PuestoVenta!]!
+  obtenerPuntoMudrasPorId(id: Int!): PuntoMudras!
+  obtenerPuntosMudras(filtros: FiltrosPuntosMudrasInput): PuntosMudrasResponse!
   promociones: [Promocion!]!
   proveedor(id: Int!): Proveedor!
   proveedorPorCodigo(codigo: Int!): Proveedor!
@@ -801,6 +894,18 @@ type Stock {
   Usuario: Int
 }
 
+type StockPuntoMudras {
+  articuloId: Int!
+  cantidad: Float!
+  estadoStock: String
+  fechaActualizacion: DateTime!
+  id: Int!
+  puntoMudras: PuntoMudras!
+  puntoMudrasId: Int!
+  stockMaximo: Float
+  stockMinimo: Float!
+}
+
 """Tipos de asientos contables"""
 enum TipoAsientoContable {
   AJUSTE
@@ -869,6 +974,16 @@ enum TipoMovimientoStock {
   TRANSFERENCIA_SALIDA
 }
 
+"""Tipo de movimiento de stock entre puntos"""
+enum TipoMovimientoStockPunto {
+  AJUSTE
+  DEVOLUCION
+  ENTRADA
+  SALIDA
+  TRANSFERENCIA
+  VENTA
+}
+
 """Tipos de pago disponibles"""
 enum TipoPago {
   CUENTA_CORRIENTE
@@ -877,6 +992,12 @@ enum TipoPago {
   TARJETA_CREDITO
   TARJETA_DEBITO
   TRANSFERENCIA
+}
+
+"""Tipo de punto Mudras: venta o depósito"""
+enum TipoPuntoMudras {
+  deposito
+  venta
 }
 
 """Tipos de venta en caja registradora"""

@@ -81,7 +81,7 @@ let AfipService = AfipService_1 = class AfipService {
             importeExento: comprobante.importeExento,
             importeIva: comprobante.importeIva,
             conceptos: comprobante.venta.detalles?.map(detalle => ({
-                descripcion: detalle.articulo.nombre,
+                descripcion: detalle.articulo.Descripcion,
                 cantidad: detalle.cantidad,
                 precioUnitario: detalle.precioUnitario,
                 importeTotal: detalle.subtotal,

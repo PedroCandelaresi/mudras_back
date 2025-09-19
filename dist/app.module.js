@@ -25,6 +25,7 @@ const contabilidad_module_1 = require("./modules/contabilidad/contabilidad.modul
 const ventas_module_1 = require("./modules/ventas/ventas.module");
 const promociones_module_1 = require("./modules/promociones/promociones.module");
 const caja_registradora_module_1 = require("./modules/caja-registradora/caja-registradora.module");
+const puntos_mudras_module_1 = require("./modules/puntos-mudras/puntos-mudras.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const users_auth_module_1 = require("./modules/users-auth/users-auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
@@ -58,6 +59,9 @@ const puesto_venta_entity_1 = require("./modules/caja-registradora/entities/pues
 const comprobante_afip_entity_1 = require("./modules/caja-registradora/entities/comprobante-afip.entity");
 const movimiento_inventario_entity_1 = require("./modules/caja-registradora/entities/movimiento-inventario.entity");
 const snapshot_inventario_entity_1 = require("./modules/caja-registradora/entities/snapshot-inventario.entity");
+const punto_mudras_entity_1 = require("./modules/puntos-mudras/entities/punto-mudras.entity");
+const stock_punto_mudras_entity_1 = require("./modules/puntos-mudras/entities/stock-punto-mudras.entity");
+const movimiento_stock_punto_entity_1 = require("./modules/puntos-mudras/entities/movimiento-stock-punto.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -104,6 +108,9 @@ exports.AppModule = AppModule = __decorate([
                     comprobante_afip_entity_1.ComprobanteAfip,
                     movimiento_inventario_entity_1.MovimientoInventario,
                     snapshot_inventario_entity_1.SnapshotInventarioMensual,
+                    punto_mudras_entity_1.PuntoMudras,
+                    stock_punto_mudras_entity_1.StockPuntoMudras,
+                    movimiento_stock_punto_entity_1.MovimientoStockPunto,
                 ],
                 synchronize: false,
                 logging: true,
@@ -126,6 +133,7 @@ exports.AppModule = AppModule = __decorate([
             ventas_module_1.VentasModule,
             promociones_module_1.PromocionesModule,
             caja_registradora_module_1.CajaRegistradoraModule,
+            puntos_mudras_module_1.PuntosMudrasModule,
             auth_module_1.AuthModule,
             users_auth_module_1.UsersAuthModule,
             roles_module_1.RolesModule,

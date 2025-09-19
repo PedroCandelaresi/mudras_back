@@ -18,6 +18,7 @@ import { ContabilidadModule } from './modules/contabilidad/contabilidad.module';
 import { VentasModule } from './modules/ventas/ventas.module';
 import { PromocionesModule } from './modules/promociones/promociones.module';
 import { CajaRegistradoraModule } from './modules/caja-registradora/caja-registradora.module';
+import { PuntosMudrasModule } from './modules/puntos-mudras/puntos-mudras.module';
 // RBAC / Auth
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersAuthModule } from './modules/users-auth/users-auth.module';
@@ -54,6 +55,9 @@ import { PuestoVenta } from './modules/caja-registradora/entities/puesto-venta.e
 import { ComprobanteAfip } from './modules/caja-registradora/entities/comprobante-afip.entity';
 import { MovimientoInventario } from './modules/caja-registradora/entities/movimiento-inventario.entity';
 import { SnapshotInventarioMensual } from './modules/caja-registradora/entities/snapshot-inventario.entity';
+import { PuntoMudras } from './modules/puntos-mudras/entities/punto-mudras.entity';
+import { StockPuntoMudras } from './modules/puntos-mudras/entities/stock-punto-mudras.entity';
+import { MovimientoStockPunto } from './modules/puntos-mudras/entities/movimiento-stock-punto.entity';
 
 @Module({
   imports: [
@@ -102,6 +106,10 @@ import { SnapshotInventarioMensual } from './modules/caja-registradora/entities/
         ComprobanteAfip,
         MovimientoInventario,
         SnapshotInventarioMensual,
+        // Puntos Mudras entities
+        PuntoMudras,
+        StockPuntoMudras,
+        MovimientoStockPunto,
       ],
       synchronize: false, // No modificar estructura de BD existente
       logging: true,
@@ -128,6 +136,7 @@ import { SnapshotInventarioMensual } from './modules/caja-registradora/entities/
     VentasModule,
     PromocionesModule,
     CajaRegistradoraModule,
+    PuntosMudrasModule,
     // RBAC / Auth modules
     AuthModule,
     UsersAuthModule,
