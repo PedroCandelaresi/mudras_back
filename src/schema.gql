@@ -90,6 +90,8 @@ type Articulo {
   idProveedor: Int
   movimientosStock: [MovimientoStock!]
   proveedor: Proveedor
+  rubro: Rubro
+  rubroId: Int
 }
 
 type ArticuloConStock {
@@ -131,12 +133,69 @@ type ArticuloConStock {
   idProveedor: Int
   movimientosStock: [MovimientoStock!]
   proveedor: Proveedor
+  rubro: Rubro
+  rubroId: Int
   stockDespuesVenta: Float!
   stockDisponible: Float!
 }
 
+type ArticuloConStockPuntoMudras {
+  codigo: String!
+  id: Int!
+  nombre: String!
+  precio: Float!
+  rubro: String
+  stockAsignado: Float!
+  stockTotal: Float!
+}
+
+type ArticuloFiltrado {
+  codigo: String!
+  id: ID!
+  nombre: String!
+  precio: Float!
+  proveedor: String!
+  rubro: String!
+  stockAsignado: Float!
+  stockDisponible: Float!
+  stockTotal: Float!
+}
+
+type ArticuloProveedor {
+  Codigo: String
+  Deposito: Int
+  Descripcion: String!
+  EnPromocion: Boolean
+  Id: Int!
+  PrecioVenta: Int
+  Rubro: String
+  StockMinimo: Int
+  precio: Int!
+  rubro: String!
+  stock: Int!
+}
+
+type ArticuloRubro {
+  codigo: String!
+  descripcion: String!
+  id: Int!
+  precio: Float!
+  proveedor: ProveedorRubro
+  stock: Int!
+}
+
 type ArticulosConPaginacion {
   articulos: [Articulo!]!
+  total: Int!
+}
+
+type ArticulosPorProveedorResponse {
+  articulos: [ArticuloProveedor!]!
+  total: Int!
+}
+
+type ArticulosPorRubroResponse {
+  articulos: [ArticuloRubro!]!
   total: Int!
 }
 
@@ -324,6 +383,27 @@ input CreateClienteDto {
   tipo: TipoCliente! = MINORISTA
 }
 
+input CreateProveedorInput {
+  CP: String
+  CUIT: String
+  Celular: String
+  Codigo: Int
+  Contacto: String
+  Direccion: String
+  Fax: String
+  Localidad: String
+  Mail: String
+  Nombre: String
+  Observaciones: String
+  Pais: String
+  Provincia: String
+  Rubro: String
+  Saldo: Float
+  Telefono: String
+  TipoIva: Int
+  Web: String
+}
+
 input CreateUsuarioDto {
   apellido: String!
   direccion: String
@@ -443,6 +523,13 @@ type EstadisticasArticulos {
   valorTotalStock: Float!
 }
 
+type EstadisticasProveedorRubro {
+  proveedoresUnicos: Int!
+  rubrosUnicos: Int!
+  totalArticulos: Int!
+  totalRelaciones: Int!
+}
+
 type EstadisticasPuntosMudras {
   articulosConStock: Int!
   depositos: Int!
@@ -558,16 +645,6 @@ input FiltrosHistorialInput {
   usuarioId: Float
 }
 
-input FiltrosPuntosMudrasInput {
-  activo: Boolean
-  busqueda: String
-  direccionOrden: String
-  limite: Int
-  offset: Int
-  ordenarPor: String
-  tipo: TipoPuntoMudras
-}
-
 type HistorialVentasResponse {
   paginaActual: Float!
   total: Float!
@@ -643,7 +720,9 @@ type Mutation {
   activarCuenta(id: Int!): CuentaCorriente!
   actualizarArticulo(actualizarArticuloDto: ActualizarArticuloDto!): Articulo!
   actualizarPromocion(id: String!, input: ActualizarPromocionInput!): Promocion!
+  actualizarProveedor(updateProveedorInput: UpdateProveedorInput!): Proveedor!
   actualizarPuntoMudras(input: ActualizarPuntoMudrasInput!): PuntoMudras!
+  actualizarRubro(codigo: String, id: Int!, nombre: String!): Rubro!
   actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente!
   actualizarStockArticulo(id: Int!, nuevoStock: Float!): Articulo!
   anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable!
@@ -658,16 +737,24 @@ type Mutation {
   crearCuentaProveedor(limiteCredito: Float! = 0, proveedorId: Int!, usuarioId: Int!): CuentaCorriente!
   crearCuentasContablesBasicas: Boolean!
   crearPromocion(input: CrearPromocionInput!): Promocion!
+  crearProveedor(createProveedorInput: CreateProveedorInput!): Proveedor!
   crearPuntoMudras(input: CrearPuntoMudrasInput!): PuntoMudras!
+  crearRubro(codigo: String, nombre: String!): Rubro!
   crearUsuariosEjemplo: Boolean!
   crearVenta(clienteId: Int!, descuentoGeneral: Float! = 0, detalles: [DetalleVentaInput!]!, observaciones: String, tipoPago: TipoPago!, usuarioId: Int!): Venta!
   crearVentaCaja(input: CrearVentaCajaInput!): VentaCaja!
   createCliente(createClienteInput: CreateClienteDto!): Cliente!
   createUsuario(createUsuarioInput: CreateUsuarioDto!): Usuario!
   eliminarArticulo(id: Int!): Boolean!
+  eliminarArticuloDeRubro(articuloId: Int!): Boolean!
+  eliminarArticulosDeRubro(articuloIds: [Int!]!): Boolean!
   eliminarPromocion(id: String!): Boolean!
+  eliminarProveedor(id: Int!): Boolean!
+  eliminarProveedorDeRubro(proveedorId: Int!, rubroNombre: String!): Boolean!
   eliminarPuntoMudras(id: Int!): Boolean!
+  eliminarRubro(id: Int!): Boolean!
   login(loginInput: LoginDto!): Usuario!
+  modificarStockPunto(articuloId: Int!, nuevaCantidad: Float!, puntoMudrasId: Int!): Boolean!
   procesarDevolucion(articulosDevolver: String!, motivo: String, ventaOriginalId: Int!): VentaCaja!
   registrarMovimiento(concepto: ConceptoMovimientoCuentaCorriente!, cuentaId: Int!, descripcion: String!, monto: Float!, numeroComprobante: String, tipo: TipoMovimientoCuentaCorriente!, usuarioId: Int!): MovimientoCuentaCorriente!
   reintentarEmisionAfip(comprobanteId: Int!): ComprobanteAfip!
@@ -738,6 +825,22 @@ type Proveedor {
   Web: String
   articulos: [Articulo!]
   cuentasCorrientes: [CuentaCorriente!]
+  rubro: Rubro
+  rubroId: Int
+}
+
+type ProveedorBasico {
+  codigo: Float
+  id: ID!
+  nombre: String!
+}
+
+type ProveedorRubro {
+  codigo: String
+  email: String
+  id: Int!
+  nombre: String!
+  telefono: String
 }
 
 type PuestoVenta {
@@ -776,11 +879,6 @@ type PuntoMudras {
   valorInventario: Float
 }
 
-type PuntosMudrasResponse {
-  puntos: [PuntoMudras!]!
-  total: Int!
-}
-
 type Query {
   articulo(id: Int!): Articulo!
   articuloPorCodigo(codigo: String!): Articulo!
@@ -789,8 +887,8 @@ type Query {
   articulosConStock: [Articulo!]!
   articulosEnPromocion: [Articulo!]!
   articulosPorDescripcion(descripcion: String!): [Articulo!]!
-  articulosPorProveedor(idProveedor: Int!): [Articulo!]!
-  articulosPorRubro(rubro: String!): [Articulo!]!
+  articulosPorProveedor(filtro: String, limit: Int, offset: Int, proveedorId: Int!): ArticulosPorProveedorResponse!
+  articulosPorRubro(filtro: String, limit: Int! = 50, offset: Int! = 0, rubroId: Int!): ArticulosPorRubroResponse!
   articulosSinStock: [Articulo!]!
   articulosStockBajo: [Articulo!]!
   asientoContable(id: Int!): AsientoContable!
@@ -798,7 +896,9 @@ type Query {
   balanceGeneral: BalanceGeneral!
   buscarArticulos(filtros: FiltrosArticuloDto!): ArticulosConPaginacion!
   buscarArticulosCaja(input: BuscarArticuloInput!): [ArticuloConStock!]!
+  buscarArticulosParaAsignacion(busqueda: String, proveedorId: Int, rubro: String): [ArticuloFiltrado!]!
   buscarClientesPorNombre(nombre: String!): [Cliente!]!
+  buscarRubros(busqueda: String, limite: Int! = 50, pagina: Int! = 0): RubrosResponse!
   cliente(id: Int!): Cliente!
   clientes: [Cliente!]!
   clientesMorosos: [Cliente!]!
@@ -819,20 +919,26 @@ type Query {
   obtenerComprobantesAfip(ventaId: Int!): [ComprobanteAfip!]!
   obtenerComprobantesPendientes: [ComprobanteAfip!]!
   obtenerDetalleVenta(id: Int!): VentaCaja
+  obtenerEstadisticasProveedorRubro: EstadisticasProveedorRubro!
   obtenerEstadisticasPuntosMudras: EstadisticasPuntosMudras!
   obtenerHistorialVentas(filtros: FiltrosHistorialInput!): HistorialVentasResponse!
+  obtenerProveedoresConStock: [ProveedorBasico!]!
   obtenerPuestosVenta: [PuestoVenta!]!
   obtenerPuntoMudrasPorId(id: Int!): PuntoMudras!
-  obtenerPuntosMudras(filtros: FiltrosPuntosMudrasInput): PuntosMudrasResponse!
+  obtenerPuntosMudras: [PuntoMudras!]!
+  obtenerRelacionesProveedorRubro: [RelacionProveedorRubro!]!
+  obtenerRubros: [RubroConEstadisticas!]!
+  obtenerRubrosPorProveedor(proveedorId: Int!): [RubroBasico!]!
+  obtenerStockPuntoMudras(puntoMudrasId: Int!): [ArticuloConStockPuntoMudras!]!
   promociones: [Promocion!]!
   proveedor(id: Int!): Proveedor!
   proveedorPorCodigo(codigo: Int!): Proveedor!
   proveedores: [Proveedor!]!
   proveedoresPorNombre(nombre: String!): [Proveedor!]!
+  proveedoresPorRubro(rubroId: Int!): [ProveedorRubro!]!
   resumenVentas(fechaDesde: DateTime!, fechaHasta: DateTime!): ResumenVentas!
   rubro(id: Int!): Rubro!
   rubroPorNombre(rubro: String!): Rubro!
-  rubros: [Rubro!]!
   saldoCuentaCorriente(cuentaId: Int!): Float!
   topArticulos(fechaDesde: DateTime!, fechaHasta: DateTime!, limite: Int! = 10): [TopArticulo!]!
   ultimoMovimientoPorCodigo(codigo: String!): Stock!
@@ -844,6 +950,14 @@ type Query {
   ventasPorCliente(clienteId: Int!): [Venta!]!
   ventasPorFecha(fechaDesde: DateTime!, fechaHasta: DateTime!): [Venta!]!
   ventasPorUsuario(usuarioId: Int!): [Venta!]!
+}
+
+type RelacionProveedorRubro {
+  cantidadArticulos: Int!
+  id: Int!
+  proveedorId: Int!
+  proveedorNombre: String!
+  rubroNombre: String!
 }
 
 type ResumenVenta {
@@ -882,7 +996,28 @@ enum RolUsuario {
 type Rubro {
   Codigo: String
   Id: ID!
+  PorcentajeDescuento: Float
+  PorcentajeRecargo: Float
   Rubro: String
+  articulos: [Articulo!]
+  proveedores: [Proveedor!]
+}
+
+type RubroBasico {
+  rubro: String!
+}
+
+type RubroConEstadisticas {
+  cantidadArticulos: Int!
+  cantidadProveedores: Int!
+  codigo: String
+  id: Int!
+  nombre: String
+}
+
+type RubrosResponse {
+  rubros: [RubroConEstadisticas!]!
+  total: Int!
 }
 
 type Stock {
@@ -1034,6 +1169,28 @@ input UpdateClienteDto {
   razonSocial: String
   telefono: String
   tipo: TipoCliente = MINORISTA
+}
+
+input UpdateProveedorInput {
+  CP: String
+  CUIT: String
+  Celular: String
+  Codigo: Int
+  Contacto: String
+  Direccion: String
+  Fax: String
+  IdProveedor: Int!
+  Localidad: String
+  Mail: String
+  Nombre: String
+  Observaciones: String
+  Pais: String
+  Provincia: String
+  Rubro: String
+  Saldo: Float
+  Telefono: String
+  TipoIva: Int
+  Web: String
 }
 
 input UpdateUsuarioDto {

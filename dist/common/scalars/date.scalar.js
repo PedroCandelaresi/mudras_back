@@ -17,7 +17,16 @@ let DateTimeScalar = class DateTimeScalar {
         return new Date(value);
     }
     serialize(value) {
-        return value.toISOString();
+        if (!value) {
+            return null;
+        }
+        if (typeof value === 'string') {
+            return value;
+        }
+        if (value instanceof Date && typeof value.toISOString === 'function') {
+            return value.toISOString();
+        }
+        return String(value);
     }
     parseLiteral(ast) {
         if (ast.kind === graphql_2.Kind.STRING) {

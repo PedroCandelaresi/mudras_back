@@ -19,20 +19,23 @@ const typeorm_2 = require("typeorm");
 const punto_mudras_entity_1 = require("./entities/punto-mudras.entity");
 const stock_punto_mudras_entity_1 = require("./entities/stock-punto-mudras.entity");
 const movimiento_stock_punto_entity_1 = require("./entities/movimiento-stock-punto.entity");
+const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 let PuntosMudrasService = class PuntosMudrasService {
-    constructor(puntosMudrasRepository, stockRepository, movimientosRepository, dataSource) {
+    constructor(puntosMudrasRepository, stockRepository, movimientosRepository, articulosRepository, dataSource) {
         this.puntosMudrasRepository = puntosMudrasRepository;
         this.stockRepository = stockRepository;
         this.movimientosRepository = movimientosRepository;
+        this.articulosRepository = articulosRepository;
         this.dataSource = dataSource;
     }
     async crear(input) {
         const punto = this.puntosMudrasRepository.create({
             ...input,
+            tipo: input.tipo,
             activo: input.activo ?? true,
-            permiteVentasOnline: input.configuracionEspecial?.ventasOnline ?? false,
+            permiteVentasOnline: input.permiteVentasOnline ?? false,
             manejaStockFisico: true,
-            requiereAutorizacion: input.configuracionEspecial?.requiereAutorizacion ?? false,
+            requiereAutorizacion: input.requiereAutorizacion ?? false,
         });
         const puntoGuardado = await this.puntosMudrasRepository.save(punto);
         if (puntoGuardado.manejaStockFisico) {
@@ -81,23 +84,235 @@ let PuntosMudrasService = class PuntosMudrasService {
     async actualizar(input) {
         const { id, ...updateData } = input;
         const punto = await this.obtenerPorId(id);
-        if (updateData.configuracionEspecial) {
-            punto.permiteVentasOnline = updateData.configuracionEspecial.ventasOnline ?? punto.permiteVentasOnline;
-            punto.requiereAutorizacion = updateData.configuracionEspecial.requiereAutorizacion ?? punto.requiereAutorizacion;
-        }
         Object.assign(punto, updateData);
         return await this.puntosMudrasRepository.save(punto);
     }
     async eliminar(id) {
         const punto = await this.obtenerPorId(id);
-        const tieneStock = await this.stockRepository.count({
-            where: { puntoMudrasId: id }
+        console.log(`🗑️ Eliminando punto ${punto.nombre} (ID: ${id})`);
+        const stockEliminados = await this.stockRepository.delete({
+            puntoMudrasId: id
         });
-        if (tieneStock > 0) {
-            throw new common_1.BadRequestException('No se puede eliminar un punto que tiene stock registrado');
-        }
+        console.log(`📦 Eliminados ${stockEliminados.affected || 0} registros de stock`);
+        const movimientosEliminados1 = await this.movimientosRepository.delete({
+            puntoMudrasOrigenId: id
+        });
+        const movimientosEliminados2 = await this.movimientosRepository.delete({
+            puntoMudrasDestinoId: id
+        });
+        console.log(`📋 Eliminados ${(movimientosEliminados1.affected || 0) + (movimientosEliminados2.affected || 0)} movimientos de stock`);
         await this.puntosMudrasRepository.remove(punto);
+        console.log(`✅ Punto eliminado exitosamente`);
         return true;
+    }
+    async obtenerArticulosConStockPunto(puntoMudrasId) {
+        console.log(`🔍 Obteniendo artículos con stock para punto ${puntoMudrasId}`);
+        const punto = await this.puntosMudrasRepository.findOne({
+            where: { id: puntoMudrasId }
+        });
+        if (!punto) {
+            throw new Error(`Punto Mudras con ID ${puntoMudrasId} no encontrado`);
+        }
+        if (punto.tipo === 'deposito') {
+            return await this.obtenerStockSinAsignar();
+        }
+        else {
+            const stockRecords = await this.stockRepository
+                .createQueryBuilder('stock')
+                .leftJoinAndSelect('stock.puntoMudras', 'punto')
+                .leftJoin('tbarticulos', 'articulo', 'articulo.id = stock.articuloId')
+                .leftJoin('tbrubros', 'rubro', 'rubro.Rubro = articulo.Rubro')
+                .select([
+                'stock.id',
+                'stock.articuloId',
+                'stock.cantidad',
+                'stock.stockMinimo',
+                'articulo.id',
+                'articulo.Codigo',
+                'articulo.Descripcion',
+                'articulo.PrecioVenta',
+                'articulo.Deposito',
+                'articulo.Rubro',
+                'rubro.Id',
+                'rubro.Rubro'
+            ])
+                .where('stock.puntoMudrasId = :puntoMudrasId', { puntoMudrasId })
+                .getRawMany();
+            console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
+            return stockRecords.map(record => ({
+                id: record.articulo_id,
+                nombre: record.articulo_Descripcion || 'Sin nombre',
+                codigo: record.articulo_Codigo || 'Sin código',
+                precio: parseFloat(record.articulo_PrecioVenta || '0'),
+                stockAsignado: parseFloat(record.stock_cantidad || '0'),
+                stockTotal: parseFloat(record.articulo_Deposito || '0'),
+                rubro: {
+                    Id: record.rubro_Id || 0,
+                    Rubro: record.articulo_Rubro || 'Sin rubro'
+                }
+            }));
+        }
+    }
+    async obtenerStockSinAsignar() {
+        console.log(`🏪 Obteniendo stock sin asignar para depósito`);
+        const query = `
+      SELECT 
+        a.id,
+        a.Codigo,
+        a.Descripcion,
+        a.PrecioVenta,
+        a.Deposito as stockTotal,
+        a.Rubro,
+        COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
+        (a.Deposito - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
+      FROM tbarticulos a
+      LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
+      WHERE a.Deposito > 0
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Deposito, a.Rubro
+      HAVING stockDisponible > 0
+      ORDER BY a.Descripcion
+    `;
+        const stockRecords = await this.stockRepository.query(query);
+        console.log(`📦 Encontrados ${stockRecords.length} artículos con stock disponible`);
+        return stockRecords.map(record => ({
+            id: record.id,
+            nombre: record.Descripcion || 'Sin nombre',
+            codigo: record.Codigo || 'Sin código',
+            precio: parseFloat(record.PrecioVenta || '0'),
+            stockAsignado: parseFloat(record.stockDisponible || '0'),
+            stockTotal: parseFloat(record.stockTotal || '0'),
+            rubro: {
+                Id: 0,
+                Rubro: record.Rubro || 'Sin rubro'
+            }
+        }));
+    }
+    async obtenerProveedores() {
+        console.log(`🏭 Obteniendo lista de proveedores`);
+        const query = `
+      SELECT DISTINCT 
+        p.IdProveedor as id,
+        p.Nombre as nombre,
+        p.Codigo as codigo
+      FROM tbproveedores p
+      INNER JOIN tbarticulos a ON a.idProveedor = p.IdProveedor
+      WHERE a.Deposito > 0
+      ORDER BY p.Nombre
+    `;
+        const proveedores = await this.stockRepository.query(query);
+        console.log(`🏭 Encontrados ${proveedores.length} proveedores con stock`);
+        return proveedores;
+    }
+    async obtenerRubrosPorProveedor(proveedorId) {
+        console.log(`📋 Obteniendo rubros para proveedor ${proveedorId} desde tb_proveedor_rubro`);
+        const query = `
+      SELECT DISTINCT 
+        pr.rubro_nombre as rubro
+      FROM tb_proveedor_rubro pr
+      WHERE pr.proveedor_id = ?
+      ORDER BY pr.rubro_nombre
+    `;
+        const rubros = await this.stockRepository.query(query, [proveedorId]);
+        console.log(`📋 Encontrados ${rubros.length} rubros para proveedor ${proveedorId} desde tabla relacional`);
+        return rubros.map(r => ({ rubro: r.rubro }));
+    }
+    async buscarArticulosConFiltros(proveedorId, rubro, busqueda) {
+        console.log(`🔍 Buscando artículos con filtros: proveedor=${proveedorId}, rubro=${rubro}, busqueda=${busqueda}`);
+        let query = `
+      SELECT 
+        a.id,
+        a.Codigo,
+        a.Descripcion,
+        a.PrecioVenta,
+        a.Deposito as stockTotal,
+        a.Rubro,
+        p.Nombre as proveedorNombre,
+        COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
+        (a.Deposito - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
+      FROM tbarticulos a
+      LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+      LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
+      WHERE a.Deposito > 0
+    `;
+        const params = [];
+        if (proveedorId) {
+            query += ` AND a.idProveedor = ?`;
+            params.push(proveedorId);
+        }
+        if (rubro) {
+            query += ` AND a.Rubro = ?`;
+            params.push(rubro);
+        }
+        if (busqueda && busqueda.length >= 3) {
+            query += ` AND (a.Descripcion LIKE ? OR a.Codigo LIKE ?)`;
+            params.push(`%${busqueda}%`, `%${busqueda}%`);
+        }
+        query += `
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Deposito, a.Rubro, p.Nombre
+      HAVING stockDisponible > 0
+      ORDER BY a.Descripcion
+      LIMIT 50
+    `;
+        const articulos = await this.stockRepository.query(query, params);
+        console.log(`🔍 Encontrados ${articulos.length} artículos con filtros aplicados`);
+        return articulos.map(record => ({
+            id: record.id,
+            nombre: record.Descripcion || 'Sin nombre',
+            codigo: record.Codigo || 'Sin código',
+            precio: parseFloat(record.PrecioVenta || '0'),
+            stockTotal: parseFloat(record.stockTotal || '0'),
+            stockAsignado: parseFloat(record.stockAsignado || '0'),
+            stockDisponible: parseFloat(record.stockDisponible || '0'),
+            rubro: record.Rubro || 'Sin rubro',
+            proveedor: record.proveedorNombre || 'Sin proveedor'
+        }));
+    }
+    async modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad) {
+        console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}`);
+        const stockRecord = await this.stockRepository.findOne({
+            where: {
+                puntoMudrasId: puntoMudrasId,
+                articuloId: articuloId
+            }
+        });
+        if (!stockRecord) {
+            console.log(`❌ No se encontró registro de stock para punto ${puntoMudrasId} y artículo ${articuloId}`);
+            return false;
+        }
+        stockRecord.cantidad = nuevaCantidad;
+        await this.stockRepository.save(stockRecord);
+        console.log(`✅ Stock actualizado exitosamente`);
+        return true;
+    }
+    async obtenerRelacionesProveedorRubro() {
+        const query = `
+      SELECT 
+        pr.id,
+        pr.proveedor_id as proveedorId,
+        pr.proveedor_nombre as proveedorNombre,
+        pr.rubro_nombre as rubroNombre,
+        COUNT(a.id) as cantidadArticulos
+      FROM tb_proveedor_rubro pr
+      LEFT JOIN tbarticulos a ON a.idProveedor = pr.proveedor_id AND a.Rubro = pr.rubro_nombre
+      GROUP BY pr.id, pr.proveedor_id, pr.proveedor_nombre, pr.rubro_nombre
+      ORDER BY pr.proveedor_nombre, pr.rubro_nombre
+    `;
+        return await this.stockRepository.query(query);
+    }
+    async obtenerEstadisticasProveedorRubro() {
+        const query = `
+      SELECT 
+        COUNT(*) as totalRelaciones,
+        COUNT(DISTINCT pr.proveedor_id) as proveedoresUnicos,
+        COUNT(DISTINCT pr.rubro_nombre) as rubrosUnicos,
+        COALESCE(SUM(
+          (SELECT COUNT(*) FROM tbarticulos a 
+           WHERE a.idProveedor = pr.proveedor_id AND a.Rubro = pr.rubro_nombre)
+        ), 0) as totalArticulos
+      FROM tb_proveedor_rubro pr
+    `;
+        const result = await this.stockRepository.query(query);
+        return result[0];
     }
     async obtenerStockPunto(puntoMudrasId, filtros) {
         const query = this.stockRepository.createQueryBuilder('stock')
@@ -273,13 +488,13 @@ let PuntosMudrasService = class PuntosMudrasService {
             .getRawOne();
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        const movimientosHoy = await this.movimientosRepository.count({
-            where: {
-                fechaMovimiento: {
-                    $gte: hoy
-                }
-            }
-        });
+        const mañana = new Date(hoy);
+        mañana.setDate(mañana.getDate() + 1);
+        const movimientosHoy = await this.movimientosRepository
+            .createQueryBuilder('movimiento')
+            .where('movimiento.fechaMovimiento >= :hoy', { hoy })
+            .andWhere('movimiento.fechaMovimiento < :manana', { manana: mañana })
+            .getCount();
         return {
             totalPuntos,
             puntosVenta,
@@ -291,7 +506,22 @@ let PuntosMudrasService = class PuntosMudrasService {
         };
     }
     async inicializarStockPunto(puntoMudrasId) {
-        console.log(`Inicializando stock para punto ${puntoMudrasId}`);
+        console.log(`🔄 Inicializando stock para punto ${puntoMudrasId}`);
+        const articulos = await this.articulosRepository.find();
+        console.log(`📦 Encontrados ${articulos.length} artículos activos`);
+        const stockRegistros = articulos.map(articulo => {
+            return this.stockRepository.create({
+                puntoMudrasId: puntoMudrasId,
+                articuloId: articulo.id,
+                cantidad: 0,
+                stockMinimo: 0,
+                stockMaximo: null,
+            });
+        });
+        if (stockRegistros.length > 0) {
+            await this.stockRepository.save(stockRegistros);
+            console.log(`✅ Creados ${stockRegistros.length} registros de stock iniciales`);
+        }
     }
     async calcularEstadisticasPunto(punto) {
         if (punto.manejaStockFisico) {
@@ -318,7 +548,9 @@ exports.PuntosMudrasService = PuntosMudrasService = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(punto_mudras_entity_1.PuntoMudras)),
     __param(1, (0, typeorm_1.InjectRepository)(stock_punto_mudras_entity_1.StockPuntoMudras)),
     __param(2, (0, typeorm_1.InjectRepository)(movimiento_stock_punto_entity_1.MovimientoStockPunto)),
+    __param(3, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.DataSource])

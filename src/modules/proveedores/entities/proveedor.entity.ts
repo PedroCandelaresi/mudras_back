@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, ID, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
+import { Rubro } from '../../rubros/entities/rubro.entity';
 
 export enum EstadoProveedor {
   ACTIVO = 'activo',
@@ -81,6 +82,10 @@ export class Proveedor {
   @Column({ type: 'varchar', length: 20, nullable: true })
   Rubro: string;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  rubroId: number;
+
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
   Saldo: number;
@@ -93,7 +98,7 @@ export class Proveedor {
   @Column({ type: 'varchar', length: 20, nullable: true })
   Fax: string;
 
-  @Field({ nullable: true })
+  @Field(() => Date, { nullable: true })
   @Column({ type: 'date', nullable: true })
   FechaModif: Date;
 
@@ -102,6 +107,11 @@ export class Proveedor {
   @OneToMany(() => Articulo, articulo => articulo.proveedor)
   @Field(() => [Articulo], { nullable: true })
   articulos?: Articulo[];
+
+  @Field(() => Rubro, { nullable: true })
+  @ManyToOne(() => Rubro, rubro => rubro.proveedores)
+  @JoinColumn({ name: 'rubroId' })
+  rubro?: Rubro;
 
   @OneToMany(() => CuentaCorriente, cuentaCorriente => cuentaCorriente.proveedor)
   @Field(() => [CuentaCorriente], { nullable: true })

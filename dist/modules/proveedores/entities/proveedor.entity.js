@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
 const cuenta_corriente_entity_1 = require("../../cuentas-corrientes/entities/cuenta-corriente.entity");
+const rubro_entity_1 = require("../../rubros/entities/rubro.entity");
 var EstadoProveedor;
 (function (EstadoProveedor) {
     EstadoProveedor["ACTIVO"] = "activo";
@@ -108,6 +109,11 @@ __decorate([
     __metadata("design:type", String)
 ], Proveedor.prototype, "Rubro", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Proveedor.prototype, "rubroId", void 0);
+__decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
     __metadata("design:type", Number)
@@ -123,7 +129,7 @@ __decorate([
     __metadata("design:type", String)
 ], Proveedor.prototype, "Fax", void 0);
 __decorate([
-    (0, graphql_1.Field)({ nullable: true }),
+    (0, graphql_1.Field)(() => Date, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'date', nullable: true }),
     __metadata("design:type", Date)
 ], Proveedor.prototype, "FechaModif", void 0);
@@ -132,6 +138,12 @@ __decorate([
     (0, graphql_1.Field)(() => [articulo_entity_1.Articulo], { nullable: true }),
     __metadata("design:type", Array)
 ], Proveedor.prototype, "articulos", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => rubro_entity_1.Rubro, { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, rubro => rubro.proveedores),
+    (0, typeorm_1.JoinColumn)({ name: 'rubroId' }),
+    __metadata("design:type", rubro_entity_1.Rubro)
+], Proveedor.prototype, "rubro", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => cuenta_corriente_entity_1.CuentaCorriente, cuentaCorriente => cuentaCorriente.proveedor),
     (0, graphql_1.Field)(() => [cuenta_corriente_entity_1.CuentaCorriente], { nullable: true }),

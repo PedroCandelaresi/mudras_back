@@ -1,4 +1,5 @@
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
+import { Rubro } from '../../rubros/entities/rubro.entity';
 import { MovimientoStock } from '../../stock/entities/movimiento-stock.entity';
 export declare enum EstadoArticulo {
     ACTIVO = "activo",
@@ -9,6 +10,7 @@ export declare class Articulo {
     id: number;
     Codigo: string;
     Rubro: string;
+    rubroId: number;
     Descripcion: string;
     Marca: string;
     PrecioVenta: number;
@@ -42,5 +44,6 @@ export declare class Articulo {
     Combustible: boolean;
     ImpuestoPorcentual: boolean;
     proveedor?: Proveedor;
+    rubro?: Rubro;
     movimientosStock?: MovimientoStock[];
 }

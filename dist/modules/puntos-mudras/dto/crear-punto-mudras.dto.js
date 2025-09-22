@@ -9,29 +9,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CrearPuntoMudrasDto = exports.ConfiguracionEspecialInput = void 0;
+exports.CrearPuntoMudrasDto = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-const punto_mudras_entity_1 = require("../entities/punto-mudras.entity");
-let ConfiguracionEspecialInput = class ConfiguracionEspecialInput {
-};
-exports.ConfiguracionEspecialInput = ConfiguracionEspecialInput;
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Boolean)
-], ConfiguracionEspecialInput.prototype, "ventasOnline", void 0);
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Boolean)
-], ConfiguracionEspecialInput.prototype, "requiereAutorizacion", void 0);
-exports.ConfiguracionEspecialInput = ConfiguracionEspecialInput = __decorate([
-    (0, graphql_1.InputType)()
-], ConfiguracionEspecialInput);
 let CrearPuntoMudrasDto = class CrearPuntoMudrasDto {
 };
 exports.CrearPuntoMudrasDto = CrearPuntoMudrasDto;
@@ -43,8 +24,9 @@ __decorate([
     __metadata("design:type", String)
 ], CrearPuntoMudrasDto.prototype, "nombre", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => punto_mudras_entity_1.TipoPuntoMudras),
-    (0, class_validator_1.IsEnum)(punto_mudras_entity_1.TipoPuntoMudras, { message: 'El tipo debe ser "venta" o "deposito"' }),
+    (0, graphql_1.Field)(() => String),
+    (0, class_validator_1.IsString)(),
+    (0, class_transformer_1.Transform)(({ value }) => value?.toLowerCase()),
     __metadata("design:type", String)
 ], CrearPuntoMudrasDto.prototype, "tipo", void 0);
 __decorate([
@@ -82,13 +64,18 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CrearPuntoMudrasDto.prototype, "activo", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => ConfiguracionEspecialInput, { nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => ConfiguracionEspecialInput),
-    __metadata("design:type", ConfiguracionEspecialInput)
-], CrearPuntoMudrasDto.prototype, "configuracionEspecial", void 0);
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearPuntoMudrasDto.prototype, "permiteVentasOnline", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearPuntoMudrasDto.prototype, "requiereAutorizacion", void 0);
 exports.CrearPuntoMudrasDto = CrearPuntoMudrasDto = __decorate([
-    (0, graphql_1.InputType)()
+    (0, graphql_1.InputType)('CrearPuntoMudrasInput')
 ], CrearPuntoMudrasDto);
 //# sourceMappingURL=crear-punto-mudras.dto.js.map

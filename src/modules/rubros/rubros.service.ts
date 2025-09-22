@@ -10,10 +10,62 @@ export class RubrosService {
     private rubrosRepository: Repository<Rubro>,
   ) {}
 
-  async findAll(): Promise<Rubro[]> {
-    return this.rubrosRepository.find({
-      order: { Id: 'ASC' },
-    });
+  async findAll(pagina: number = 0, limite: number = 50, busqueda?: string): Promise<{ rubros: any[], total: number }> {
+    const offset = pagina * limite;
+    
+    // Query para contar el total
+    let countQuery = `
+      SELECT COUNT(DISTINCT r.Id) as total
+      FROM tbrubros r
+    `;
+    
+    // Query principal con paginación
+    let query = `
+      SELECT 
+        r.Id as id,
+        COALESCE(r.Rubro, '') as nombre,
+        r.Codigo as codigo,
+        COUNT(DISTINCT a.id) as cantidadArticulos,
+        COUNT(DISTINCT p.IdProveedor) as cantidadProveedores
+      FROM tbrubros r
+      LEFT JOIN (
+        SELECT DISTINCT a.Rubro, a.id, a.idProveedor
+        FROM tbarticulos a
+        INNER JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+        INNER JOIN tb_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
+        WHERE pr.rubro_nombre COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
+      ) a ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+    `;
+    
+    const params: any[] = [];
+    
+    // Agregar filtro de búsqueda si existe
+    if (busqueda && busqueda.trim()) {
+      const whereClause = ` WHERE (r.Rubro LIKE ? OR r.Codigo LIKE ?)`;
+      countQuery += whereClause;
+      query += whereClause;
+      const searchParam = `%${busqueda.trim()}%`;
+      params.push(searchParam, searchParam);
+    }
+    
+    query += `
+      GROUP BY r.Id, r.Rubro, r.Codigo
+      ORDER BY r.Rubro ASC
+      LIMIT ? OFFSET ?
+    `;
+    
+    params.push(limite, offset);
+    
+    // Ejecutar ambas queries
+    const [rubros, totalResult] = await Promise.all([
+      this.rubrosRepository.query(query, params),
+      this.rubrosRepository.query(countQuery, busqueda && busqueda.trim() ? params.slice(0, -2) : [])
+    ]);
+    
+    const total = totalResult[0]?.total || 0;
+    
+    return { rubros, total };
   }
 
   async findOne(id: number): Promise<Rubro> {
@@ -26,5 +78,214 @@ export class RubrosService {
     return this.rubrosRepository.findOne({
       where: { Rubro: rubro },
     });
+  }
+
+  async create(nombre: string, codigo?: string): Promise<Rubro> {
+    const nuevoRubro = this.rubrosRepository.create({
+      Rubro: nombre,
+      Codigo: codigo || null
+    });
+    
+    return await this.rubrosRepository.save(nuevoRubro);
+  }
+
+  async update(id: number, nombre: string, codigo?: string): Promise<Rubro> {
+    await this.rubrosRepository.update(id, {
+      Rubro: nombre,
+      Codigo: codigo || null
+    });
+    
+    return this.findOne(id);
+  }
+
+  async remove(id: number): Promise<boolean> {
+    // Verificar si hay artículos usando este rubro
+    const articulosCount = await this.rubrosRepository.query(
+      'SELECT COUNT(*) as count FROM tbarticulos WHERE Rubro = (SELECT Rubro FROM tbrubros WHERE Id = ?)',
+      [id]
+    );
+
+    if (articulosCount[0].count > 0) {
+      throw new Error('No se puede eliminar el rubro porque tiene artículos asociados');
+    }
+
+    const result = await this.rubrosRepository.delete(id);
+    return result.affected > 0;
+  }
+
+  async getProveedoresPorRubro(rubroId: number): Promise<any[]> {
+    const query = `
+      SELECT DISTINCT 
+        p.IdProveedor as id,
+        p.Nombre as nombre,
+        p.Codigo as codigo,
+        p.Mail as email,
+        p.Telefono as telefono
+      FROM tbproveedores p
+      INNER JOIN tbarticulos a ON p.IdProveedor = a.idProveedor
+      INNER JOIN tbrubros r ON a.Rubro = r.Rubro
+      WHERE r.Id = ?
+      ORDER BY p.Nombre ASC
+    `;
+
+    return this.rubrosRepository.query(query, [rubroId]);
+  }
+
+  async getArticulosPorRubro(
+    rubroId: number, 
+    filtro?: string, 
+    offset: number = 0, 
+    limit: number = 50
+  ): Promise<{ articulos: any[], total: number }> {
+    
+    // Query base - solo artículos que tienen proveedor asociado al rubro
+    let baseQuery = `
+      FROM tbarticulos a
+      INNER JOIN tbrubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      INNER JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+      INNER JOIN tb_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      WHERE r.Id = ?
+    `;
+
+    const params: any[] = [rubroId];
+
+    // Agregar filtro si existe
+    if (filtro && filtro.trim()) {
+      baseQuery += ` AND (a.Codigo LIKE ? OR a.Descripcion LIKE ? OR p.Nombre LIKE ?)`;
+      const searchParam = `%${filtro.trim()}%`;
+      params.push(searchParam, searchParam, searchParam);
+    }
+
+    // Query para contar total
+    const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+
+    // Query principal con datos
+    const dataQuery = `
+      SELECT 
+        a.id,
+        a.Codigo as codigo,
+        a.Descripcion as descripcion,
+        a.PrecioVenta as precio,
+        a.Deposito as stock,
+        p.IdProveedor as proveedorId,
+        p.Nombre as proveedorNombre
+      ${baseQuery}
+      ORDER BY a.Codigo ASC
+      LIMIT ? OFFSET ?
+    `;
+
+    const dataParams = [...params, limit, offset];
+
+    // Ejecutar ambas queries
+    const [articulos, totalResult] = await Promise.all([
+      this.rubrosRepository.query(dataQuery, dataParams),
+      this.rubrosRepository.query(countQuery, params)
+    ]);
+
+    const total = totalResult[0]?.total || 0;
+
+    // Formatear artículos
+    const articulosFormateados = articulos.map(articulo => ({
+      id: articulo.id,
+      codigo: articulo.codigo,
+      descripcion: articulo.descripcion,
+      precio: parseFloat(articulo.precio) || 0,
+      stock: parseInt(articulo.stock) || 0,
+      proveedor: articulo.proveedorId ? {
+        id: articulo.proveedorId,
+        nombre: articulo.proveedorNombre
+      } : null
+    }));
+
+    return { 
+      articulos: articulosFormateados, 
+      total 
+    };
+  }
+
+  async eliminarProveedorDeRubro(proveedorId: number, rubroNombre: string): Promise<boolean> {
+    try {
+      // Paso 1: Actualizar artículos que tenían este proveedor en este rubro
+      // Los artículos quedan sin proveedor (idProveedor = NULL)
+      await this.rubrosRepository.query(
+        'UPDATE tbarticulos SET idProveedor = NULL WHERE idProveedor = ? AND Rubro = ?',
+        [proveedorId, rubroNombre]
+      );
+
+      // Paso 2: Eliminar de la tabla de relaciones tb_proveedor_rubro
+      await this.rubrosRepository.query(
+        'DELETE FROM tb_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?',
+        [proveedorId, rubroNombre]
+      );
+
+      // Paso 3: Actualizar tbproveedores si es necesario
+      // Solo si el proveedor no tiene más rubros asociados
+      const rubrosRestantes = await this.rubrosRepository.query(
+        'SELECT COUNT(*) as count FROM tb_proveedor_rubro WHERE proveedor_id = ?',
+        [proveedorId]
+      );
+
+      if (rubrosRestantes[0].count === 0) {
+        // Si no tiene más rubros, limpiar el campo Rubro en tbproveedores
+        await this.rubrosRepository.query(
+          'UPDATE tbproveedores SET Rubro = NULL WHERE IdProveedor = ?',
+          [proveedorId]
+        );
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error al eliminar proveedor del rubro:', error);
+      throw new Error('No se pudo eliminar el proveedor del rubro');
+    }
+  }
+
+  async eliminarArticuloDeRubro(articuloId: number): Promise<boolean> {
+    try {
+      // Opción 1: Usar campo string (actual)
+      const resultString = await this.rubrosRepository.query(
+        'UPDATE tbarticulos SET Rubro = NULL WHERE id = ?',
+        [articuloId]
+      );
+
+      // Opción 2: Usar FK (después de migración)
+      const resultFK = await this.rubrosRepository.query(
+        'UPDATE tbarticulos SET rubroId = NULL WHERE id = ?',
+        [articuloId]
+      );
+
+      return (resultString.affectedRows > 0) || (resultFK.affectedRows > 0);
+    } catch (error) {
+      console.error('Error al eliminar artículo del rubro:', error);
+      throw new Error('No se pudo eliminar el artículo del rubro');
+    }
+  }
+
+  async eliminarArticulosDeRubro(articuloIds: number[]): Promise<boolean> {
+    try {
+      if (articuloIds.length === 0) {
+        return false;
+      }
+
+      // Crear placeholders para la query IN
+      const placeholders = articuloIds.map(() => '?').join(',');
+      
+      // Opción 1: Usar campo string (actual)
+      const resultString = await this.rubrosRepository.query(
+        `UPDATE tbarticulos SET Rubro = NULL WHERE id IN (${placeholders})`,
+        articuloIds
+      );
+
+      // Opción 2: Usar FK (después de migración)
+      const resultFK = await this.rubrosRepository.query(
+        `UPDATE tbarticulos SET rubroId = NULL WHERE id IN (${placeholders})`,
+        articuloIds
+      );
+
+      return (resultString.affectedRows > 0) || (resultFK.affectedRows > 0);
+    } catch (error) {
+      console.error('Error al eliminar artículos del rubro:', error);
+      throw new Error('No se pudo eliminar los artículos del rubro');
+    }
   }
 }

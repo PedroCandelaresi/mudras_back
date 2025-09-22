@@ -1,4 +1,3 @@
-import { ConfiguracionEspecialInput } from './crear-punto-mudras.dto';
 export declare class ActualizarPuntoMudrasDto {
     id: number;
     nombre?: string;
@@ -7,5 +6,6 @@ export declare class ActualizarPuntoMudrasDto {
     telefono?: string;
     email?: string;
     activo?: boolean;
-    configuracionEspecial?: ConfiguracionEspecialInput;
+    permiteVentasOnline?: boolean;
+    requiereAutorizacion?: boolean;
 }

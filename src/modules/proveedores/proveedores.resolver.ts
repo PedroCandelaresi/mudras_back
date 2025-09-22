@@ -1,6 +1,9 @@
-import { Resolver, Query, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { ProveedoresService } from './proveedores.service';
 import { Proveedor } from './entities/proveedor.entity';
+import { CreateProveedorInput } from './dto/create-proveedor.dto';
+import { UpdateProveedorInput } from './dto/update-proveedor.dto';
+import { ArticulosPorProveedorResponse } from './dto/articulos-por-proveedor.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -34,5 +37,34 @@ export class ProveedoresResolver {
   @Permisos('proveedores.read')
   findByNombre(@Args('nombre') nombre: string) {
     return this.proveedoresService.findByNombre(nombre);
+  }
+
+  @Query(() => ArticulosPorProveedorResponse, { name: 'articulosPorProveedor' })
+  @Permisos('proveedores.read')
+  findArticulosByProveedor(
+    @Args('proveedorId', { type: () => Int }) proveedorId: number,
+    @Args('filtro', { nullable: true }) filtro?: string,
+    @Args('offset', { type: () => Int, nullable: true }) offset?: number,
+    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
+  ) {
+    return this.proveedoresService.findArticulosByProveedor(proveedorId, filtro, offset, limit);
+  }
+
+  @Mutation(() => Proveedor, { name: 'crearProveedor' })
+  @Permisos('proveedores.create')
+  create(@Args('createProveedorInput') createProveedorInput: CreateProveedorInput) {
+    return this.proveedoresService.create(createProveedorInput);
+  }
+
+  @Mutation(() => Proveedor, { name: 'actualizarProveedor' })
+  @Permisos('proveedores.update')
+  update(@Args('updateProveedorInput') updateProveedorInput: UpdateProveedorInput) {
+    return this.proveedoresService.update(updateProveedorInput);
+  }
+
+  @Mutation(() => Boolean, { name: 'eliminarProveedor' })
+  @Permisos('proveedores.delete')
+  remove(@Args('id', { type: () => Int }) id: number) {
+    return this.proveedoresService.remove(id);
   }
 }

@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Articulo } from '../../articulos/entities/articulo.entity';
+import { Proveedor } from '../../proveedores/entities/proveedor.entity';
 
 @ObjectType()
 @Entity('tbrubros')
@@ -16,6 +18,20 @@ export class Rubro {
   @Column({ type: 'varchar', length: 10, nullable: true })
   Codigo: string;
 
+  @Field({ nullable: true })
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
+  PorcentajeRecargo: number;
 
-  // Relaciones eliminadas ya que no hay campo rubroId en Articulo
+  @Field({ nullable: true })
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
+  PorcentajeDescuento: number;
+
+  // Relaciones FK
+  @OneToMany(() => Articulo, articulo => articulo.rubro)
+  @Field(() => [Articulo], { nullable: true })
+  articulos?: Articulo[];
+
+  @OneToMany(() => Proveedor, proveedor => proveedor.rubro)
+  @Field(() => [Proveedor], { nullable: true })
+  proveedores?: Proveedor[];
 }

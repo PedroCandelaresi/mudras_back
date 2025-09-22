@@ -30,6 +30,10 @@ export class Articulo {
   @Column({ type: 'varchar', length: 25, nullable: true })
   Rubro: string;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  rubroId: number;
+
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 50, nullable: true })
   Descripcion: string;
@@ -165,6 +169,10 @@ export class Articulo {
   @JoinColumn({ name: 'idProveedor' })
   proveedor?: Proveedor;
 
+  @Field(() => Rubro, { nullable: true })
+  @ManyToOne(() => Rubro, rubro => rubro.articulos)
+  @JoinColumn({ name: 'rubroId' })
+  rubro?: Rubro;
 
   @OneToMany(() => MovimientoStock, movimiento => movimiento.articulo)
   @Field(() => [MovimientoStock], { nullable: true })

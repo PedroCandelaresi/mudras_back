@@ -10,10 +10,11 @@ exports.PuntosMudrasModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const puntos_mudras_service_1 = require("./puntos-mudras.service");
-const puntos_mudras_resolver_clean_1 = require("./puntos-mudras.resolver.clean");
+const puntos_mudras_resolver_1 = require("./puntos-mudras.resolver");
 const punto_mudras_entity_1 = require("./entities/punto-mudras.entity");
 const stock_punto_mudras_entity_1 = require("./entities/stock-punto-mudras.entity");
 const movimiento_stock_punto_entity_1 = require("./entities/movimiento-stock-punto.entity");
+const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 let PuntosMudrasModule = class PuntosMudrasModule {
 };
 exports.PuntosMudrasModule = PuntosMudrasModule;
@@ -24,11 +25,12 @@ exports.PuntosMudrasModule = PuntosMudrasModule = __decorate([
                 punto_mudras_entity_1.PuntoMudras,
                 stock_punto_mudras_entity_1.StockPuntoMudras,
                 movimiento_stock_punto_entity_1.MovimientoStockPunto,
+                articulo_entity_1.Articulo,
             ]),
         ],
         providers: [
             puntos_mudras_service_1.PuntosMudrasService,
-            puntos_mudras_resolver_clean_1.PuntosMudrasResolver,
+            puntos_mudras_resolver_1.PuntosMudrasResolver,
         ],
         exports: [
             puntos_mudras_service_1.PuntosMudrasService,

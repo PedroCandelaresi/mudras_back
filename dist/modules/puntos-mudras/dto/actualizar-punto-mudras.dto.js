@@ -12,8 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ActualizarPuntoMudrasDto = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
-const crear_punto_mudras_dto_1 = require("./crear-punto-mudras.dto");
 let ActualizarPuntoMudrasDto = class ActualizarPuntoMudrasDto {
 };
 exports.ActualizarPuntoMudrasDto = ActualizarPuntoMudrasDto;
@@ -64,13 +62,18 @@ __decorate([
     __metadata("design:type", Boolean)
 ], ActualizarPuntoMudrasDto.prototype, "activo", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => crear_punto_mudras_dto_1.ConfiguracionEspecialInput, { nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.ValidateNested)(),
-    (0, class_transformer_1.Type)(() => crear_punto_mudras_dto_1.ConfiguracionEspecialInput),
-    __metadata("design:type", crear_punto_mudras_dto_1.ConfiguracionEspecialInput)
-], ActualizarPuntoMudrasDto.prototype, "configuracionEspecial", void 0);
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], ActualizarPuntoMudrasDto.prototype, "permiteVentasOnline", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], ActualizarPuntoMudrasDto.prototype, "requiereAutorizacion", void 0);
 exports.ActualizarPuntoMudrasDto = ActualizarPuntoMudrasDto = __decorate([
-    (0, graphql_1.InputType)()
+    (0, graphql_1.InputType)('ActualizarPuntoMudrasInput')
 ], ActualizarPuntoMudrasDto);
 //# sourceMappingURL=actualizar-punto-mudras.dto.js.map
