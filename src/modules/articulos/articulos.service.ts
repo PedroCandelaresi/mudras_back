@@ -182,7 +182,7 @@ export class ArticulosService {
     }
 
     if (filtros.rubroId) {
-      queryBuilder.andWhere('articulo.Rubro = :rubro', { rubro: filtros.rubroId });
+      queryBuilder.andWhere('articulo.rubroId = :rubroId', { rubroId: filtros.rubroId });
     }
 
     if (filtros.proveedorId) {

@@ -9,8 +9,8 @@ export declare class RubrosService {
     }>;
     findOne(id: number): Promise<Rubro>;
     findByNombre(rubro: string): Promise<Rubro>;
-    create(nombre: string, codigo?: string): Promise<Rubro>;
-    update(id: number, nombre: string, codigo?: string): Promise<Rubro>;
+    create(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro>;
+    update(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro>;
     remove(id: number): Promise<boolean>;
     getProveedoresPorRubro(rubroId: number): Promise<any[]>;
     getArticulosPorRubro(rubroId: number, filtro?: string, offset?: number, limit?: number): Promise<{

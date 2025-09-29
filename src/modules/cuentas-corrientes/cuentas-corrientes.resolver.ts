@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Float } from '@nestjs/graphql';
 import { CuentasCorrientesService } from './cuentas-corrientes.service';
 import { CuentaCorriente } from './entities/cuenta-corriente.entity';
 import { MovimientoCuentaCorriente, TipoMovimientoCuentaCorriente, ConceptoMovimientoCuentaCorriente } from './entities/movimiento-cuenta-corriente.entity';
@@ -81,7 +81,7 @@ export class CuentasCorrientesResolver {
     );
   }
 
-  @Query(() => Number, { name: 'saldoCuentaCorriente' })
+  @Query(() => Float, { name: 'saldoCuentaCorriente' })
   @Permisos('cuentas.read')
   obtenerSaldo(@Args('cuentaId', { type: () => Int }) cuentaId: number) {
     return this.cuentasCorrientesService.obtenerSaldo(cuentaId);

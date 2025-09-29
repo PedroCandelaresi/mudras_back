@@ -15,6 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PuntosMudrasResolver = exports.ArticuloFiltrado = exports.RubroBasico = exports.ProveedorBasico = exports.EstadisticasPuntosMudras = exports.ArticuloConStockPuntoMudras = exports.EstadisticasProveedorRubro = exports.RelacionProveedorRubro = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const common_1 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
+const permissions_guard_1 = require("../auth/guards/permissions.guard");
+const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
+const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
 const puntos_mudras_service_1 = require("./puntos-mudras.service");
 const punto_mudras_entity_1 = require("./entities/punto-mudras.entity");
 const crear_punto_mudras_dto_1 = require("./dto/crear-punto-mudras.dto");
@@ -125,7 +130,7 @@ __decorate([
     __metadata("design:type", Number)
 ], EstadisticasPuntosMudras.prototype, "articulosConStock", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => Number),
+    (0, graphql_1.Field)(() => graphql_1.Float),
     __metadata("design:type", Number)
 ], EstadisticasPuntosMudras.prototype, "valorTotalInventario", void 0);
 __decorate([
@@ -254,12 +259,14 @@ let PuntosMudrasResolver = class PuntosMudrasResolver {
 exports.PuntosMudrasResolver = PuntosMudrasResolver;
 __decorate([
     (0, graphql_1.Query)(() => [punto_mudras_entity_1.PuntoMudras]),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerPuntosMudras", null);
 __decorate([
     (0, graphql_1.Query)(() => punto_mudras_entity_1.PuntoMudras),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -267,12 +274,14 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "obtenerPuntoMudrasPorId", null);
 __decorate([
     (0, graphql_1.Query)(() => EstadisticasPuntosMudras),
+    (0, permissions_decorator_1.Permisos)('dashboard.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerEstadisticasPuntosMudras", null);
 __decorate([
     (0, graphql_1.Query)(() => [ArticuloConStockPuntoMudras]),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('puntoMudrasId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -280,12 +289,14 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "obtenerStockPuntoMudras", null);
 __decorate([
     (0, graphql_1.Query)(() => [ProveedorBasico]),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerProveedoresConStock", null);
 __decorate([
     (0, graphql_1.Query)(() => [RubroBasico]),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -293,6 +304,7 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "obtenerRubrosPorProveedor", null);
 __decorate([
     (0, graphql_1.Query)(() => [ArticuloFiltrado]),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.Int, nullable: true })),
     __param(1, (0, graphql_1.Args)('rubro', { nullable: true })),
     __param(2, (0, graphql_1.Args)('busqueda', { nullable: true })),
@@ -302,6 +314,8 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "buscarArticulosParaAsignacion", null);
 __decorate([
     (0, graphql_1.Mutation)(() => punto_mudras_entity_1.PuntoMudras),
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, permissions_decorator_1.Permisos)('stock.update'),
     __param(0, (0, graphql_1.Args)('input', new common_1.ValidationPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [crear_punto_mudras_dto_1.CrearPuntoMudrasDto]),
@@ -309,6 +323,8 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "crearPuntoMudras", null);
 __decorate([
     (0, graphql_1.Mutation)(() => punto_mudras_entity_1.PuntoMudras),
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, permissions_decorator_1.Permisos)('stock.update'),
     __param(0, (0, graphql_1.Args)('input', new common_1.ValidationPipe())),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [actualizar_punto_mudras_dto_1.ActualizarPuntoMudrasDto]),
@@ -316,6 +332,8 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "actualizarPuntoMudras", null);
 __decorate([
     (0, graphql_1.Mutation)(() => Boolean),
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, permissions_decorator_1.Permisos)('stock.update'),
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -323,6 +341,8 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "eliminarPuntoMudras", null);
 __decorate([
     (0, graphql_1.Mutation)(() => Boolean),
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, permissions_decorator_1.Permisos)('stock.update'),
     __param(0, (0, graphql_1.Args)('puntoMudrasId', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('articuloId', { type: () => graphql_1.Int })),
     __param(2, (0, graphql_1.Args)('nuevaCantidad', { type: () => graphql_1.Float })),
@@ -332,18 +352,21 @@ __decorate([
 ], PuntosMudrasResolver.prototype, "modificarStockPunto", null);
 __decorate([
     (0, graphql_1.Query)(() => [RelacionProveedorRubro]),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerRelacionesProveedorRubro", null);
 __decorate([
     (0, graphql_1.Query)(() => EstadisticasProveedorRubro),
+    (0, permissions_decorator_1.Permisos)('dashboard.read'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerEstadisticasProveedorRubro", null);
 exports.PuntosMudrasResolver = PuntosMudrasResolver = __decorate([
     (0, graphql_1.Resolver)(() => punto_mudras_entity_1.PuntoMudras),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
     __metadata("design:paramtypes", [puntos_mudras_service_1.PuntosMudrasService])
 ], PuntosMudrasResolver);
 //# sourceMappingURL=puntos-mudras.resolver.js.map

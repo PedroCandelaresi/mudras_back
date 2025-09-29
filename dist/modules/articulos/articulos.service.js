@@ -155,7 +155,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             queryBuilder.andWhere('articulo.Marca LIKE :marca', { marca: `%${filtros.marca}%` });
         }
         if (filtros.rubroId) {
-            queryBuilder.andWhere('articulo.Rubro = :rubro', { rubro: filtros.rubroId });
+            queryBuilder.andWhere('articulo.rubroId = :rubroId', { rubroId: filtros.rubroId });
         }
         if (filtros.proveedorId) {
             queryBuilder.andWhere('articulo.idProveedor = :proveedorId', { proveedorId: filtros.proveedorId });

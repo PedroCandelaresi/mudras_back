@@ -59,13 +59,13 @@ export declare class PuntosMudrasResolver {
     obtenerPuntoMudrasPorId(id: number): Promise<PuntoMudras>;
     obtenerEstadisticasPuntosMudras(): Promise<EstadisticasPuntosMudras>;
     obtenerStockPuntoMudras(puntoMudrasId: number): Promise<ArticuloConStockPuntoMudras[]>;
-    obtenerProveedoresConStock(): Promise<any[]>;
-    obtenerRubrosPorProveedor(proveedorId: number): Promise<any[]>;
-    buscarArticulosParaAsignacion(proveedorId?: number, rubro?: string, busqueda?: string): Promise<any[]>;
+    obtenerProveedoresConStock(): Promise<ProveedorBasico[]>;
+    obtenerRubrosPorProveedor(proveedorId: number): Promise<RubroBasico[]>;
+    buscarArticulosParaAsignacion(proveedorId?: number, rubro?: string, busqueda?: string): Promise<ArticuloFiltrado[]>;
     crearPuntoMudras(input: CrearPuntoMudrasDto): Promise<PuntoMudras>;
     actualizarPuntoMudras(input: ActualizarPuntoMudrasDto): Promise<PuntoMudras>;
     eliminarPuntoMudras(id: number): Promise<boolean>;
     modificarStockPunto(puntoMudrasId: number, articuloId: number, nuevaCantidad: number): Promise<boolean>;
-    obtenerRelacionesProveedorRubro(): Promise<any[]>;
-    obtenerEstadisticasProveedorRubro(): Promise<any>;
+    obtenerRelacionesProveedorRubro(): Promise<RelacionProveedorRubro[]>;
+    obtenerEstadisticasProveedorRubro(): Promise<EstadisticasProveedorRubro>;
 }

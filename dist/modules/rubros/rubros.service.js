@@ -32,6 +32,8 @@ let RubrosService = class RubrosService {
         r.Id as id,
         COALESCE(r.Rubro, '') as nombre,
         r.Codigo as codigo,
+        COALESCE(r.PorcentajeRecargo, 0) as porcentajeRecargo,
+        COALESCE(r.PorcentajeDescuento, 0) as porcentajeDescuento,
         COUNT(DISTINCT a.id) as cantidadArticulos,
         COUNT(DISTINCT p.IdProveedor) as cantidadProveedores
       FROM tbrubros r
@@ -53,7 +55,7 @@ let RubrosService = class RubrosService {
             params.push(searchParam, searchParam);
         }
         query += `
-      GROUP BY r.Id, r.Rubro, r.Codigo
+      GROUP BY r.Id, r.Rubro, r.Codigo, r.PorcentajeRecargo, r.PorcentajeDescuento
       ORDER BY r.Rubro ASC
       LIMIT ? OFFSET ?
     `;
@@ -75,17 +77,21 @@ let RubrosService = class RubrosService {
             where: { Rubro: rubro },
         });
     }
-    async create(nombre, codigo) {
+    async create(nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
         const nuevoRubro = this.rubrosRepository.create({
             Rubro: nombre,
-            Codigo: codigo || null
+            Codigo: codigo || null,
+            PorcentajeRecargo: porcentajeRecargo ?? 0,
+            PorcentajeDescuento: porcentajeDescuento ?? 0
         });
         return await this.rubrosRepository.save(nuevoRubro);
     }
-    async update(id, nombre, codigo) {
+    async update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
         await this.rubrosRepository.update(id, {
             Rubro: nombre,
-            Codigo: codigo || null
+            Codigo: codigo || null,
+            PorcentajeRecargo: porcentajeRecargo ?? 0,
+            PorcentajeDescuento: porcentajeDescuento ?? 0
         });
         return this.findOne(id);
     }

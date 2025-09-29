@@ -3,6 +3,8 @@ import { UseGuards, ValidationPipe } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { Permisos } from '../auth/decorators/permissions.decorator';
+import { RequireSecretKey } from '../../common/decorators/secret-key.decorator';
 import { PuntosMudrasService } from './puntos-mudras.service';
 import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
@@ -82,7 +84,7 @@ export class EstadisticasPuntosMudras {
   @Field(() => Int)
   articulosConStock: number;
 
-  @Field(() => Number)
+  @Field(() => Float)
   valorTotalInventario: number;
 
   @Field(() => Int)
@@ -138,16 +140,19 @@ export class ArticuloFiltrado {
 }
 
 @Resolver(() => PuntoMudras)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class PuntosMudrasResolver {
   constructor(private readonly puntosMudrasService: PuntosMudrasService) {}
 
   @Query(() => [PuntoMudras])
+  @Permisos('stock.read')
   async obtenerPuntosMudras(): Promise<PuntoMudras[]> {
     const resultado = await this.puntosMudrasService.obtenerTodos();
     return resultado.puntos;
   }
 
   @Query(() => PuntoMudras)
+  @Permisos('stock.read')
   async obtenerPuntoMudrasPorId(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<PuntoMudras> {
@@ -155,11 +160,13 @@ export class PuntosMudrasResolver {
   }
 
   @Query(() => EstadisticasPuntosMudras)
+  @Permisos('dashboard.read')
   async obtenerEstadisticasPuntosMudras(): Promise<EstadisticasPuntosMudras> {
     return await this.puntosMudrasService.obtenerEstadisticas();
   }
 
   @Query(() => [ArticuloConStockPuntoMudras])
+  @Permisos('stock.read')
   async obtenerStockPuntoMudras(
     @Args('puntoMudrasId', { type: () => Int }) puntoMudrasId: number,
   ): Promise<ArticuloConStockPuntoMudras[]> {
@@ -167,27 +174,32 @@ export class PuntosMudrasResolver {
   }
 
   @Query(() => [ProveedorBasico])
-  async obtenerProveedoresConStock(): Promise<any[]> {
+  @Permisos('stock.read')
+  async obtenerProveedoresConStock(): Promise<ProveedorBasico[]> {
     return await this.puntosMudrasService.obtenerProveedores();
   }
 
   @Query(() => [RubroBasico])
+  @Permisos('stock.read')
   async obtenerRubrosPorProveedor(
     @Args('proveedorId', { type: () => Int }) proveedorId: number,
-  ): Promise<any[]> {
+  ): Promise<RubroBasico[]> {
     return await this.puntosMudrasService.obtenerRubrosPorProveedor(proveedorId);
   }
 
   @Query(() => [ArticuloFiltrado])
+  @Permisos('stock.read')
   async buscarArticulosParaAsignacion(
     @Args('proveedorId', { type: () => Int, nullable: true }) proveedorId?: number,
     @Args('rubro', { nullable: true }) rubro?: string,
     @Args('busqueda', { nullable: true }) busqueda?: string,
-  ): Promise<any[]> {
+  ): Promise<ArticuloFiltrado[]> {
     return await this.puntosMudrasService.buscarArticulosConFiltros(proveedorId, rubro, busqueda);
   }
 
   @Mutation(() => PuntoMudras)
+  @RequireSecretKey()
+  @Permisos('stock.update')
   async crearPuntoMudras(
     @Args('input', new ValidationPipe()) input: CrearPuntoMudrasDto,
   ): Promise<PuntoMudras> {
@@ -195,6 +207,8 @@ export class PuntosMudrasResolver {
   }
 
   @Mutation(() => PuntoMudras)
+  @RequireSecretKey()
+  @Permisos('stock.update')
   async actualizarPuntoMudras(
     @Args('input', new ValidationPipe()) input: ActualizarPuntoMudrasDto,
   ): Promise<PuntoMudras> {
@@ -202,6 +216,8 @@ export class PuntosMudrasResolver {
   }
 
   @Mutation(() => Boolean)
+  @RequireSecretKey()
+  @Permisos('stock.update')
   async eliminarPuntoMudras(
     @Args('id', { type: () => Int }) id: number,
   ): Promise<boolean> {
@@ -210,6 +226,8 @@ export class PuntosMudrasResolver {
   }
 
   @Mutation(() => Boolean)
+  @RequireSecretKey()
+  @Permisos('stock.update')
   async modificarStockPunto(
     @Args('puntoMudrasId', { type: () => Int }) puntoMudrasId: number,
     @Args('articuloId', { type: () => Int }) articuloId: number,
@@ -219,12 +237,14 @@ export class PuntosMudrasResolver {
   }
 
   @Query(() => [RelacionProveedorRubro])
-  async obtenerRelacionesProveedorRubro(): Promise<any[]> {
+  @Permisos('stock.read')
+  async obtenerRelacionesProveedorRubro(): Promise<RelacionProveedorRubro[]> {
     return await this.puntosMudrasService.obtenerRelacionesProveedorRubro();
   }
 
   @Query(() => EstadisticasProveedorRubro)
-  async obtenerEstadisticasProveedorRubro(): Promise<any> {
+  @Permisos('dashboard.read')
+  async obtenerEstadisticasProveedorRubro(): Promise<EstadisticasProveedorRubro> {
     return await this.puntosMudrasService.obtenerEstadisticasProveedorRubro();
   }
 }

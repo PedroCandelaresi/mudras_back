@@ -4,6 +4,8 @@ export declare class RubroConEstadisticas {
     id: number;
     nombre: string;
     codigo?: string;
+    porcentajeRecargo?: number;
+    porcentajeDescuento?: number;
     cantidadArticulos: number;
     cantidadProveedores: number;
 }
@@ -21,8 +23,8 @@ export declare class RubrosResolver {
     obtenerTodosRubros(): Promise<any[]>;
     findOne(id: number): Promise<Rubro>;
     findByNombre(rubro: string): Promise<Rubro>;
-    crearRubro(nombre: string, codigo?: string): Promise<Rubro>;
-    actualizarRubro(id: number, nombre: string, codigo?: string): Promise<Rubro>;
+    crearRubro(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro>;
+    actualizarRubro(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro>;
     eliminarRubro(id: number): Promise<boolean>;
     getProveedoresPorRubro(rubroId: number): Promise<any[]>;
     getArticulosPorRubro(rubroId: number, filtro?: string, offset?: number, limit?: number): Promise<{

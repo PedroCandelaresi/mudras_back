@@ -25,6 +25,8 @@ export class RubrosService {
         r.Id as id,
         COALESCE(r.Rubro, '') as nombre,
         r.Codigo as codigo,
+        COALESCE(r.PorcentajeRecargo, 0) as porcentajeRecargo,
+        COALESCE(r.PorcentajeDescuento, 0) as porcentajeDescuento,
         COUNT(DISTINCT a.id) as cantidadArticulos,
         COUNT(DISTINCT p.IdProveedor) as cantidadProveedores
       FROM tbrubros r
@@ -50,7 +52,7 @@ export class RubrosService {
     }
     
     query += `
-      GROUP BY r.Id, r.Rubro, r.Codigo
+      GROUP BY r.Id, r.Rubro, r.Codigo, r.PorcentajeRecargo, r.PorcentajeDescuento
       ORDER BY r.Rubro ASC
       LIMIT ? OFFSET ?
     `;
@@ -80,19 +82,23 @@ export class RubrosService {
     });
   }
 
-  async create(nombre: string, codigo?: string): Promise<Rubro> {
+  async create(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro> {
     const nuevoRubro = this.rubrosRepository.create({
       Rubro: nombre,
-      Codigo: codigo || null
+      Codigo: codigo || null,
+      PorcentajeRecargo: porcentajeRecargo ?? 0,
+      PorcentajeDescuento: porcentajeDescuento ?? 0
     });
     
     return await this.rubrosRepository.save(nuevoRubro);
   }
 
-  async update(id: number, nombre: string, codigo?: string): Promise<Rubro> {
+  async update(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro> {
     await this.rubrosRepository.update(id, {
       Rubro: nombre,
-      Codigo: codigo || null
+      Codigo: codigo || null,
+      PorcentajeRecargo: porcentajeRecargo ?? 0,
+      PorcentajeDescuento: porcentajeDescuento ?? 0
     });
     
     return this.findOne(id);

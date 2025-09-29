@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int, ObjectType, Field } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Float, ObjectType, Field } from '@nestjs/graphql';
 import { RubrosService } from './rubros.service';
 import { Rubro } from './entities/rubro.entity';
 
@@ -12,6 +12,12 @@ export class RubroConEstadisticas {
 
   @Field({ nullable: true })
   codigo?: string;
+
+  @Field(() => Float, { nullable: true })
+  porcentajeRecargo?: number;
+
+  @Field(() => Float, { nullable: true })
+  porcentajeDescuento?: number;
 
   @Field(() => Int)
   cantidadArticulos: number;
@@ -62,8 +68,10 @@ export class RubrosResolver {
   async crearRubro(
     @Args('nombre') nombre: string,
     @Args('codigo', { nullable: true }) codigo?: string,
+    @Args('porcentajeRecargo', { type: () => Float, nullable: true }) porcentajeRecargo?: number,
+    @Args('porcentajeDescuento', { type: () => Float, nullable: true }) porcentajeDescuento?: number,
   ): Promise<Rubro> {
-    return this.rubrosService.create(nombre, codigo);
+    return this.rubrosService.create(nombre, codigo, porcentajeRecargo, porcentajeDescuento);
   }
 
   @Mutation(() => Rubro)
@@ -71,8 +79,10 @@ export class RubrosResolver {
     @Args('id', { type: () => Int }) id: number,
     @Args('nombre') nombre: string,
     @Args('codigo', { nullable: true }) codigo?: string,
+    @Args('porcentajeRecargo', { type: () => Float, nullable: true }) porcentajeRecargo?: number,
+    @Args('porcentajeDescuento', { type: () => Float, nullable: true }) porcentajeDescuento?: number,
   ): Promise<Rubro> {
-    return this.rubrosService.update(id, nombre, codigo);
+    return this.rubrosService.update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento);
   }
 
   @Mutation(() => Boolean)

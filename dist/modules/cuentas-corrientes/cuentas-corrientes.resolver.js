@@ -131,7 +131,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], CuentasCorrientesResolver.prototype, "registrarMovimiento", null);
 __decorate([
-    (0, graphql_1.Query)(() => Number, { name: 'saldoCuentaCorriente' }),
+    (0, graphql_1.Query)(() => graphql_1.Float, { name: 'saldoCuentaCorriente' }),
     (0, permissions_decorator_1.Permisos)('cuentas.read'),
     __param(0, (0, graphql_1.Args)('cuentaId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),

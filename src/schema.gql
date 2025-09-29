@@ -722,7 +722,7 @@ type Mutation {
   actualizarPromocion(id: String!, input: ActualizarPromocionInput!): Promocion!
   actualizarProveedor(updateProveedorInput: UpdateProveedorInput!): Proveedor!
   actualizarPuntoMudras(input: ActualizarPuntoMudrasInput!): PuntoMudras!
-  actualizarRubro(codigo: String, id: Int!, nombre: String!): Rubro!
+  actualizarRubro(codigo: String, id: Int!, nombre: String!, porcentajeDescuento: Float, porcentajeRecargo: Float): Rubro!
   actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente!
   actualizarStockArticulo(id: Int!, nuevoStock: Float!): Articulo!
   anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable!
@@ -739,7 +739,7 @@ type Mutation {
   crearPromocion(input: CrearPromocionInput!): Promocion!
   crearProveedor(createProveedorInput: CreateProveedorInput!): Proveedor!
   crearPuntoMudras(input: CrearPuntoMudrasInput!): PuntoMudras!
-  crearRubro(codigo: String, nombre: String!): Rubro!
+  crearRubro(codigo: String, nombre: String!, porcentajeDescuento: Float, porcentajeRecargo: Float): Rubro!
   crearUsuariosEjemplo: Boolean!
   crearVenta(clienteId: Int!, descuentoGeneral: Float! = 0, detalles: [DetalleVentaInput!]!, observaciones: String, tipoPago: TipoPago!, usuarioId: Int!): Venta!
   crearVentaCaja(input: CrearVentaCajaInput!): VentaCaja!
@@ -1013,6 +1013,8 @@ type RubroConEstadisticas {
   codigo: String
   id: Int!
   nombre: String
+  porcentajeDescuento: Float
+  porcentajeRecargo: Float
 }
 
 type RubrosResponse {

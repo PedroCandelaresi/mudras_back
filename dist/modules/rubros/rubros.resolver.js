@@ -32,6 +32,14 @@ __decorate([
     __metadata("design:type", String)
 ], RubroConEstadisticas.prototype, "codigo", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], RubroConEstadisticas.prototype, "porcentajeRecargo", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], RubroConEstadisticas.prototype, "porcentajeDescuento", void 0);
+__decorate([
     (0, graphql_1.Field)(() => graphql_1.Int),
     __metadata("design:type", Number)
 ], RubroConEstadisticas.prototype, "cantidadArticulos", void 0);
@@ -73,11 +81,11 @@ let RubrosResolver = class RubrosResolver {
     findByNombre(rubro) {
         return this.rubrosService.findByNombre(rubro);
     }
-    async crearRubro(nombre, codigo) {
-        return this.rubrosService.create(nombre, codigo);
+    async crearRubro(nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
+        return this.rubrosService.create(nombre, codigo, porcentajeRecargo, porcentajeDescuento);
     }
-    async actualizarRubro(id, nombre, codigo) {
-        return this.rubrosService.update(id, nombre, codigo);
+    async actualizarRubro(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
+        return this.rubrosService.update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento);
     }
     async eliminarRubro(id) {
         return this.rubrosService.remove(id);
@@ -132,8 +140,10 @@ __decorate([
     (0, graphql_1.Mutation)(() => rubro_entity_1.Rubro),
     __param(0, (0, graphql_1.Args)('nombre')),
     __param(1, (0, graphql_1.Args)('codigo', { nullable: true })),
+    __param(2, (0, graphql_1.Args)('porcentajeRecargo', { type: () => graphql_1.Float, nullable: true })),
+    __param(3, (0, graphql_1.Args)('porcentajeDescuento', { type: () => graphql_1.Float, nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, Number, Number]),
     __metadata("design:returntype", Promise)
 ], RubrosResolver.prototype, "crearRubro", null);
 __decorate([
@@ -141,8 +151,10 @@ __decorate([
     __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
     __param(1, (0, graphql_1.Args)('nombre')),
     __param(2, (0, graphql_1.Args)('codigo', { nullable: true })),
+    __param(3, (0, graphql_1.Args)('porcentajeRecargo', { type: () => graphql_1.Float, nullable: true })),
+    __param(4, (0, graphql_1.Args)('porcentajeDescuento', { type: () => graphql_1.Float, nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, String]),
+    __metadata("design:paramtypes", [Number, String, String, Number, Number]),
     __metadata("design:returntype", Promise)
 ], RubrosResolver.prototype, "actualizarRubro", null);
 __decorate([
