@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Int, ObjectType, Field, ID, Float } from '@nestjs/graphql';
-import { UseGuards, ValidationPipe } from '@nestjs/common';
+import { UseGuards, ValidationPipe, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -182,9 +182,13 @@ export class PuntosMudrasResolver {
   @Query(() => [RubroBasico])
   @Permisos('stock.read')
   async obtenerRubrosPorProveedor(
-    @Args('proveedorId', { type: () => Int }) proveedorId: number,
+    @Args('proveedorId', { type: () => ID }) proveedorId: string,
   ): Promise<RubroBasico[]> {
-    return await this.puntosMudrasService.obtenerRubrosPorProveedor(proveedorId);
+    const parsedId = Number(proveedorId);
+    if (!Number.isFinite(parsedId)) {
+      throw new BadRequestException('El identificador del proveedor debe ser numérico.');
+    }
+    return await this.puntosMudrasService.obtenerRubrosPorProveedor(parsedId);
   }
 
   @Query(() => [ArticuloFiltrado])

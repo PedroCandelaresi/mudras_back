@@ -90,6 +90,36 @@ export class Proveedor {
   @Column({ type: 'float', nullable: true })
   Saldo: number;
 
+  @Field(() => Float, { nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    default: 0,
+    name: 'PorcentajeRecargoProveedor',
+    transformer: {
+      to: (value?: number) => value ?? 0,
+      from: (value: any) => (value != null ? Number(value) : null),
+    },
+  })
+  PorcentajeRecargoProveedor?: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column({
+    type: 'decimal',
+    precision: 5,
+    scale: 2,
+    nullable: true,
+    default: 0,
+    name: 'PorcentajeDescuentoProveedor',
+    transformer: {
+      to: (value?: number) => value ?? 0,
+      from: (value: any) => (value != null ? Number(value) : null),
+    },
+  })
+  PorcentajeDescuentoProveedor?: number;
+
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 30, nullable: true })
   Pais: string;

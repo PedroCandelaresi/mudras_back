@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, ID } from '@nestjs/graphql';
 import { ProveedoresService } from './proveedores.service';
 import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
 import { ArticulosPorProveedorResponse } from './dto/articulos-por-proveedor.dto';
-import { UseGuards } from '@nestjs/common';
+import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
+import { BadRequestException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -48,6 +49,16 @@ export class ProveedoresResolver {
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
   ) {
     return this.proveedoresService.findArticulosByProveedor(proveedorId, filtro, offset, limit);
+  }
+
+  @Query(() => [RubroPorProveedor], { name: 'rubrosPorProveedor' })
+  @Permisos('proveedores.read')
+  findRubrosByProveedor(@Args('proveedorId', { type: () => ID }) proveedorId: string) {
+    const parsedId = Number(proveedorId);
+    if (!Number.isFinite(parsedId)) {
+      throw new BadRequestException('El identificador del proveedor debe ser numérico.');
+    }
+    return this.proveedoresService.findRubrosByProveedor(parsedId);
   }
 
   @Mutation(() => Proveedor, { name: 'crearProveedor' })

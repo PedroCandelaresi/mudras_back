@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
+import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
 
 @Injectable()
 export class ProveedoresService {
@@ -163,5 +164,40 @@ export class ProveedoresService {
 
     await this.proveedoresRepository.remove(proveedor);
     return true;
+  }
+
+  async findRubrosByProveedor(proveedorId: number): Promise<RubroPorProveedor[]> {
+    const query = `
+      SELECT
+        pr.id,
+        pr.proveedor_id AS proveedorId,
+        pr.proveedor_nombre AS proveedorNombre,
+        pr.proveedor_codigo AS proveedorCodigo,
+        pr.rubro_nombre AS rubroNombre,
+        pr.rubro_id AS rubroId,
+        pr.cantidad_articulos AS cantidadArticulos
+      FROM tb_proveedor_rubro pr
+      WHERE pr.proveedor_id = ?
+      ORDER BY pr.rubro_nombre
+    `;
+
+    const rows = await this.proveedoresRepository.query(query, [proveedorId]);
+
+    return rows.map((row: any) => ({
+      id: Number(row.id),
+      proveedorId: Number(row.proveedorId ?? row.proveedor_id ?? proveedorId),
+      proveedorNombre: row.proveedorNombre ?? row.proveedor_nombre ?? null,
+      proveedorCodigo:
+        row.proveedorCodigo != null ? Number(row.proveedorCodigo) : row.proveedor_codigo != null ? Number(row.proveedor_codigo) : null,
+      rubroNombre: row.rubroNombre ?? row.rubro_nombre ?? null,
+      rubroId:
+        row.rubroId != null ? Number(row.rubroId) : row.rubro_id != null ? Number(row.rubro_id) : null,
+      cantidadArticulos:
+        row.cantidadArticulos != null
+          ? Number(row.cantidadArticulos)
+          : row.cantidad_articulos != null
+            ? Number(row.cantidad_articulos)
+            : null,
+    }));
   }
 }

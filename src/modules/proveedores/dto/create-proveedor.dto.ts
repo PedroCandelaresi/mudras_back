@@ -95,6 +95,16 @@ export class CreateProveedorInput {
   @IsNumber()
   Saldo?: number;
 
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  PorcentajeRecargoProveedor?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  PorcentajeDescuentoProveedor?: number;
+
   @Field({ nullable: true })
   @IsOptional()
   @IsString()

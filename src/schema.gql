@@ -396,6 +396,8 @@ input CreateProveedorInput {
   Nombre: String
   Observaciones: String
   Pais: String
+  PorcentajeDescuentoProveedor: Float
+  PorcentajeRecargoProveedor: Float
   Provincia: String
   Rubro: String
   Saldo: Float
@@ -817,6 +819,8 @@ type Proveedor {
   Nombre: String
   Observaciones: String
   Pais: String
+  PorcentajeDescuentoProveedor: Float
+  PorcentajeRecargoProveedor: Float
   Provincia: String
   Rubro: String
   Saldo: Float
@@ -928,7 +932,7 @@ type Query {
   obtenerPuntosMudras: [PuntoMudras!]!
   obtenerRelacionesProveedorRubro: [RelacionProveedorRubro!]!
   obtenerRubros: [RubroConEstadisticas!]!
-  obtenerRubrosPorProveedor(proveedorId: Int!): [RubroBasico!]!
+  obtenerRubrosPorProveedor(proveedorId: ID!): [RubroBasico!]!
   obtenerStockPuntoMudras(puntoMudrasId: Int!): [ArticuloConStockPuntoMudras!]!
   promociones: [Promocion!]!
   proveedor(id: Int!): Proveedor!
@@ -939,6 +943,7 @@ type Query {
   resumenVentas(fechaDesde: DateTime!, fechaHasta: DateTime!): ResumenVentas!
   rubro(id: Int!): Rubro!
   rubroPorNombre(rubro: String!): Rubro!
+  rubrosPorProveedor(proveedorId: ID!): [RubroPorProveedor!]!
   saldoCuentaCorriente(cuentaId: Int!): Float!
   topArticulos(fechaDesde: DateTime!, fechaHasta: DateTime!, limite: Int! = 10): [TopArticulo!]!
   ultimoMovimientoPorCodigo(codigo: String!): Stock!
@@ -1015,6 +1020,16 @@ type RubroConEstadisticas {
   nombre: String
   porcentajeDescuento: Float
   porcentajeRecargo: Float
+}
+
+type RubroPorProveedor {
+  cantidadArticulos: Int
+  id: Int!
+  proveedorCodigo: Int
+  proveedorId: Int!
+  proveedorNombre: String
+  rubroId: Int
+  rubroNombre: String
 }
 
 type RubrosResponse {
@@ -1187,6 +1202,8 @@ input UpdateProveedorInput {
   Nombre: String
   Observaciones: String
   Pais: String
+  PorcentajeDescuentoProveedor: Float
+  PorcentajeRecargoProveedor: Float
   Provincia: String
   Rubro: String
   Saldo: Float
