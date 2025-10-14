@@ -27,13 +27,54 @@ let UsersService = class UsersService {
         this.userRolesRepo = userRolesRepo;
         this.rolesRepo = rolesRepo;
     }
-    async listar(pagina = 0, limite = 20) {
-        const [items, total] = await this.usersRepo.findAndCount({
-            skip: pagina * limite,
-            take: limite,
-            order: { createdAt: 'DESC' },
-        });
-        return { items, total };
+    async listar(entrada = {}) {
+        const paginaNormalizada = Math.max(0, entrada.pagina ?? 0);
+        const limiteNormalizado = Math.min(Math.max(1, entrada.limite ?? 20), 100);
+        const consulta = this.usersRepo
+            .createQueryBuilder('usuario')
+            .leftJoinAndSelect('usuario.userRoles', 'usuarioRol')
+            .leftJoinAndSelect('usuarioRol.role', 'rol')
+            .distinct(true)
+            .orderBy('usuario.createdAt', 'DESC')
+            .skip(paginaNormalizada * limiteNormalizado)
+            .take(limiteNormalizado);
+        if (entrada.busqueda?.trim()) {
+            const terminos = entrada.busqueda
+                .trim()
+                .toLowerCase()
+                .split(/\s+/)
+                .filter(Boolean);
+            terminos.forEach((termino, indice) => {
+                consulta.andWhere(`(
+            LOWER(COALESCE(usuario.username, '')) LIKE :busqueda${indice}
+            OR LOWER(COALESCE(usuario.email, '')) LIKE :busqueda${indice}
+            OR LOWER(COALESCE(usuario.displayName, '')) LIKE :busqueda${indice}
+          )`, { [`busqueda${indice}`]: `%${termino}%` });
+            });
+        }
+        if (entrada.username?.trim()) {
+            consulta.andWhere("LOWER(COALESCE(usuario.username, '')) LIKE :username", { username: `%${entrada.username.trim().toLowerCase()}%` });
+        }
+        if (entrada.email?.trim()) {
+            consulta.andWhere("LOWER(COALESCE(usuario.email, '')) LIKE :email", { email: `%${entrada.email.trim().toLowerCase()}%` });
+        }
+        if (entrada.nombre?.trim()) {
+            consulta.andWhere("LOWER(COALESCE(usuario.displayName, '')) LIKE :nombre", { nombre: `%${entrada.nombre.trim().toLowerCase()}%` });
+        }
+        if (entrada.estado?.trim()) {
+            const estadoNormalizado = entrada.estado.trim().toLowerCase();
+            if (estadoNormalizado === 'activo') {
+                consulta.andWhere('usuario.isActive = :estadoActivo', { estadoActivo: true });
+            }
+            else if (estadoNormalizado === 'inactivo') {
+                consulta.andWhere('usuario.isActive = :estadoActivo', { estadoActivo: false });
+            }
+        }
+        const [usuarios, total] = await consulta.getManyAndCount();
+        return {
+            items: usuarios.map((usuario) => this.mapearUsuario(usuario)),
+            total,
+        };
     }
     async crear(dto) {
         const existente = await this.usersRepo.findOne({ where: [{ username: dto.username }, { email: dto.email ?? undefined }] });
@@ -51,19 +92,21 @@ let UsersService = class UsersService {
         });
         await this.usersRepo.save(user);
         if (dto.roles?.length) {
-            const roles = await this.rolesRepo.find({ where: dto.roles.map((slug) => ({ slug })) });
-            for (const r of roles) {
-                await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: r.id }));
+            const roles = await this.rolesRepo.find({ where: { slug: (0, typeorm_2.In)(dto.roles) } });
+            for (const rol of roles) {
+                await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: rol.id }));
             }
         }
         return this.obtener(user.id);
     }
     async obtener(id) {
-        const user = await this.usersRepo.findOne({ where: { id } });
-        if (!user)
+        const usuario = await this.usersRepo.findOne({
+            where: { id },
+            relations: ['userRoles', 'userRoles.role'],
+        });
+        if (!usuario)
             throw new common_1.NotFoundException('Usuario no encontrado');
-        const roles = await this.userRolesRepo.find({ where: { userId: id }, relations: ['role'] });
-        return { ...user, roles: roles.map((r) => r.role.slug) };
+        return this.mapearUsuario(usuario);
     }
     async actualizar(dto) {
         const user = await this.usersRepo.findOne({ where: { id: dto.id } });
@@ -78,9 +121,9 @@ let UsersService = class UsersService {
         await this.usersRepo.save(user);
         if (dto.roles) {
             await this.userRolesRepo.delete({ userId: user.id });
-            const roles = await this.rolesRepo.find({ where: dto.roles.map((slug) => ({ slug })) });
-            for (const r of roles) {
-                await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: r.id }));
+            const roles = await this.rolesRepo.find({ where: { slug: (0, typeorm_2.In)(dto.roles) } });
+            for (const rol of roles) {
+                await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: rol.id }));
             }
         }
         return this.obtener(user.id);
@@ -94,10 +137,40 @@ let UsersService = class UsersService {
         if (!user)
             throw new common_1.NotFoundException('Usuario no encontrado');
         await this.userRolesRepo.delete({ userId: id });
-        const roles = await this.rolesRepo.find({ where: rolesSlugs.map((slug) => ({ slug })) });
-        for (const r of roles)
-            await this.userRolesRepo.save(this.userRolesRepo.create({ userId: id, roleId: r.id }));
+        const roles = await this.rolesRepo.find({ where: { slug: (0, typeorm_2.In)(rolesSlugs) } });
+        for (const rol of roles) {
+            await this.userRolesRepo.save(this.userRolesRepo.create({ userId: id, roleId: rol.id }));
+        }
         return this.obtener(id);
+    }
+    async listarPorRolSlug(rolSlug) {
+        const usuarios = await this.usersRepo
+            .createQueryBuilder('usuario')
+            .leftJoinAndSelect('usuario.userRoles', 'usuarioRol')
+            .leftJoinAndSelect('usuarioRol.role', 'rol')
+            .where('rol.slug = :rolSlug', { rolSlug })
+            .andWhere('usuario.userType = :tipo', { tipo: 'EMPRESA' })
+            .andWhere('usuario.isActive = :activo', { activo: true })
+            .orderBy('usuario.displayName', 'ASC')
+            .getMany();
+        return usuarios.map((usuario) => this.mapearUsuario(usuario));
+    }
+    mapearUsuario(usuario) {
+        const roles = (usuario.userRoles ?? [])
+            .map((relacion) => relacion.role?.slug)
+            .filter((slug) => Boolean(slug));
+        return {
+            id: usuario.id,
+            username: usuario.username,
+            email: usuario.email,
+            displayName: usuario.displayName,
+            userType: usuario.userType,
+            isActive: usuario.isActive,
+            mustChangePassword: usuario.mustChangePassword,
+            createdAt: usuario.createdAt,
+            updatedAt: usuario.updatedAt,
+            roles,
+        };
     }
 };
 exports.UsersService = UsersService;

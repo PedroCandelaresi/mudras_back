@@ -4,6 +4,7 @@ export declare class BuscarArticuloInput {
     sku?: string;
     nombre?: string;
     puestoVentaId?: number;
+    puntoMudrasId?: number;
     limite: number;
 }
 export declare class ArticuloConStock extends Articulo {

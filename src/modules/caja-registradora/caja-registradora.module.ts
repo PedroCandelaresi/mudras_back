@@ -12,6 +12,8 @@ import { MovimientoInventario } from './entities/movimiento-inventario.entity';
 import { SnapshotInventarioMensual } from './entities/snapshot-inventario.entity';
 import { Articulo } from '../articulos/entities/articulo.entity';
 import { Cliente } from '../clientes/entities/cliente.entity';
+import { StockPuntoMudras } from '../puntos-mudras/entities/stock-punto-mudras.entity';
+import { MovimientoStockPunto } from '../puntos-mudras/entities/movimiento-stock-punto.entity';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { Cliente } from '../clientes/entities/cliente.entity';
       SnapshotInventarioMensual,
       Articulo,
       Cliente,
+      StockPuntoMudras,
+      MovimientoStockPunto,
     ]),
   ],
   providers: [

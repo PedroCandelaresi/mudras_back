@@ -21,6 +21,8 @@ const movimiento_inventario_entity_1 = require("./entities/movimiento-inventario
 const snapshot_inventario_entity_1 = require("./entities/snapshot-inventario.entity");
 const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const cliente_entity_1 = require("../clientes/entities/cliente.entity");
+const stock_punto_mudras_entity_1 = require("../puntos-mudras/entities/stock-punto-mudras.entity");
+const movimiento_stock_punto_entity_1 = require("../puntos-mudras/entities/movimiento-stock-punto.entity");
 let CajaRegistradoraModule = class CajaRegistradoraModule {
 };
 exports.CajaRegistradoraModule = CajaRegistradoraModule;
@@ -37,6 +39,8 @@ exports.CajaRegistradoraModule = CajaRegistradoraModule = __decorate([
                 snapshot_inventario_entity_1.SnapshotInventarioMensual,
                 articulo_entity_1.Articulo,
                 cliente_entity_1.Cliente,
+                stock_punto_mudras_entity_1.StockPuntoMudras,
+                movimiento_stock_punto_entity_1.MovimientoStockPunto,
             ]),
         ],
         providers: [

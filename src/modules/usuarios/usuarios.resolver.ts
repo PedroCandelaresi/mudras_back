@@ -5,15 +5,27 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { LoginDto } from './dto/login.dto';
 import { RequireSecretKey } from '../../common/decorators/secret-key.decorator';
+import { UsersService } from '../users-auth/users.service';
+import { ListarUsuariosAuthInput, UsuariosAuthPaginadosModel } from './dto/usuarios-auth.dto';
 
 @Resolver(() => Usuario)
 @RequireSecretKey()
 export class UsuariosResolver {
-  constructor(private readonly usuariosService: UsuariosService) {}
+  constructor(
+    private readonly usuariosService: UsuariosService,
+    private readonly usersAuthService: UsersService,
+  ) {}
 
   @Mutation(() => Usuario)
   createUsuario(@Args('createUsuarioInput') createUsuarioDto: CreateUsuarioDto) {
     return this.usuariosService.create(createUsuarioDto);
+  }
+
+  @Query(() => UsuariosAuthPaginadosModel, { name: 'usuariosAuth' })
+  listarUsuariosAuth(
+    @Args('filtros', { type: () => ListarUsuariosAuthInput, nullable: true }) filtros?: ListarUsuariosAuthInput,
+  ) {
+    return this.usersAuthService.listar(filtros ?? {});
   }
 
   @Query(() => [Usuario], { name: 'usuarios' })

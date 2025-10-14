@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PuntosMudrasResolver = exports.ArticuloFiltrado = exports.RubroBasico = exports.ProveedorBasico = exports.EstadisticasPuntosMudras = exports.ArticuloConStockPuntoMudras = exports.EstadisticasProveedorRubro = exports.RelacionProveedorRubro = void 0;
+exports.PuntosMudrasResolver = exports.ArticuloFiltrado = exports.RubroBasico = exports.ProveedorBasico = exports.EstadisticasPuntosMudras = exports.ArticuloConStockPuntoMudras = exports.EstadisticasProveedorRubro = exports.RelacionProveedorRubro = exports.RubroInfo = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const common_1 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
@@ -24,6 +24,20 @@ const puntos_mudras_service_1 = require("./puntos-mudras.service");
 const punto_mudras_entity_1 = require("./entities/punto-mudras.entity");
 const crear_punto_mudras_dto_1 = require("./dto/crear-punto-mudras.dto");
 const actualizar_punto_mudras_dto_1 = require("./dto/actualizar-punto-mudras.dto");
+let RubroInfo = class RubroInfo {
+};
+exports.RubroInfo = RubroInfo;
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], RubroInfo.prototype, "id", void 0);
+__decorate([
+    (0, graphql_1.Field)(),
+    __metadata("design:type", String)
+], RubroInfo.prototype, "nombre", void 0);
+exports.RubroInfo = RubroInfo = __decorate([
+    (0, graphql_1.ObjectType)()
+], RubroInfo);
 let RelacionProveedorRubro = class RelacionProveedorRubro {
 };
 exports.RelacionProveedorRubro = RelacionProveedorRubro;
@@ -100,8 +114,8 @@ __decorate([
     __metadata("design:type", Number)
 ], ArticuloConStockPuntoMudras.prototype, "stockTotal", void 0);
 __decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    __metadata("design:type", String)
+    (0, graphql_1.Field)(() => RubroInfo, { nullable: true }),
+    __metadata("design:type", RubroInfo)
 ], ArticuloConStockPuntoMudras.prototype, "rubro", void 0);
 exports.ArticuloConStockPuntoMudras = ArticuloConStockPuntoMudras = __decorate([
     (0, graphql_1.ObjectType)()
@@ -231,7 +245,11 @@ let PuntosMudrasResolver = class PuntosMudrasResolver {
         return await this.puntosMudrasService.obtenerProveedores();
     }
     async obtenerRubrosPorProveedor(proveedorId) {
-        return await this.puntosMudrasService.obtenerRubrosPorProveedor(proveedorId);
+        const parsedId = Number(proveedorId);
+        if (!Number.isFinite(parsedId)) {
+            throw new common_1.BadRequestException('El identificador del proveedor debe ser numérico.');
+        }
+        return await this.puntosMudrasService.obtenerRubrosPorProveedor(parsedId);
     }
     async buscarArticulosParaAsignacion(proveedorId, rubro, busqueda) {
         return await this.puntosMudrasService.buscarArticulosConFiltros(proveedorId, rubro, busqueda);
@@ -297,9 +315,9 @@ __decorate([
 __decorate([
     (0, graphql_1.Query)(() => [RubroBasico]),
     (0, permissions_decorator_1.Permisos)('stock.read'),
-    __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.Int })),
+    __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.ID })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerRubrosPorProveedor", null);
 __decorate([

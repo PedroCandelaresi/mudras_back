@@ -22,8 +22,17 @@ let UsersController = class UsersController {
     constructor(usersService) {
         this.usersService = usersService;
     }
-    listar(pagina, limite) {
-        return this.usersService.listar(Number(pagina ?? 0), Number(limite ?? 20));
+    listar(pagina, limite, busqueda, username, email, nombre, estado) {
+        const filtros = {
+            pagina: pagina ? Number(pagina) : undefined,
+            limite: limite ? Number(limite) : undefined,
+            busqueda,
+            username,
+            email,
+            nombre,
+            estado,
+        };
+        return this.usersService.listar(filtros);
     }
     crear(dto) {
         return this.usersService.crear(dto);
@@ -47,8 +56,13 @@ __decorate([
     (0, roles_decorator_1.Roles)('administrador'),
     __param(0, (0, common_1.Query)('pagina')),
     __param(1, (0, common_1.Query)('limite')),
+    __param(2, (0, common_1.Query)('busqueda')),
+    __param(3, (0, common_1.Query)('username')),
+    __param(4, (0, common_1.Query)('email')),
+    __param(5, (0, common_1.Query)('nombre')),
+    __param(6, (0, common_1.Query)('estado')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "listar", null);
 __decorate([

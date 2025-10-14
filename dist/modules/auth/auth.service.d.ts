@@ -12,6 +12,7 @@ export interface JwtPayload {
     username: string | null;
     roles: string[];
     typ: 'EMPRESA' | 'CLIENTE';
+    perms: string[];
 }
 export declare class AuthService {
     private readonly usersRepo;

@@ -24,6 +24,11 @@ export class BuscarArticuloInput {
   @IsNumber()
   puestoVentaId?: number;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsNumber()
+  puntoMudrasId?: number;
+
   @Field({ defaultValue: 10 })
   @IsNumber()
   @Min(1)

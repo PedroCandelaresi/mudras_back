@@ -13,10 +13,13 @@ import { RolePermission } from '../roles/entities/role-permission.entity';
 import { Permission } from '../permissions/entities/permission.entity';
 
 export interface JwtPayload {
-  sub: string; // user id
+  sub: string; // user id (auth UUID)
   username: string | null;
   roles: string[];
   typ: 'EMPRESA' | 'CLIENTE';
+  perms: string[];
+  // uid: ID numérico del usuario interno (tabla `usuarios`), cuando existe mapeo
+  uid?: number;
 }
 
 function parseDurationMs(input: string): number {
@@ -82,14 +85,38 @@ export class AuthService {
     return Array.from(set);
   }
 
+  private async obtenerUsuarioInternoId(authUserId: string): Promise<number | undefined> {
+    // Busca el id numérico en la tabla de mapeo si existe
+    try {
+      const rows = await this.usersRepo.query(
+        'SELECT usuario_id AS usuarioId FROM usuarios_auth_map WHERE auth_user_id = ? LIMIT 1',
+        [authUserId],
+      );
+      const id = rows?.[0]?.usuarioId;
+      if (typeof id === 'number' && Number.isFinite(id)) return id;
+      if (id != null) {
+        const n = Number(id);
+        return Number.isFinite(n) ? n : undefined;
+      }
+      return undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   async emitirTokens(user: UserAuth): Promise<{ accessToken: string; refreshToken: string }> {
     const roles = await this.getUserRolesSlugs(user.id);
+    const perms = await this.obtenerPermisosEfectivos(user.id);
     const payload: JwtPayload = {
       sub: user.id,
       username: user.username,
       roles,
       typ: user.userType,
+      perms,
     };
+    // Adjuntar uid (id numérico de `usuarios`) si existe mapeo
+    const uid = await this.obtenerUsuarioInternoId(user.id);
+    if (uid) payload.uid = uid;
     const accessToken = await this.jwtService.signAsync(payload);
 
     // Crear refresh token opaco y guardar hash

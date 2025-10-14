@@ -88,18 +88,24 @@ export class CrearVentaCajaInput {
   tipoVenta: TipoVentaCaja;
 
   @Field()
-  @IsNumber()
-  puestoVentaId: number;
+@IsNumber()
+puestoVentaId: number;
 
-  @Field()
-  @IsNumber()
-  clienteId: number;
+@Field({ nullable: true })
+@IsOptional()
+@IsNumber()
+clienteId?: number;
 
-  @Field(() => [DetalleVentaCajaInput])
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => DetalleVentaCajaInput)
-  detalles: DetalleVentaCajaInput[];
+@Field({ nullable: true })
+@IsOptional()
+@IsNumber()
+puntoMudrasId?: number;
+
+@Field(() => [DetalleVentaCajaInput])
+@IsArray()
+@ValidateNested({ each: true })
+@Type(() => DetalleVentaCajaInput)
+detalles: DetalleVentaCajaInput[];
 
   @Field(() => [PagoCajaInput])
   @IsArray()
@@ -132,4 +138,9 @@ export class CrearVentaCajaInput {
   @IsOptional()
   @IsString()
   cuitCliente?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsNumber()
+  usuarioId?: number;
 }

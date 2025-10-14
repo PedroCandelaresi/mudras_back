@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner } from 'typeorm';
-import { VentaCaja, EstadoVentaCaja } from '../entities/venta-caja.entity';
+import { VentaCaja, EstadoVentaCaja, TipoVentaCaja } from '../entities/venta-caja.entity';
 import { DetalleVentaCaja } from '../entities/detalle-venta-caja.entity';
 import { PagoCaja } from '../entities/pago-caja.entity';
 import { MovimientoInventario, TipoMovimientoInventario } from '../entities/movimiento-inventario.entity';
@@ -10,6 +10,9 @@ import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CrearVentaCajaInput } from '../dto/crear-venta-caja.dto';
 import { BuscarArticuloInput, ArticuloConStock } from '../dto/buscar-articulo.dto';
 import { FiltrosHistorialInput, HistorialVentasResponse, ResumenVenta } from '../dto/historial-ventas.dto';
+import { StockPuntoMudras } from '../../puntos-mudras/entities/stock-punto-mudras.entity';
+import { MovimientoStockPunto, TipoMovimientoStockPunto } from '../../puntos-mudras/entities/movimiento-stock-punto.entity';
+import { Cliente, EstadoCliente, TipoCliente } from '../../clientes/entities/cliente.entity';
 
 @Injectable()
 export class CajaRegistradoraService {
@@ -26,24 +29,29 @@ export class CajaRegistradoraService {
     private puestoVentaRepository: Repository<PuestoVenta>,
     @InjectRepository(Articulo)
     private articuloRepository: Repository<Articulo>,
+    @InjectRepository(StockPuntoMudras)
+    private stockPuntoRepository: Repository<StockPuntoMudras>,
     private dataSource: DataSource,
   ) {}
 
   async buscarArticulos(input: BuscarArticuloInput): Promise<ArticuloConStock[]> {
     const query = this.articuloRepository.createQueryBuilder('articulo')
-      .leftJoinAndSelect('articulo.rubro', 'rubro')
-      .where('articulo.activo = :activo', { activo: true });
+      .leftJoinAndSelect('articulo.rubro', 'rubro');
 
     if (input.codigoBarras) {
-      query.andWhere('articulo.codigoBarras = :codigoBarras', { codigoBarras: input.codigoBarras });
+      query.andWhere('articulo.Codigo = :codigoBarras', { codigoBarras: input.codigoBarras });
     }
 
     if (input.sku) {
-      query.andWhere('articulo.sku = :sku', { sku: input.sku });
+      query.andWhere('articulo.Codigo = :sku', { sku: input.sku });
     }
 
     if (input.nombre) {
-      query.andWhere('articulo.nombre LIKE :nombre', { nombre: `%${input.nombre}%` });
+      const nombre = input.nombre.toLowerCase();
+      query.andWhere(
+        '(LOWER(articulo.Descripcion) LIKE :nombre OR LOWER(articulo.Codigo) LIKE :nombre OR LOWER(articulo.Rubro) LIKE :nombre)',
+        { nombre: `%${nombre}%` },
+      );
     }
 
     query.limit(input.limite);
@@ -54,11 +62,15 @@ export class CajaRegistradoraService {
     const articulosConStock: ArticuloConStock[] = [];
     
     for (const articulo of articulos) {
-      const stockDisponible = await this.calcularStockDisponible(articulo.id, input.puestoVentaId);
-      
+      const stockDisponible = await this.calcularStockDisponible(
+        articulo.id,
+        input.puestoVentaId,
+        input.puntoMudrasId,
+      );
+
       articulosConStock.push({
         ...articulo,
-        stockDisponible: articulo.Deposito || 0,
+        stockDisponible,
         stockDespuesVenta: stockDisponible, // Se actualizará en el frontend según cantidad seleccionada
         alertaStock: stockDisponible <= 0,
       });
@@ -82,22 +94,62 @@ export class CajaRegistradoraService {
         throw new NotFoundException('Puesto de venta no encontrado o inactivo');
       }
 
+      if (!input.detalles || input.detalles.length === 0) {
+        throw new BadRequestException('La venta debe incluir al menos un artículo');
+      }
+
+      const puntoMudrasId = input.puntoMudrasId ?? this.obtenerPuntoMudrasId(puesto);
+
+      if (puesto.descontarStock && !puntoMudrasId) {
+        throw new BadRequestException(
+          'El puesto de venta seleccionado requiere un punto de stock asociado. Selecciona un punto de Mudras válido.'
+        );
+      }
+
+      // Validar stock disponible antes de confirmar la venta
+      if (puesto.descontarStock) {
+        for (const detalle of input.detalles) {
+          const cantidad = Number(detalle.cantidad);
+          if (cantidad <= 0) {
+            throw new BadRequestException('La cantidad de cada artículo debe ser mayor a 0');
+          }
+          await this.verificarStockDisponible(
+            queryRunner,
+            detalle.articuloId,
+            cantidad,
+            puntoMudrasId
+          );
+        }
+      }
+
       // Generar número de venta
       const numeroVenta = await this.generarNumeroVenta(queryRunner);
+      const clienteVentaId = await this.obtenerClienteParaVenta(queryRunner, input.clienteId);
 
       // Calcular totales
       let subtotal = 0;
       for (const detalle of input.detalles) {
-        const subtotalDetalle = detalle.cantidad * detalle.precioUnitario;
-        const descuento = detalle.descuentoMonto || (subtotalDetalle * (detalle.descuentoPorcentaje || 0) / 100);
-        subtotal += subtotalDetalle - descuento;
+        const cantidad = Number(detalle.cantidad);
+        const precioUnitario = Number(detalle.precioUnitario);
+
+        if (cantidad <= 0 || precioUnitario < 0) {
+          throw new BadRequestException('Cantidad y precio unitario deben ser mayores o iguales a cero');
+        }
+
+        const subtotalDetalle = cantidad * precioUnitario;
+        const descuentoPorcentaje = Number(detalle.descuentoPorcentaje || 0);
+        const descuentoMonto = Number(detalle.descuentoMonto || 0);
+        const descuentoCalculado = descuentoMonto || (subtotalDetalle * descuentoPorcentaje / 100);
+        subtotal += subtotalDetalle - descuentoCalculado;
       }
 
-      const descuentoTotal = input.descuentoMonto || (subtotal * (input.descuentoPorcentaje || 0) / 100);
+      const descuentoTotal = Number(
+        input.descuentoMonto || (subtotal * (Number(input.descuentoPorcentaje || 0) / 100))
+      );
       const total = subtotal - descuentoTotal;
 
       // Validar que el total de pagos coincida
-      const totalPagos = input.pagos.reduce((sum, pago) => sum + pago.monto, 0);
+      const totalPagos = input.pagos.reduce((sum, pago) => sum + Number(pago.monto), 0);
       if (Math.abs(totalPagos - total) > 0.01) {
         throw new BadRequestException('El total de pagos no coincide con el total de la venta');
       }
@@ -106,13 +158,13 @@ export class CajaRegistradoraService {
       const venta = queryRunner.manager.create(VentaCaja, {
         numeroVenta,
         fecha: new Date(),
-        tipoVenta: input.tipoVenta,
+        tipoVenta: input.tipoVenta ?? TipoVentaCaja.MOSTRADOR,
         estado: EstadoVentaCaja.CONFIRMADA,
         puestoVentaId: input.puestoVentaId,
-        clienteId: input.clienteId,
+        clienteId: clienteVentaId,
         usuarioId,
         subtotal,
-        descuentoPorcentaje: input.descuentoPorcentaje || 0,
+        descuentoPorcentaje: Number(input.descuentoPorcentaje || 0),
         descuentoMonto: descuentoTotal,
         impuestos: 0, // TODO: Calcular impuestos según configuración
         total,
@@ -124,17 +176,22 @@ export class CajaRegistradoraService {
 
       // Crear detalles de venta
       for (const detalleInput of input.detalles) {
-        const subtotalDetalle = detalleInput.cantidad * detalleInput.precioUnitario;
-        const descuento = detalleInput.descuentoMonto || (subtotalDetalle * (detalleInput.descuentoPorcentaje || 0) / 100);
+        const cantidad = Number(detalleInput.cantidad);
+        const precioUnitario = Number(detalleInput.precioUnitario);
+        const subtotalDetalle = cantidad * precioUnitario;
+        const descuentoPorcentaje = Number(detalleInput.descuentoPorcentaje || 0);
+        const descuentoMonto = Number(detalleInput.descuentoMonto || 0);
+        const descuentoCalculado =
+          descuentoMonto || (subtotalDetalle * descuentoPorcentaje / 100);
 
         const detalle = queryRunner.manager.create(DetalleVentaCaja, {
           ventaId: ventaGuardada.id,
           articuloId: detalleInput.articuloId,
-          cantidad: detalleInput.cantidad,
-          precioUnitario: detalleInput.precioUnitario,
-          descuentoPorcentaje: detalleInput.descuentoPorcentaje || 0,
-          descuentoMonto: descuento,
-          subtotal: subtotalDetalle - descuento,
+          cantidad,
+          precioUnitario,
+          descuentoPorcentaje,
+          descuentoMonto: descuentoCalculado,
+          subtotal: subtotalDetalle - descuentoCalculado,
           observaciones: detalleInput.observaciones,
         });
 
@@ -146,13 +203,28 @@ export class CajaRegistradoraService {
             queryRunner,
             detalleInput.articuloId,
             input.puestoVentaId,
-            -detalleInput.cantidad, // Negativo para salida
+            -cantidad, // Negativo para salida
             TipoMovimientoInventario.VENTA,
             usuarioId,
             ventaGuardada.id,
-            detalleInput.precioUnitario,
+            precioUnitario,
             numeroVenta
           );
+
+          await this.ajustarStockArticulo(queryRunner, detalleInput.articuloId, -cantidad);
+
+          if (puntoMudrasId) {
+            await this.ajustarStockPunto(
+              queryRunner,
+              puntoMudrasId,
+              detalleInput.articuloId,
+              -cantidad,
+              usuarioId,
+              numeroVenta,
+              TipoMovimientoStockPunto.VENTA,
+              `Venta caja ${numeroVenta}`
+            );
+          }
         }
       }
 
@@ -161,10 +233,10 @@ export class CajaRegistradoraService {
         const pago = queryRunner.manager.create(PagoCaja, {
           ventaId: ventaGuardada.id,
           medioPago: pagoInput.medioPago,
-          monto: pagoInput.monto,
+          monto: Number(pagoInput.monto),
           marcaTarjeta: pagoInput.marcaTarjeta,
           ultimos4Digitos: pagoInput.ultimos4Digitos,
-          cuotas: pagoInput.cuotas,
+          cuotas: pagoInput.cuotas ? Number(pagoInput.cuotas) : undefined,
           numeroAutorizacion: pagoInput.numeroAutorizacion,
           numeroComprobante: pagoInput.numeroComprobante,
           observaciones: pagoInput.observaciones,
@@ -260,28 +332,39 @@ export class CajaRegistradoraService {
     };
   }
 
-  private async calcularStockDisponible(articuloId: number, puestoVentaId?: number): Promise<number> {
-    // Obtener stock inicial del artículo
-    const articulo = await this.articuloRepository.findOne({
-      where: { id: articuloId }
-    });
+  private async calcularStockDisponible(
+    articuloId: number,
+    puestoVentaId?: number,
+    puntoMudrasId?: number,
+  ): Promise<number> {
+    const puntoDestinoId = puntoMudrasId ?? (await this.obtenerPuntoDesdePuesto(puestoVentaId));
 
-    if (!articulo) {
+    if (puntoDestinoId) {
+      const stockPunto = await this.stockPuntoRepository.findOne({
+        where: { puntoMudrasId: puntoDestinoId, articuloId },
+      });
+      if (stockPunto) {
+        return Number(stockPunto.cantidad);
+      }
       return 0;
     }
 
-    // Calcular movimientos de inventario
-    const query = this.movimientoInventarioRepository.createQueryBuilder('mov')
-      .where('mov.articuloId = :articuloId', { articuloId });
+    const articulo = await this.articuloRepository.findOne({
+      where: { id: articuloId },
+    });
 
-    if (puestoVentaId) {
-      query.andWhere('(mov.puestoVentaId = :puestoVentaId OR mov.puestoVentaId IS NULL)', { puestoVentaId });
+    return Number(articulo?.Deposito || 0);
+  }
+
+  private async obtenerPuntoDesdePuesto(puestoVentaId?: number): Promise<number | undefined> {
+    if (!puestoVentaId) {
+      return undefined;
     }
-
-    const movimientos = await query.getMany();
-    const totalMovimientos = movimientos.reduce((sum, mov) => sum + mov.cantidad, 0);
-
-    return (articulo.Deposito || 0) + totalMovimientos;
+    const puesto = await this.puestoVentaRepository.findOne({ where: { id: puestoVentaId } });
+    if (!puesto) {
+      return undefined;
+    }
+    return this.obtenerPuntoMudrasId(puesto) ?? undefined;
   }
 
   private async crearMovimientoInventario(
@@ -313,6 +396,191 @@ export class CajaRegistradoraService {
     });
 
     await queryRunner.manager.save(MovimientoInventario, movimiento);
+  }
+
+  private obtenerPuntoMudrasId(puesto: PuestoVenta | null): number | null {
+    if (!puesto || !puesto.configuracion) {
+      return null;
+    }
+
+    try {
+      const config =
+        typeof puesto.configuracion === 'string'
+          ? JSON.parse(puesto.configuracion)
+          : puesto.configuracion;
+
+      const posibleId =
+        config?.puntoMudrasId ??
+        config?.puntoId ??
+        config?.puntoMudras?.id ??
+        config?.puntoMudrasID;
+
+      if (posibleId === undefined || posibleId === null) {
+        return null;
+      }
+
+      const parsed = Number(posibleId);
+      return Number.isFinite(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async obtenerClienteParaVenta(queryRunner: QueryRunner, clienteId?: number): Promise<number> {
+    if (clienteId) {
+      const clienteExistente = await queryRunner.manager.findOne(Cliente, { where: { id: clienteId } });
+      if (!clienteExistente) {
+        throw new NotFoundException('Cliente no encontrado');
+      }
+      return clienteExistente.id;
+    }
+
+    const nombreGenerico = 'Consumidor Final';
+    let cliente = await queryRunner.manager.findOne(Cliente, { where: { nombre: nombreGenerico } });
+
+    if (!cliente) {
+      cliente = queryRunner.manager.create(Cliente, {
+        nombre: nombreGenerico,
+        apellido: 'Mostrador',
+        tipo: TipoCliente.MINORISTA,
+        estado: EstadoCliente.ACTIVO,
+        descuentoGeneral: 0,
+        limiteCredito: 0,
+        saldoActual: 0,
+      });
+
+      cliente = await queryRunner.manager.save(Cliente, cliente);
+    }
+
+    return cliente.id;
+  }
+
+  private async verificarStockDisponible(
+    queryRunner: QueryRunner,
+    articuloId: number,
+    cantidad: number,
+    puntoMudrasId?: number | null,
+  ): Promise<void> {
+    const stockGlobal = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_read');
+    if (stockGlobal < cantidad) {
+      throw new BadRequestException(
+        `Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockGlobal}, requiere: ${cantidad})`,
+      );
+    }
+
+    if (puntoMudrasId) {
+      const stockPunto = await this.obtenerStockPunto(queryRunner, puntoMudrasId, articuloId, 'pessimistic_read');
+      if (stockPunto < cantidad) {
+        throw new BadRequestException(
+          `Stock insuficiente en el punto seleccionado para el artículo ${articuloId} (disponible: ${stockPunto}, requiere: ${cantidad})`,
+        );
+      }
+    }
+  }
+
+  private async obtenerStockGlobal(
+    queryRunner: QueryRunner,
+    articuloId: number,
+    lock: 'pessimistic_read' | 'pessimistic_write' = 'pessimistic_read',
+  ): Promise<number> {
+    const articulo = await queryRunner.manager.findOne(Articulo, {
+      where: { id: articuloId },
+      lock: { mode: lock },
+    });
+
+    if (!articulo) {
+      throw new NotFoundException(`Artículo con ID ${articuloId} no encontrado`);
+    }
+
+    return Number(articulo.Deposito || 0);
+  }
+
+  private async obtenerStockPunto(
+    queryRunner: QueryRunner,
+    puntoMudrasId: number,
+    articuloId: number,
+    lock: 'pessimistic_read' | 'pessimistic_write' = 'pessimistic_read',
+  ): Promise<number> {
+    const registro = await queryRunner.manager.findOne(StockPuntoMudras, {
+      where: { puntoMudrasId, articuloId },
+      lock: { mode: lock },
+    });
+
+    return Number(registro?.cantidad || 0);
+  }
+
+  private async ajustarStockArticulo(
+    queryRunner: QueryRunner,
+    articuloId: number,
+    delta: number,
+  ): Promise<void> {
+    const stockAnterior = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_write');
+    const stockNuevo = stockAnterior + delta;
+
+    if (stockNuevo < 0) {
+      throw new BadRequestException(
+        `Stock global insuficiente para el artículo ${articuloId} (resultado: ${stockNuevo})`,
+      );
+    }
+
+    await queryRunner.manager.update(Articulo, { id: articuloId }, { Deposito: stockNuevo });
+  }
+
+  private async ajustarStockPunto(
+    queryRunner: QueryRunner,
+    puntoMudrasId: number,
+    articuloId: number,
+    delta: number,
+    usuarioId: number,
+    referencia: string,
+    tipoMovimiento: TipoMovimientoStockPunto,
+    motivo?: string,
+  ): Promise<void> {
+    const registro = await queryRunner.manager.findOne(StockPuntoMudras, {
+      where: { puntoMudrasId, articuloId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    const cantidadAnterior = Number(registro?.cantidad || 0);
+    const cantidadNueva = cantidadAnterior + delta;
+
+    if (cantidadNueva < 0) {
+      throw new BadRequestException(
+        `El punto seleccionado no posee stock suficiente para el artículo ${articuloId} (resultado: ${cantidadNueva})`,
+      );
+    }
+
+    if (registro) {
+      registro.cantidad = cantidadNueva;
+      await queryRunner.manager.save(StockPuntoMudras, registro);
+    } else {
+      const nuevoRegistro = queryRunner.manager.create(StockPuntoMudras, {
+        puntoMudrasId,
+        articuloId,
+        cantidad: cantidadNueva,
+        stockMinimo: 0,
+      });
+      await queryRunner.manager.save(StockPuntoMudras, nuevoRegistro);
+    }
+
+    const movimiento = queryRunner.manager.create(MovimientoStockPunto, {
+      puntoMudrasOrigenId: delta < 0 ? puntoMudrasId : undefined,
+      puntoMudrasDestinoId: delta > 0 ? puntoMudrasId : undefined,
+      articuloId,
+      tipoMovimiento,
+      cantidad: Math.abs(delta),
+      cantidadAnterior,
+      cantidadNueva,
+      usuarioId,
+      referenciaExterna: referencia,
+      motivo: motivo ?? (tipoMovimiento === TipoMovimientoStockPunto.VENTA
+        ? `Venta caja ${referencia}`
+        : tipoMovimiento === TipoMovimientoStockPunto.DEVOLUCION
+          ? `Devolución caja ${referencia}`
+          : `Movimiento ${tipoMovimiento}`),
+    });
+
+    await queryRunner.manager.save(MovimientoStockPunto, movimiento);
   }
 
   async obtenerPuestosVenta(): Promise<PuestoVenta[]> {
@@ -366,18 +634,52 @@ export class CajaRegistradoraService {
 
       // Crear movimientos inversos de inventario si el puesto descuenta stock
       if (venta.puestoVenta?.descontarStock) {
+        let puntoMudrasId =
+          this.obtenerPuntoMudrasId(venta.puestoVenta);
+
+        if (!puntoMudrasId) {
+          const movimientoVenta = await queryRunner.manager.findOne(MovimientoStockPunto, {
+            where: {
+              referenciaExterna: venta.numeroVenta,
+              tipoMovimiento: TipoMovimientoStockPunto.VENTA,
+            },
+          });
+
+          puntoMudrasId =
+            movimientoVenta?.puntoMudrasOrigenId ??
+            movimientoVenta?.puntoMudrasDestinoId ??
+            null;
+        }
+
         for (const detalle of venta.detalles || []) {
+          const cantidad = Number(detalle.cantidad);
+
           await this.crearMovimientoInventario(
             queryRunner,
             detalle.articuloId,
             venta.puestoVentaId,
-            detalle.cantidad, // Positivo para devolver stock
+            cantidad, // Positivo para devolver stock
             TipoMovimientoInventario.DEVOLUCION,
             usuarioId || venta.usuarioId,
             venta.id,
             detalle.precioUnitario,
             `CANCELACION-${venta.numeroVenta}`
           );
+
+          await this.ajustarStockArticulo(queryRunner, detalle.articuloId, cantidad);
+
+          if (puntoMudrasId) {
+            await this.ajustarStockPunto(
+              queryRunner,
+              puntoMudrasId,
+              detalle.articuloId,
+              cantidad,
+              usuarioId || venta.usuarioId,
+              `CANCELACION-${venta.numeroVenta}`,
+              TipoMovimientoStockPunto.DEVOLUCION,
+              `Cancelación ${venta.numeroVenta}`
+            );
+          }
         }
       }
 

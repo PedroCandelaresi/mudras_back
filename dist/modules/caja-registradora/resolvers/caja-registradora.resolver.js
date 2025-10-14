@@ -44,8 +44,18 @@ let CajaRegistradoraResolver = class CajaRegistradoraResolver {
         return this.cajaRegistradoraService.obtenerDetalleVenta(id);
     }
     async crearVentaCaja(input, usuario) {
-        const usuarioId = parseInt(usuario.id);
-        return this.cajaRegistradoraService.crearVenta(input, usuarioId);
+        const usuarioActualId = parseInt(usuario.id);
+        const usuarioSeleccionadoId = typeof input.usuarioId === 'number' && !Number.isNaN(input.usuarioId)
+            ? input.usuarioId
+            : usuarioActualId;
+        if (Number.isNaN(usuarioSeleccionadoId)) {
+            throw new common_1.BadRequestException('Usuario inválido para registrar la venta');
+        }
+        const ventaInput = { ...input };
+        if (typeof ventaInput.usuarioId !== 'undefined') {
+            delete ventaInput.usuarioId;
+        }
+        return this.cajaRegistradoraService.crearVenta(ventaInput, usuarioSeleccionadoId);
     }
     async cancelarVentaCaja(id, motivo, usuario) {
         const usuarioId = usuario?.id ? parseInt(usuario.id) : undefined;

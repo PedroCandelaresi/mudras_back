@@ -20,12 +20,18 @@ const create_usuario_dto_1 = require("./dto/create-usuario.dto");
 const update_usuario_dto_1 = require("./dto/update-usuario.dto");
 const login_dto_1 = require("./dto/login.dto");
 const secret_key_decorator_1 = require("../../common/decorators/secret-key.decorator");
+const users_service_1 = require("../users-auth/users.service");
+const usuarios_auth_dto_1 = require("./dto/usuarios-auth.dto");
 let UsuariosResolver = class UsuariosResolver {
-    constructor(usuariosService) {
+    constructor(usuariosService, usersAuthService) {
         this.usuariosService = usuariosService;
+        this.usersAuthService = usersAuthService;
     }
     createUsuario(createUsuarioDto) {
         return this.usuariosService.create(createUsuarioDto);
+    }
+    listarUsuariosAuth(filtros) {
+        return this.usersAuthService.listar(filtros ?? {});
     }
     findAll() {
         return this.usuariosService.findAll();
@@ -59,6 +65,13 @@ __decorate([
     __metadata("design:paramtypes", [create_usuario_dto_1.CreateUsuarioDto]),
     __metadata("design:returntype", void 0)
 ], UsuariosResolver.prototype, "createUsuario", null);
+__decorate([
+    (0, graphql_1.Query)(() => usuarios_auth_dto_1.UsuariosAuthPaginadosModel, { name: 'usuariosAuth' }),
+    __param(0, (0, graphql_1.Args)('filtros', { type: () => usuarios_auth_dto_1.ListarUsuariosAuthInput, nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [usuarios_auth_dto_1.ListarUsuariosAuthInput]),
+    __metadata("design:returntype", void 0)
+], UsuariosResolver.prototype, "listarUsuariosAuth", null);
 __decorate([
     (0, graphql_1.Query)(() => [usuario_entity_1.Usuario], { name: 'usuarios' }),
     __metadata("design:type", Function),
@@ -110,6 +123,7 @@ __decorate([
 exports.UsuariosResolver = UsuariosResolver = __decorate([
     (0, graphql_1.Resolver)(() => usuario_entity_1.Usuario),
     (0, secret_key_decorator_1.RequireSecretKey)(),
-    __metadata("design:paramtypes", [usuarios_service_1.UsuariosService])
+    __metadata("design:paramtypes", [usuarios_service_1.UsuariosService,
+        users_service_1.UsersService])
 ], UsuariosResolver);
 //# sourceMappingURL=usuarios.resolver.js.map

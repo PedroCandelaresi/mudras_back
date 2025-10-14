@@ -126,10 +126,17 @@ __decorate([
     __metadata("design:type", Number)
 ], CrearVentaCajaInput.prototype, "puestoVentaId", void 0);
 __decorate([
-    (0, graphql_1.Field)(),
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CrearVentaCajaInput.prototype, "clienteId", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearVentaCajaInput.prototype, "puntoMudrasId", void 0);
 __decorate([
     (0, graphql_1.Field)(() => [DetalleVentaCajaInput]),
     (0, class_validator_1.IsArray)(),
@@ -175,6 +182,12 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CrearVentaCajaInput.prototype, "cuitCliente", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearVentaCajaInput.prototype, "usuarioId", void 0);
 exports.CrearVentaCajaInput = CrearVentaCajaInput = __decorate([
     (0, graphql_1.InputType)()
 ], CrearVentaCajaInput);

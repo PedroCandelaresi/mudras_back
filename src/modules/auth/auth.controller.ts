@@ -37,9 +37,16 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('perfil')
-  perfil(@Req() req: any) {
-    // req.user es el payload del JWT
-    return { perfil: req.user };
+  async perfil(@Req() req: any) {
+    // req.user es el payload del JWT; si el token no tiene uid aún, tratar de adjuntarlo dinámicamente
+    const perfil = { ...(req.user || {}) };
+    if (perfil && typeof perfil.uid === 'undefined' && typeof perfil.sub === 'string') {
+      try {
+        const uid = await (this.authService as any).obtenerUsuarioInternoId?.(perfil.sub);
+        if (uid) perfil.uid = uid;
+      } catch {}
+    }
+    return { perfil };
   }
 
   @UseGuards(JwtAuthGuard)

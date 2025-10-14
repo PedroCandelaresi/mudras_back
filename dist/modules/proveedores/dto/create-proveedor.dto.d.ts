@@ -15,6 +15,8 @@ export declare class CreateProveedorInput {
     Mail?: string;
     Rubro?: string;
     Saldo?: number;
+    PorcentajeRecargoProveedor?: number;
+    PorcentajeDescuentoProveedor?: number;
     Pais?: string;
     Fax?: string;
 }

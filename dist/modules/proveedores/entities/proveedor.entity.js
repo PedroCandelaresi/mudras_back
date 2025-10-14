@@ -119,6 +119,38 @@ __decorate([
     __metadata("design:type", Number)
 ], Proveedor.prototype, "Saldo", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, typeorm_1.Column)({
+        type: 'decimal',
+        precision: 5,
+        scale: 2,
+        nullable: true,
+        default: 0,
+        name: 'PorcentajeRecargoProveedor',
+        transformer: {
+            to: (value) => value ?? 0,
+            from: (value) => (value != null ? Number(value) : null),
+        },
+    }),
+    __metadata("design:type", Number)
+], Proveedor.prototype, "PorcentajeRecargoProveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, typeorm_1.Column)({
+        type: 'decimal',
+        precision: 5,
+        scale: 2,
+        nullable: true,
+        default: 0,
+        name: 'PorcentajeDescuentoProveedor',
+        transformer: {
+            to: (value) => value ?? 0,
+            from: (value) => (value != null ? Number(value) : null),
+        },
+    }),
+    __metadata("design:type", Number)
+], Proveedor.prototype, "PorcentajeDescuentoProveedor", void 0);
+__decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 30, nullable: true }),
     __metadata("design:type", String)

@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { UserAuth } from '../../users-auth/entities/user.entity';
@@ -49,19 +49,40 @@ export class CajaRegistradoraResolver {
   @Mutation(() => VentaCaja)
   async crearVentaCaja(
     @Args('input') input: CrearVentaCajaInput,
-    @CurrentUser() usuario: UserAuth,
+    @CurrentUser() usuario: any,
   ): Promise<VentaCaja> {
-    const usuarioId = parseInt(usuario.id);
-    return this.cajaRegistradoraService.crearVenta(input, usuarioId);
+    const usuarioActualId =
+      typeof usuario?.uid === 'number' && Number.isFinite(usuario.uid)
+        ? usuario.uid
+        : (typeof usuario?.sub === 'string' ? parseInt(usuario.sub) : NaN);
+    const usuarioSeleccionadoId =
+      typeof input.usuarioId === 'number' && !Number.isNaN(input.usuarioId)
+        ? input.usuarioId
+        : usuarioActualId;
+
+    if (Number.isNaN(usuarioSeleccionadoId)) {
+      throw new BadRequestException('Usuario inválido para registrar la venta');
+    }
+
+    // Evitamos propagar el usuarioId dentro del input al servicio
+    const ventaInput: CrearVentaCajaInput = { ...input };
+    if (typeof ventaInput.usuarioId !== 'undefined') {
+      delete (ventaInput as any).usuarioId;
+    }
+
+    return this.cajaRegistradoraService.crearVenta(ventaInput, usuarioSeleccionadoId);
   }
 
   @Mutation(() => VentaCaja)
   async cancelarVentaCaja(
     @Args('id', { type: () => Int }) id: number,
     @Args('motivo', { nullable: true }) motivo?: string,
-    @CurrentUser() usuario?: UserAuth,
+    @CurrentUser() usuario?: any,
   ): Promise<VentaCaja> {
-    const usuarioId = usuario?.id ? parseInt(usuario.id) : undefined;
+    const usuarioId =
+      typeof usuario?.uid === 'number' && Number.isFinite(usuario.uid)
+        ? usuario.uid
+        : (typeof usuario?.sub === 'string' ? parseInt(usuario.sub) : undefined);
     return this.cajaRegistradoraService.cancelarVenta(id, usuarioId, motivo);
   }
 
@@ -70,10 +91,13 @@ export class CajaRegistradoraResolver {
     @Args('ventaOriginalId', { type: () => Int }) ventaOriginalId: number,
     @Args('articulosDevolver') articulosDevolver: string, // JSON string con artículos y cantidades
     @Args('motivo', { nullable: true }) motivo?: string,
-    @CurrentUser() usuario?: UserAuth,
+    @CurrentUser() usuario?: any,
   ): Promise<VentaCaja> {
     const articulos = JSON.parse(articulosDevolver);
-    const usuarioId = usuario?.id ? parseInt(usuario.id) : undefined;
+    const usuarioId =
+      typeof usuario?.uid === 'number' && Number.isFinite(usuario.uid)
+        ? usuario.uid
+        : (typeof usuario?.sub === 'string' ? parseInt(usuario.sub) : undefined);
     return this.cajaRegistradoraService.procesarDevolucion(
       ventaOriginalId,
       articulos,

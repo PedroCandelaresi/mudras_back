@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
+import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
 export declare class ProveedoresService {
     private proveedoresRepository;
     constructor(proveedoresRepository: Repository<Proveedor>);
@@ -16,4 +17,5 @@ export declare class ProveedoresService {
         total: number;
     }>;
     remove(id: number): Promise<boolean>;
+    findRubrosByProveedor(proveedorId: number): Promise<RubroPorProveedor[]>;
 }

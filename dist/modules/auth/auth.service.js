@@ -88,11 +88,13 @@ let AuthService = class AuthService {
     }
     async emitirTokens(user) {
         const roles = await this.getUserRolesSlugs(user.id);
+        const perms = await this.obtenerPermisosEfectivos(user.id);
         const payload = {
             sub: user.id,
             username: user.username,
             roles,
             typ: user.userType,
+            perms,
         };
         const accessToken = await this.jwtService.signAsync(payload);
         const opaque = (0, crypto_1.randomUUID)();

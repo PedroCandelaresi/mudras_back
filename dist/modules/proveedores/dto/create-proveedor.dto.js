@@ -124,6 +124,18 @@ __decorate([
     __metadata("design:type", Number)
 ], CreateProveedorInput.prototype, "Saldo", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateProveedorInput.prototype, "PorcentajeRecargoProveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateProveedorInput.prototype, "PorcentajeDescuentoProveedor", void 0);
+__decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

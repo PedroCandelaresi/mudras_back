@@ -52,6 +52,13 @@ input ActualizarPuntoMudrasInput {
   telefono: String
 }
 
+input ActualizarUsuarioAuthInput {
+  displayName: String
+  email: String
+  isActive: Boolean
+  roles: [String!]
+}
+
 type Articulo {
   AlicuotaIva: Float
   Calculado: Boolean
@@ -144,7 +151,7 @@ type ArticuloConStockPuntoMudras {
   id: Int!
   nombre: String!
   precio: Float!
-  rubro: String
+  rubro: RubroInfo
   stockAsignado: Float!
   stockTotal: Float!
 }
@@ -231,6 +238,7 @@ input BuscarArticuloInput {
   limite: Float! = 10
   nombre: String
   puestoVentaId: Float
+  puntoMudrasId: Float
   sku: String
 }
 
@@ -351,8 +359,17 @@ input CrearPuntoMudrasInput {
   tipo: String!
 }
 
+input CrearUsuarioAuthInput {
+  displayName: String!
+  email: String
+  isActive: Boolean
+  passwordTemporal: String!
+  roles: [String!]
+  username: String!
+}
+
 input CrearVentaCajaInput {
-  clienteId: Float!
+  clienteId: Float
   cuitCliente: String
   descuentoMonto: Float
   descuentoPorcentaje: Float
@@ -361,7 +378,9 @@ input CrearVentaCajaInput {
   observaciones: String
   pagos: [PagoCajaInput!]!
   puestoVentaId: Float!
+  puntoMudrasId: Float
   tipoVenta: TipoVentaCaja!
+  usuarioId: Float
 }
 
 input CreateClienteDto {
@@ -654,6 +673,16 @@ type HistorialVentasResponse {
   ventas: [ResumenVenta!]!
 }
 
+input ListarUsuariosAuthInput {
+  busqueda: String
+  email: String
+  estado: String
+  limite: Int
+  nombre: String
+  pagina: Int
+  username: String
+}
+
 input LoginDto {
   password: String!
   usernameOrEmail: String!
@@ -727,7 +756,9 @@ type Mutation {
   actualizarRubro(codigo: String, id: Int!, nombre: String!, porcentajeDescuento: Float, porcentajeRecargo: Float): Rubro!
   actualizarSaldoCliente(id: Int!, nuevoSaldo: Float!): Cliente!
   actualizarStockArticulo(id: Int!, nuevoStock: Float!): Articulo!
+  actualizarUsuarioAdmin(id: String!, input: ActualizarUsuarioAuthInput!): UsuarioAuthResumenModel!
   anularAsientoContable(id: Int!, usuarioId: Int!): AsientoContable!
+  asignarRolesUsuarioAdmin(id: String!, roles: [String!]!): UsuarioAuthResumenModel!
   cancelarVenta(id: Int!, motivoCancelacion: String!): Venta!
   cancelarVentaCaja(id: Int!, motivo: String): VentaCaja!
   cerrarCuenta(id: Int!): CuentaCorriente!
@@ -742,6 +773,7 @@ type Mutation {
   crearProveedor(createProveedorInput: CreateProveedorInput!): Proveedor!
   crearPuntoMudras(input: CrearPuntoMudrasInput!): PuntoMudras!
   crearRubro(codigo: String, nombre: String!, porcentajeDescuento: Float, porcentajeRecargo: Float): Rubro!
+  crearUsuarioAdmin(input: CrearUsuarioAuthInput!): UsuarioAuthResumenModel!
   crearUsuariosEjemplo: Boolean!
   crearVenta(clienteId: Int!, descuentoGeneral: Float! = 0, detalles: [DetalleVentaInput!]!, observaciones: String, tipoPago: TipoPago!, usuarioId: Int!): Venta!
   crearVentaCaja(input: CrearVentaCajaInput!): VentaCaja!
@@ -755,6 +787,7 @@ type Mutation {
   eliminarProveedorDeRubro(proveedorId: Int!, rubroNombre: String!): Boolean!
   eliminarPuntoMudras(id: Int!): Boolean!
   eliminarRubro(id: Int!): Boolean!
+  eliminarUsuarioAdmin(id: String!): Boolean!
   login(loginInput: LoginDto!): Usuario!
   modificarStockPunto(articuloId: Int!, nuevaCantidad: Float!, puntoMudrasId: Int!): Boolean!
   procesarDevolucion(articulosDevolver: String!, motivo: String, ventaOriginalId: Int!): VentaCaja!
@@ -948,7 +981,11 @@ type Query {
   topArticulos(fechaDesde: DateTime!, fechaHasta: DateTime!, limite: Int! = 10): [TopArticulo!]!
   ultimoMovimientoPorCodigo(codigo: String!): Stock!
   usuario(id: Int!): Usuario!
+  usuarioAdmin(id: String!): UsuarioAuthResumenModel!
   usuarios: [Usuario!]!
+  usuariosAdmin(filtros: ListarUsuariosAuthInput): UsuariosAuthPaginadosModel!
+  usuariosAuth(filtros: ListarUsuariosAuthInput): UsuariosAuthPaginadosModel!
+  usuariosGestionPorRol(rol: RolUsuario!): [Usuario!]!
   usuariosPorRol(rol: RolUsuario!): [Usuario!]!
   venta(id: Int!): Venta!
   ventas: [Venta!]!
@@ -1020,6 +1057,11 @@ type RubroConEstadisticas {
   nombre: String
   porcentajeDescuento: Float
   porcentajeRecargo: Float
+}
+
+type RubroInfo {
+  id: Int!
+  nombre: String!
 }
 
 type RubroPorProveedor {
@@ -1243,6 +1285,24 @@ type Usuario {
   telefono: String
   ultimoAcceso: DateTime
   username: String!
+}
+
+type UsuarioAuthResumenModel {
+  createdAt: DateTime!
+  displayName: String!
+  email: String
+  id: String!
+  isActive: Boolean!
+  mustChangePassword: Boolean!
+  roles: [String!]!
+  updatedAt: DateTime!
+  userType: String!
+  username: String
+}
+
+type UsuariosAuthPaginadosModel {
+  items: [UsuarioAuthResumenModel!]!
+  total: Int!
 }
 
 type Venta {

@@ -2,6 +2,10 @@ import { PuntosMudrasService } from './puntos-mudras.service';
 import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
+export declare class RubroInfo {
+    id: number;
+    nombre: string;
+}
 export declare class RelacionProveedorRubro {
     id: number;
     proveedorId: number;
@@ -22,7 +26,7 @@ export declare class ArticuloConStockPuntoMudras {
     precio: number;
     stockAsignado: number;
     stockTotal: number;
-    rubro?: string;
+    rubro?: RubroInfo;
 }
 export declare class EstadisticasPuntosMudras {
     totalPuntos: number;
@@ -60,7 +64,7 @@ export declare class PuntosMudrasResolver {
     obtenerEstadisticasPuntosMudras(): Promise<EstadisticasPuntosMudras>;
     obtenerStockPuntoMudras(puntoMudrasId: number): Promise<ArticuloConStockPuntoMudras[]>;
     obtenerProveedoresConStock(): Promise<ProveedorBasico[]>;
-    obtenerRubrosPorProveedor(proveedorId: number): Promise<RubroBasico[]>;
+    obtenerRubrosPorProveedor(proveedorId: string): Promise<RubroBasico[]>;
     buscarArticulosParaAsignacion(proveedorId?: number, rubro?: string, busqueda?: string): Promise<ArticuloFiltrado[]>;
     crearPuntoMudras(input: CrearPuntoMudrasDto): Promise<PuntoMudras>;
     actualizarPuntoMudras(input: ActualizarPuntoMudrasDto): Promise<PuntoMudras>;

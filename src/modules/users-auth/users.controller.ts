@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { UsersService, CrearUsuarioDto, ActualizarUsuarioDto } from './users.service';
+import { UsersService, CrearUsuarioDto, ActualizarUsuarioDto, ListarUsuariosInput } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -14,8 +14,22 @@ export class UsersController {
   listar(
     @Query('pagina') pagina?: string,
     @Query('limite') limite?: string,
+    @Query('busqueda') busqueda?: string,
+    @Query('username') username?: string,
+    @Query('email') email?: string,
+    @Query('nombre') nombre?: string,
+    @Query('estado') estado?: string,
   ) {
-    return this.usersService.listar(Number(pagina ?? 0), Number(limite ?? 20));
+    const filtros: ListarUsuariosInput = {
+      pagina: pagina ? Number(pagina) : undefined,
+      limite: limite ? Number(limite) : undefined,
+      busqueda,
+      username,
+      email,
+      nombre,
+      estado,
+    };
+    return this.usersService.listar(filtros);
   }
 
   @Post()

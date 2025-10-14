@@ -190,10 +190,12 @@ export class PuntosMudrasService {
         precio: parseFloat(record.articulo_PrecioVenta || '0'),
         stockAsignado: parseFloat(record.stock_cantidad || '0'),
         stockTotal: parseFloat(record.articulo_Deposito || '0'),
-        rubro: {
-          Id: record.rubro_Id || 0,
-          Rubro: record.articulo_Rubro || 'Sin rubro'
-        }
+        rubro: record.articulo_Rubro || record.rubro_Rubro
+          ? {
+              id: record.rubro_Id || 0,
+              nombre: record.articulo_Rubro || record.rubro_Rubro || 'Sin rubro'
+            }
+          : undefined,
       }));
     }
   }
@@ -230,10 +232,12 @@ export class PuntosMudrasService {
       precio: parseFloat(record.PrecioVenta || '0'),
       stockAsignado: parseFloat(record.stockDisponible || '0'), // En depósito mostramos el disponible como "asignado"
       stockTotal: parseFloat(record.stockTotal || '0'),
-      rubro: {
-        Id: 0,
-        Rubro: record.Rubro || 'Sin rubro'
-      }
+      rubro: record.Rubro
+        ? {
+            id: 0,
+            nombre: record.Rubro || 'Sin rubro'
+          }
+        : undefined,
     }));
   }
 

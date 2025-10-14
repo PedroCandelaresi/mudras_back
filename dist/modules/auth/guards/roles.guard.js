@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const graphql_1 = require("@nestjs/graphql");
 const roles_decorator_1 = require("../decorators/roles.decorator");
+const permissions_decorator_1 = require("../decorators/permissions.decorator");
 let RolesGuard = class RolesGuard {
     constructor(reflector) {
         this.reflector = reflector;
@@ -23,13 +24,48 @@ let RolesGuard = class RolesGuard {
             context.getHandler(),
             context.getClass(),
         ]);
-        if (!requiredRoles || requiredRoles.length === 0)
+        const requiredPermissions = this.reflector.getAllAndOverride(permissions_decorator_1.PERMISOS_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        if (!requiredRoles && !requiredPermissions) {
             return true;
-        const gqlCtx = graphql_1.GqlExecutionContext.create(context);
-        const req = gqlCtx.getContext()?.req ?? context.switchToHttp().getRequest();
-        const user = req.user;
-        const userRoles = user?.roles ?? [];
-        return requiredRoles.some((r) => userRoles.includes(r));
+        }
+        const gqlContext = graphql_1.GqlExecutionContext.create(context);
+        const ctx = gqlContext.getContext();
+        const request = ctx?.req ?? context.switchToHttp().getRequest();
+        const user = request?.user;
+        if (!user) {
+            return false;
+        }
+        const roles = Array.isArray(user.roles)
+            ? user.roles.map((role) => role?.toLowerCase?.() ?? String(role ?? '').toLowerCase())
+            : [];
+        const permisos = Array.isArray(user.perms)
+            ? user.perms.map((perm) => String(perm))
+            : Array.isArray(user.permissions)
+                ? user.permissions.map((perm) => String(perm))
+                : [];
+        if (requiredRoles) {
+            const rolesNormalizados = requiredRoles.map((role) => role.toLowerCase());
+            const tieneRol = roles.some((role) => rolesNormalizados.includes(role));
+            if (!tieneRol) {
+                return false;
+            }
+        }
+        if (requiredPermissions) {
+            if (roles.includes('administrador')) {
+                return true;
+            }
+            if (permisos.includes('*')) {
+                return true;
+            }
+            const tienePermisos = requiredPermissions.every((permiso) => permisos.includes(permiso));
+            if (!tienePermisos) {
+                return false;
+            }
+        }
+        return true;
     }
 };
 exports.RolesGuard = RolesGuard;

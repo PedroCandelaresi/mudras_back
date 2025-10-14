@@ -25,6 +25,8 @@ export declare class Proveedor {
     Rubro: string;
     rubroId: number;
     Saldo: number;
+    PorcentajeRecargoProveedor?: number;
+    PorcentajeDescuentoProveedor?: number;
     Pais: string;
     Fax: string;
     FechaModif: Date;

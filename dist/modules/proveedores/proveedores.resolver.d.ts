@@ -2,6 +2,7 @@ import { ProveedoresService } from './proveedores.service';
 import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
+import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
 export declare class ProveedoresResolver {
     private readonly proveedoresService;
     constructor(proveedoresService: ProveedoresService);
@@ -13,6 +14,7 @@ export declare class ProveedoresResolver {
         articulos: any[];
         total: number;
     }>;
+    findRubrosByProveedor(proveedorId: string): Promise<RubroPorProveedor[]>;
     create(createProveedorInput: CreateProveedorInput): Promise<Proveedor>;
     update(updateProveedorInput: UpdateProveedorInput): Promise<Proveedor>;
     remove(id: number): Promise<boolean>;

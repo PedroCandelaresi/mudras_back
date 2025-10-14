@@ -11,6 +11,15 @@ import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 
 @ObjectType()
+export class RubroInfo {
+  @Field(() => Int)
+  id: number;
+
+  @Field()
+  nombre: string;
+}
+
+@ObjectType()
 export class RelacionProveedorRubro {
   @Field(() => Int)
   id: number;
@@ -63,8 +72,8 @@ export class ArticuloConStockPuntoMudras {
   @Field(() => Float)
   stockTotal: number;
 
-  @Field({ nullable: true })
-  rubro?: string;
+  @Field(() => RubroInfo, { nullable: true })
+  rubro?: RubroInfo;
 }
 
 @ObjectType()

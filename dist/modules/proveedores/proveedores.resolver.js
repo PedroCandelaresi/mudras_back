@@ -19,6 +19,7 @@ const proveedor_entity_1 = require("./entities/proveedor.entity");
 const create_proveedor_dto_1 = require("./dto/create-proveedor.dto");
 const update_proveedor_dto_1 = require("./dto/update-proveedor.dto");
 const articulos_por_proveedor_dto_1 = require("./dto/articulos-por-proveedor.dto");
+const rubros_por_proveedor_dto_1 = require("./dto/rubros-por-proveedor.dto");
 const common_1 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
@@ -42,6 +43,13 @@ let ProveedoresResolver = class ProveedoresResolver {
     }
     findArticulosByProveedor(proveedorId, filtro, offset, limit) {
         return this.proveedoresService.findArticulosByProveedor(proveedorId, filtro, offset, limit);
+    }
+    findRubrosByProveedor(proveedorId) {
+        const parsedId = Number(proveedorId);
+        if (!Number.isFinite(parsedId)) {
+            throw new common_1.BadRequestException('El identificador del proveedor debe ser numérico.');
+        }
+        return this.proveedoresService.findRubrosByProveedor(parsedId);
     }
     create(createProveedorInput) {
         return this.proveedoresService.create(createProveedorInput);
@@ -96,6 +104,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, String, Number, Number]),
     __metadata("design:returntype", void 0)
 ], ProveedoresResolver.prototype, "findArticulosByProveedor", null);
+__decorate([
+    (0, graphql_1.Query)(() => [rubros_por_proveedor_dto_1.RubroPorProveedor], { name: 'rubrosPorProveedor' }),
+    (0, permissions_decorator_1.Permisos)('proveedores.read'),
+    __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.ID })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ProveedoresResolver.prototype, "findRubrosByProveedor", null);
 __decorate([
     (0, graphql_1.Mutation)(() => proveedor_entity_1.Proveedor, { name: 'crearProveedor' }),
     (0, permissions_decorator_1.Permisos)('proveedores.create'),

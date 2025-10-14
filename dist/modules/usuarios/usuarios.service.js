@@ -101,10 +101,22 @@ let UsuariosService = class UsuariosService {
         return usuario;
     }
     async findByRol(rol) {
-        return this.usuariosRepository.find({
-            where: { rol },
-            order: { nombre: 'ASC' },
-        });
+        console.log('🛠️ [UsuariosService] findByRol:start', { rol });
+        try {
+            const resultado = await this.usuariosRepository.find({
+                where: { rol },
+                order: { nombre: 'ASC' },
+            });
+            console.log('🛠️ [UsuariosService] findByRol:resultado', {
+                rol,
+                cantidad: resultado.length,
+            });
+            return resultado;
+        }
+        catch (error) {
+            console.error('🛠️ [UsuariosService] findByRol:error', { rol, error });
+            throw error;
+        }
     }
     async createUsuariosEjemplo() {
         const usuariosEjemplo = [
