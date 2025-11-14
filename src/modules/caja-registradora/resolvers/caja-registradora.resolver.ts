@@ -6,7 +6,7 @@ import { UserAuth } from '../../users-auth/entities/user.entity';
 import { CajaRegistradoraService } from '../services/caja-registradora.service';
 import { AfipService } from '../services/afip.service';
 import { VentaCaja } from '../entities/venta-caja.entity';
-import { PuestoVenta } from '../entities/puesto-venta.entity';
+// import { PuestoVenta } from '../entities/puesto-venta.entity';
 import { ComprobanteAfip } from '../entities/comprobante-afip.entity';
 import { CrearVentaCajaInput } from '../dto/crear-venta-caja.dto';
 import { BuscarArticuloInput, ArticuloConStock } from '../dto/buscar-articulo.dto';
@@ -27,10 +27,7 @@ export class CajaRegistradoraResolver {
     return this.cajaRegistradoraService.buscarArticulos(input);
   }
 
-  @Query(() => [PuestoVenta])
-  async obtenerPuestosVenta(): Promise<PuestoVenta[]> {
-    return this.cajaRegistradoraService.obtenerPuestosVenta();
-  }
+  // Query de puestos de venta removida: usar puntos Mudras en su lugar (puntos_mudras)
 
   @Query(() => HistorialVentasResponse)
   async obtenerHistorialVentas(
@@ -51,26 +48,13 @@ export class CajaRegistradoraResolver {
     @Args('input') input: CrearVentaCajaInput,
     @CurrentUser() usuario: any,
   ): Promise<VentaCaja> {
-    const usuarioActualId =
-      typeof usuario?.uid === 'number' && Number.isFinite(usuario.uid)
-        ? usuario.uid
-        : (typeof usuario?.sub === 'string' ? parseInt(usuario.sub) : NaN);
-    const usuarioSeleccionadoId =
-      typeof input.usuarioId === 'number' && !Number.isNaN(input.usuarioId)
-        ? input.usuarioId
-        : usuarioActualId;
-
-    if (Number.isNaN(usuarioSeleccionadoId)) {
+    const sub = typeof usuario?.sub === 'string' ? usuario.sub : null;
+    const usuarioSeleccionado = (input.usuarioAuthId && input.usuarioAuthId.trim()) || sub;
+    if (!usuarioSeleccionado) {
       throw new BadRequestException('Usuario inválido para registrar la venta');
     }
-
-    // Evitamos propagar el usuarioId dentro del input al servicio
     const ventaInput: CrearVentaCajaInput = { ...input };
-    if (typeof ventaInput.usuarioId !== 'undefined') {
-      delete (ventaInput as any).usuarioId;
-    }
-
-    return this.cajaRegistradoraService.crearVenta(ventaInput, usuarioSeleccionadoId);
+    return this.cajaRegistradoraService.crearVenta(ventaInput, usuarioSeleccionado);
   }
 
   @Mutation(() => VentaCaja)
@@ -79,11 +63,8 @@ export class CajaRegistradoraResolver {
     @Args('motivo', { nullable: true }) motivo?: string,
     @CurrentUser() usuario?: any,
   ): Promise<VentaCaja> {
-    const usuarioId =
-      typeof usuario?.uid === 'number' && Number.isFinite(usuario.uid)
-        ? usuario.uid
-        : (typeof usuario?.sub === 'string' ? parseInt(usuario.sub) : undefined);
-    return this.cajaRegistradoraService.cancelarVenta(id, usuarioId, motivo);
+    const usuarioAuthId = typeof usuario?.sub === 'string' ? usuario.sub : undefined;
+    return this.cajaRegistradoraService.cancelarVenta(id, usuarioAuthId, motivo);
   }
 
   @Mutation(() => VentaCaja)
@@ -94,14 +75,11 @@ export class CajaRegistradoraResolver {
     @CurrentUser() usuario?: any,
   ): Promise<VentaCaja> {
     const articulos = JSON.parse(articulosDevolver);
-    const usuarioId =
-      typeof usuario?.uid === 'number' && Number.isFinite(usuario.uid)
-        ? usuario.uid
-        : (typeof usuario?.sub === 'string' ? parseInt(usuario.sub) : undefined);
+    const usuarioAuthId = typeof usuario?.sub === 'string' ? usuario.sub : undefined;
     return this.cajaRegistradoraService.procesarDevolucion(
       ventaOriginalId,
       articulos,
-      usuarioId,
+      usuarioAuthId,
       motivo
     );
   }

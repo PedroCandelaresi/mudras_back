@@ -58,6 +58,19 @@ export class UsersService {
     @InjectRepository(Role) private readonly rolesRepo: Repository<Role>,
   ) {}
 
+  async listarEmpresaPorRolSlug(rolSlug: string) {
+    const rows = await this.usersRepo
+      .createQueryBuilder('u')
+      .leftJoin('u.userRoles', 'ur')
+      .leftJoin('ur.role', 'r')
+      .where('u.userType = :typ', { typ: 'EMPRESA' })
+      .andWhere('u.isActive = :act', { act: true })
+      .andWhere('r.slug = :slug', { slug: rolSlug })
+      .orderBy('u.displayName', 'ASC')
+      .getMany();
+    return rows;
+  }
+
   async listar(entrada: ListarUsuariosInput = {}): Promise<{ items: UsuarioAuthResumen[]; total: number }> {
     const paginaNormalizada = Math.max(0, entrada.pagina ?? 0);
     const limiteNormalizado = Math.min(Math.max(1, entrada.limite ?? 20), 100);
@@ -149,6 +162,57 @@ export class UsersService {
         await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: rol.id }));
       }
     }
+
+    // Intentar crear registro en `usuarios` (internos) y mapear a `usuarios_auth_map`
+    try {
+      // Derivar nombre y apellido desde username/displayName
+      const username = dto.username || '';
+      let nombre = '';
+      let apellido = '';
+      if (username.includes('.')) {
+        const [n, a] = username.split('.', 2);
+        nombre = (n || '').trim();
+        apellido = (a || '').trim();
+      }
+      if (!nombre || !apellido) {
+        const partes = (dto.displayName || '').split(/\s+/).filter(Boolean);
+        if (partes.length >= 2) {
+          nombre = partes.slice(0, -1).join(' ');
+          apellido = partes.slice(-1).join(' ');
+        } else if (partes.length === 1) {
+          nombre = partes[0];
+          apellido = '';
+        }
+      }
+
+      // Crear usuario interno si no existe ese username/email
+      const passwordHash = await bcrypt.hash(dto.passwordTemporal, 10);
+      // Insert y obtener ID autoincremental
+      await this.usersRepo.query(
+        `INSERT INTO usuarios (nombre, apellido, username, email, password, rol, estado, salario)
+         SELECT ?, ?, ?, ?, ?, ?, ?, 0.00
+         WHERE NOT EXISTS (
+           SELECT 1 FROM usuarios u WHERE u.username = ? OR (u.email IS NOT NULL AND u.email = ?)
+         )`,
+        [nombre || username, apellido || '', username, dto.email ?? null, passwordHash, 'caja', 'activo', username, dto.email ?? null],
+      );
+      // Buscar id del usuario interno creado/existente
+      const fila = await this.usersRepo.query(`SELECT id FROM usuarios WHERE username = ? LIMIT 1`, [username]);
+      const usuarioId: number | undefined = fila?.[0]?.id != null ? Number(fila[0].id) : undefined;
+      if (usuarioId && Number.isFinite(usuarioId)) {
+        // Crear mapeo si no existe
+        await this.usersRepo.query(
+          `INSERT INTO usuarios_auth_map (usuario_id, auth_user_id)
+           SELECT ?, ?
+           WHERE NOT EXISTS (SELECT 1 FROM usuarios_auth_map WHERE usuario_id = ? OR auth_user_id = ?)`,
+          [usuarioId, user.id, usuarioId, user.id],
+        );
+      }
+    } catch (e) {
+      // No romper creación si falla mapeo; log opcional
+      // console.warn('No se pudo crear mapeo usuarios_auth_map:', e);
+    }
+
     return this.obtener(user.id);
   }
 
@@ -181,6 +245,8 @@ export class UsersService {
   }
 
   async eliminar(id: string) {
+    // Borrar mapeo y luego el usuario auth
+    try { await this.usersRepo.query(`DELETE FROM usuarios_auth_map WHERE auth_user_id = ?`, [id]); } catch {}
     const ok = await this.usersRepo.delete({ id });
     return ok.affected! > 0;
   }

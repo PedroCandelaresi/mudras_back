@@ -20,6 +20,7 @@ const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const login_dto_1 = require("./dto/login.dto");
 const refresh_dto_1 = require("./dto/refresh.dto");
 const passport_1 = require("@nestjs/passport");
+const login_email_dto_1 = require("./dto/login-email.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -43,8 +44,36 @@ let AuthController = class AuthController {
         });
         return res.json({ usuario: { id: user.id, username: user.username, displayName: user.displayName, roles: await this.authService.getUserRolesSlugs(user.id) }, ...tokens });
     }
-    perfil(req) {
-        return { perfil: req.user };
+    async loginEmail(dto, _req, res) {
+        const user = await this.authService.validateClientEmail(dto.email, dto.password);
+        const tokens = await this.authService.emitirTokens(user);
+        res.cookie('mudras_token', tokens.accessToken, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        res.cookie('mudras_refresh', tokens.refreshToken, {
+            httpOnly: true,
+            sameSite: 'none',
+            secure: true,
+            domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+            path: '/'
+        });
+        return res.json({ usuario: { id: user.id, email: user.email, displayName: user.displayName, roles: await this.authService.getUserRolesSlugs(user.id) }, ...tokens });
+    }
+    async perfil(req) {
+        const perfil = { ...(req.user || {}) };
+        if (perfil && typeof perfil.uid === 'undefined' && typeof perfil.sub === 'string') {
+            try {
+                const uid = await this.authService.obtenerUsuarioInternoId?.(perfil.sub);
+                if (uid)
+                    perfil.uid = uid;
+            }
+            catch { }
+        }
+        return { perfil };
     }
     async permisos(req) {
         const userId = req.user?.sub;
@@ -131,12 +160,21 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
+    (0, common_1.Post)('login-email'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __param(2, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [login_email_dto_1.LoginEmailDto, Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "loginEmail", null);
+__decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('perfil'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "perfil", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

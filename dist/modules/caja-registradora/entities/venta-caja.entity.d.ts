@@ -1,6 +1,6 @@
 import { Cliente } from '../../clientes/entities/cliente.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { PuestoVenta } from './puesto-venta.entity';
+import { UserAuth } from '../../users-auth/entities/user.entity';
+import { PuntoMudras } from '../../puntos-mudras/entities/punto-mudras.entity';
 import { DetalleVentaCaja } from './detalle-venta-caja.entity';
 import { PagoCaja } from './pago-caja.entity';
 import { ComprobanteAfip } from './comprobante-afip.entity';
@@ -24,12 +24,12 @@ export declare class VentaCaja {
     fecha: Date;
     tipoVenta: TipoVentaCaja;
     estado: EstadoVentaCaja;
-    puestoVentaId: number;
-    puestoVenta: PuestoVenta;
-    clienteId: number;
-    cliente: Cliente;
-    usuarioId: number;
-    usuario: Usuario;
+    puntoMudrasId: number;
+    puntoMudras: PuntoMudras;
+    clienteId?: number | null;
+    cliente?: Cliente | null;
+    usuarioAuthId: string;
+    usuarioAuth: UserAuth;
     subtotal: number;
     descuentoPorcentaje: number;
     descuentoMonto: number;

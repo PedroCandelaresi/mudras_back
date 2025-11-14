@@ -3,11 +3,11 @@ import { Venta, TipoPago } from './entities/venta.entity';
 export declare class VentasResolver {
     private readonly ventasService;
     constructor(ventasService: VentasService);
-    crearVenta(clienteId: number, usuarioId: number, tipoPago: TipoPago, detalles: DetalleVentaInput[], descuentoGeneral: number, observaciones?: string): Promise<Venta>;
+    crearVenta(clienteId: number, usuarioAuthId: string, tipoPago: TipoPago, detalles: DetalleVentaInput[], descuentoGeneral: number, observaciones?: string): Promise<Venta>;
     findAll(): Promise<Venta[]>;
     obtenerVenta(id: number): Promise<Venta>;
     obtenerVentasPorCliente(clienteId: number): Promise<Venta[]>;
-    obtenerVentasPorUsuario(usuarioId: number): Promise<Venta[]>;
+    obtenerVentasPorUsuarioAuth(usuarioAuthId: string): Promise<Venta[]>;
     obtenerVentasPorFecha(fechaDesde: Date, fechaHasta: Date): Promise<Venta[]>;
     confirmarVenta(id: number): Promise<Venta>;
     cancelarVenta(id: number, motivoCancelacion: string): Promise<Venta>;

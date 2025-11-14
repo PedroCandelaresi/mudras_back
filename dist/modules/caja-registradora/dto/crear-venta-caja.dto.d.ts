@@ -20,9 +20,8 @@ export declare class PagoCajaInput {
 }
 export declare class CrearVentaCajaInput {
     tipoVenta: TipoVentaCaja;
-    puestoVentaId: number;
     clienteId?: number;
-    puntoMudrasId?: number;
+    puntoMudrasId: number;
     detalles: DetalleVentaCajaInput[];
     pagos: PagoCajaInput[];
     descuentoPorcentaje?: number;
@@ -30,5 +29,5 @@ export declare class CrearVentaCajaInput {
     observaciones?: string;
     generarFactura: boolean;
     cuitCliente?: string;
-    usuarioId?: number;
+    usuarioAuthId?: string;
 }

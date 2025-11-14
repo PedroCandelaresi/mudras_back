@@ -2,13 +2,15 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { Response } from 'express';
+import { LoginEmailDto } from './dto/login-email.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
     login(_dto: LoginDto, req: any, res: Response): Promise<Response<any, Record<string, any>>>;
-    perfil(req: any): {
+    loginEmail(dto: LoginEmailDto, _req: any, res: Response): Promise<Response<any, Record<string, any>>>;
+    perfil(req: any): Promise<{
         perfil: any;
-    };
+    }>;
     permisos(req: any): Promise<{
         permisos: string[];
     }>;

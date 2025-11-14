@@ -26,8 +26,8 @@ let VentasResolver = class VentasResolver {
     constructor(ventasService) {
         this.ventasService = ventasService;
     }
-    crearVenta(clienteId, usuarioId, tipoPago, detalles, descuentoGeneral, observaciones) {
-        return this.ventasService.crearVenta(clienteId, usuarioId, tipoPago, detalles, descuentoGeneral, observaciones);
+    crearVenta(clienteId, usuarioAuthId, tipoPago, detalles, descuentoGeneral, observaciones) {
+        return this.ventasService.crearVenta(clienteId, usuarioAuthId, tipoPago, detalles, descuentoGeneral, observaciones);
     }
     findAll() {
         return this.ventasService.findAll();
@@ -38,8 +38,8 @@ let VentasResolver = class VentasResolver {
     obtenerVentasPorCliente(clienteId) {
         return this.ventasService.obtenerVentasPorCliente(clienteId);
     }
-    obtenerVentasPorUsuario(usuarioId) {
-        return this.ventasService.obtenerVentasPorUsuario(usuarioId);
+    obtenerVentasPorUsuarioAuth(usuarioAuthId) {
+        return this.ventasService.obtenerVentasPorUsuarioAuth(usuarioAuthId);
     }
     obtenerVentasPorFecha(fechaDesde, fechaHasta) {
         return this.ventasService.obtenerVentasPorFecha(fechaDesde, fechaHasta);
@@ -62,13 +62,13 @@ __decorate([
     (0, graphql_1.Mutation)(() => venta_entity_1.Venta),
     (0, permissions_decorator_1.Permisos)('ventas.create'),
     __param(0, (0, graphql_1.Args)('clienteId', { type: () => graphql_1.Int })),
-    __param(1, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
+    __param(1, (0, graphql_1.Args)('usuarioAuthId', { type: () => String })),
     __param(2, (0, graphql_1.Args)('tipoPago', { type: () => venta_entity_1.TipoPago })),
     __param(3, (0, graphql_1.Args)('detalles', { type: () => [DetalleVentaInput] })),
     __param(4, (0, graphql_1.Args)('descuentoGeneral', { defaultValue: 0 })),
     __param(5, (0, graphql_1.Args)('observaciones', { nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, String, Array, Number, String]),
+    __metadata("design:paramtypes", [Number, String, String, Array, Number, String]),
     __metadata("design:returntype", void 0)
 ], VentasResolver.prototype, "crearVenta", null);
 __decorate([
@@ -95,13 +95,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], VentasResolver.prototype, "obtenerVentasPorCliente", null);
 __decorate([
-    (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventasPorUsuario' }),
+    (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventasPorUsuarioAuth' }),
     (0, permissions_decorator_1.Permisos)('ventas.read'),
-    __param(0, (0, graphql_1.Args)('usuarioId', { type: () => graphql_1.Int })),
+    __param(0, (0, graphql_1.Args)('usuarioAuthId', { type: () => String })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], VentasResolver.prototype, "obtenerVentasPorUsuario", null);
+], VentasResolver.prototype, "obtenerVentasPorUsuarioAuth", null);
 __decorate([
     (0, graphql_1.Query)(() => [venta_entity_1.Venta], { name: 'ventasPorFecha' }),
     (0, permissions_decorator_1.Permisos)('ventas.read'),

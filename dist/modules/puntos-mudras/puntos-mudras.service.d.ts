@@ -43,4 +43,5 @@ export declare class PuntosMudrasService {
     obtenerEstadisticas(): Promise<any>;
     private inicializarStockPunto;
     private calcularEstadisticasPunto;
+    private adjuntarDetallesArticulo;
 }

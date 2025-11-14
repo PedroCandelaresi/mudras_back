@@ -1,14 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
-import { PuestoVenta } from './puesto-venta.entity';
 
 @Entity('snapshots_inventario_mensual')
 @ObjectType()
 @Index(['articuloId'])
-@Index(['puestoVentaId'])
 @Index(['anio', 'mes'])
-@Index(['anio', 'mes', 'articuloId', 'puestoVentaId'], { unique: true })
 export class SnapshotInventarioMensual {
   @PrimaryGeneratedColumn()
   @Field(() => ID)
@@ -24,11 +21,6 @@ export class SnapshotInventarioMensual {
 
   @Column({ nullable: true })
   puestoVentaId?: number;
-
-  @ManyToOne(() => PuestoVenta, { nullable: true })
-  @JoinColumn({ name: 'puestoVentaId' })
-  @Field(() => PuestoVenta, { nullable: true })
-  puestoVenta?: PuestoVenta;
 
   @Column({ type: 'int' })
   @Field()

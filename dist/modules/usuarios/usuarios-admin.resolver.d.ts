@@ -2,6 +2,7 @@ import { UsersService } from '../users-auth/users.service';
 import { ActualizarUsuarioAuthInput, CrearUsuarioAuthInput, ListarUsuariosAuthInput } from './dto/usuarios-auth.dto';
 import { UsuariosService } from './usuarios.service';
 import { RolUsuario, Usuario } from './entities/usuario.entity';
+import { UsuarioCajaAuthModel } from './dto/usuarios-auth.dto';
 export declare class UsuariosAdminResolver {
     private readonly usersService;
     private readonly usuariosGestionService;
@@ -16,4 +17,5 @@ export declare class UsuariosAdminResolver {
     eliminarUsuarioAdmin(id: string): Promise<boolean>;
     asignarRolesUsuarioAdmin(id: string, roles: string[]): Promise<import("../users-auth/users.service").UsuarioAuthResumen>;
     listarUsuariosGestionPorRol(rol: RolUsuario): Promise<Usuario[]>;
+    usuariosCajaAuth(rolSlug?: string): Promise<UsuarioCajaAuthModel[]>;
 }

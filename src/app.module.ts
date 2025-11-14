@@ -51,13 +51,18 @@ import { RefreshToken } from './modules/users-auth/entities/refresh-token.entity
 import { VentaCaja } from './modules/caja-registradora/entities/venta-caja.entity';
 import { DetalleVentaCaja } from './modules/caja-registradora/entities/detalle-venta-caja.entity';
 import { PagoCaja } from './modules/caja-registradora/entities/pago-caja.entity';
-import { PuestoVenta } from './modules/caja-registradora/entities/puesto-venta.entity';
 import { ComprobanteAfip } from './modules/caja-registradora/entities/comprobante-afip.entity';
 import { MovimientoInventario } from './modules/caja-registradora/entities/movimiento-inventario.entity';
 import { SnapshotInventarioMensual } from './modules/caja-registradora/entities/snapshot-inventario.entity';
 import { PuntoMudras } from './modules/puntos-mudras/entities/punto-mudras.entity';
 import { StockPuntoMudras } from './modules/puntos-mudras/entities/stock-punto-mudras.entity';
 import { MovimientoStockPunto } from './modules/puntos-mudras/entities/movimiento-stock-punto.entity';
+import { ComprasModule } from './modules/compras/compras.module';
+import { OrdenCompra } from './modules/compras/entities/orden-compra.entity';
+import { DetalleOrdenCompra } from './modules/compras/entities/detalle-orden-compra.entity';
+import { GastosModule } from './modules/gastos/gastos.module';
+import { Gasto } from './modules/gastos/entities/gasto.entity';
+import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity';
 
 @Module({
   imports: [
@@ -102,7 +107,6 @@ import { MovimientoStockPunto } from './modules/puntos-mudras/entities/movimient
         VentaCaja,
         DetalleVentaCaja,
         PagoCaja,
-        PuestoVenta,
         ComprobanteAfip,
         MovimientoInventario,
         SnapshotInventarioMensual,
@@ -110,6 +114,11 @@ import { MovimientoStockPunto } from './modules/puntos-mudras/entities/movimient
         PuntoMudras,
         StockPuntoMudras,
         MovimientoStockPunto,
+        // Compras
+        OrdenCompra,
+        DetalleOrdenCompra,
+        Gasto,
+        CategoriaGasto,
       ],
       synchronize: false, // No modificar estructura de BD existente
       logging: true,
@@ -137,6 +146,8 @@ import { MovimientoStockPunto } from './modules/puntos-mudras/entities/movimient
     PromocionesModule,
     CajaRegistradoraModule,
     PuntosMudrasModule,
+    ComprasModule,
+    GastosModule,
     // RBAC / Auth modules
     AuthModule,
     UsersAuthModule,

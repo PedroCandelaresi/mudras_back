@@ -52,6 +52,11 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, plainPassword: string): Promise<UserAuth> {
+    // Para login de EMPRESA debe ser usuario estilo nombre.apellido (no email)
+    const isEmail = /@/.test(username || '');
+    if (isEmail) {
+      throw new UnauthorizedException('Para clientes usa /cliente y Google/Instagram');
+    }
     const user = await this.usersRepo.findOne({ where: { username } });
     if (!user || !user.isActive || user.userType !== 'EMPRESA') {
       throw new UnauthorizedException('Credenciales inválidas');
@@ -62,6 +67,30 @@ export class AuthService {
     const ok = await bcrypt.compare(plainPassword, user.passwordHash);
     if (!ok) {
       throw new UnauthorizedException('Credenciales inválidas');
+    }
+    return user;
+  }
+
+  async validateClientEmail(email: string, plainPassword: string): Promise<UserAuth> {
+    const user = await this.usersRepo.findOne({ where: { email } });
+    if (!user || !user.isActive || user.userType !== 'CLIENTE') {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+    if (!user.passwordHash) {
+      throw new UnauthorizedException('Usuario sin contraseña local');
+    }
+    const ok = await bcrypt.compare(plainPassword, user.passwordHash);
+    if (!ok) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    // Asegurar que tenga rol cliente asignado
+    const roles = await this.getUserRolesSlugs(user.id);
+    if (!roles.includes('cliente')) {
+      const rolCliente = await this.rolesRepo.findOne({ where: { slug: 'cliente' } });
+      if (rolCliente) {
+        await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: rolCliente.id }));
+      }
     }
     return user;
   }

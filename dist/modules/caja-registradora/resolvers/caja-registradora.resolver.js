@@ -17,11 +17,9 @@ const graphql_1 = require("@nestjs/graphql");
 const common_1 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const current_user_decorator_1 = require("../../auth/decorators/current-user.decorator");
-const user_entity_1 = require("../../users-auth/entities/user.entity");
 const caja_registradora_service_1 = require("../services/caja-registradora.service");
 const afip_service_1 = require("../services/afip.service");
 const venta_caja_entity_1 = require("../entities/venta-caja.entity");
-const puesto_venta_entity_1 = require("../entities/puesto-venta.entity");
 const comprobante_afip_entity_1 = require("../entities/comprobante-afip.entity");
 const crear_venta_caja_dto_1 = require("../dto/crear-venta-caja.dto");
 const buscar_articulo_dto_1 = require("../dto/buscar-articulo.dto");
@@ -34,9 +32,6 @@ let CajaRegistradoraResolver = class CajaRegistradoraResolver {
     async buscarArticulosCaja(input) {
         return this.cajaRegistradoraService.buscarArticulos(input);
     }
-    async obtenerPuestosVenta() {
-        return this.cajaRegistradoraService.obtenerPuestosVenta();
-    }
     async obtenerHistorialVentas(filtros) {
         return this.cajaRegistradoraService.obtenerHistorialVentas(filtros);
     }
@@ -44,27 +39,22 @@ let CajaRegistradoraResolver = class CajaRegistradoraResolver {
         return this.cajaRegistradoraService.obtenerDetalleVenta(id);
     }
     async crearVentaCaja(input, usuario) {
-        const usuarioActualId = parseInt(usuario.id);
-        const usuarioSeleccionadoId = typeof input.usuarioId === 'number' && !Number.isNaN(input.usuarioId)
-            ? input.usuarioId
-            : usuarioActualId;
-        if (Number.isNaN(usuarioSeleccionadoId)) {
+        const sub = typeof usuario?.sub === 'string' ? usuario.sub : null;
+        const usuarioSeleccionado = (input.usuarioAuthId && input.usuarioAuthId.trim()) || sub;
+        if (!usuarioSeleccionado) {
             throw new common_1.BadRequestException('Usuario inválido para registrar la venta');
         }
         const ventaInput = { ...input };
-        if (typeof ventaInput.usuarioId !== 'undefined') {
-            delete ventaInput.usuarioId;
-        }
-        return this.cajaRegistradoraService.crearVenta(ventaInput, usuarioSeleccionadoId);
+        return this.cajaRegistradoraService.crearVenta(ventaInput, usuarioSeleccionado);
     }
     async cancelarVentaCaja(id, motivo, usuario) {
-        const usuarioId = usuario?.id ? parseInt(usuario.id) : undefined;
-        return this.cajaRegistradoraService.cancelarVenta(id, usuarioId, motivo);
+        const usuarioAuthId = typeof usuario?.sub === 'string' ? usuario.sub : undefined;
+        return this.cajaRegistradoraService.cancelarVenta(id, usuarioAuthId, motivo);
     }
     async procesarDevolucion(ventaOriginalId, articulosDevolver, motivo, usuario) {
         const articulos = JSON.parse(articulosDevolver);
-        const usuarioId = usuario?.id ? parseInt(usuario.id) : undefined;
-        return this.cajaRegistradoraService.procesarDevolucion(ventaOriginalId, articulos, usuarioId, motivo);
+        const usuarioAuthId = typeof usuario?.sub === 'string' ? usuario.sub : undefined;
+        return this.cajaRegistradoraService.procesarDevolucion(ventaOriginalId, articulos, usuarioAuthId, motivo);
     }
     async obtenerComprobantesAfip(ventaId) {
         return this.afipService.obtenerComprobantesVenta(ventaId);
@@ -85,12 +75,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CajaRegistradoraResolver.prototype, "buscarArticulosCaja", null);
 __decorate([
-    (0, graphql_1.Query)(() => [puesto_venta_entity_1.PuestoVenta]),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Promise)
-], CajaRegistradoraResolver.prototype, "obtenerPuestosVenta", null);
-__decorate([
     (0, graphql_1.Query)(() => historial_ventas_dto_1.HistorialVentasResponse),
     __param(0, (0, graphql_1.Args)('filtros')),
     __metadata("design:type", Function),
@@ -109,8 +93,7 @@ __decorate([
     __param(0, (0, graphql_1.Args)('input')),
     __param(1, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [crear_venta_caja_dto_1.CrearVentaCajaInput,
-        user_entity_1.UserAuth]),
+    __metadata("design:paramtypes", [crear_venta_caja_dto_1.CrearVentaCajaInput, Object]),
     __metadata("design:returntype", Promise)
 ], CajaRegistradoraResolver.prototype, "crearVentaCaja", null);
 __decorate([
@@ -119,7 +102,7 @@ __decorate([
     __param(1, (0, graphql_1.Args)('motivo', { nullable: true })),
     __param(2, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, user_entity_1.UserAuth]),
+    __metadata("design:paramtypes", [Number, String, Object]),
     __metadata("design:returntype", Promise)
 ], CajaRegistradoraResolver.prototype, "cancelarVentaCaja", null);
 __decorate([
@@ -129,7 +112,7 @@ __decorate([
     __param(2, (0, graphql_1.Args)('motivo', { nullable: true })),
     __param(3, (0, current_user_decorator_1.CurrentUser)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, String, user_entity_1.UserAuth]),
+    __metadata("design:paramtypes", [Number, String, String, Object]),
     __metadata("design:returntype", Promise)
 ], CajaRegistradoraResolver.prototype, "procesarDevolucion", null);
 __decorate([

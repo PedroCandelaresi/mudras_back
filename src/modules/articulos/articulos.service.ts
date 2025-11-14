@@ -1,103 +1,162 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, Between, FindManyOptions } from 'typeorm';
-import { Articulo, EstadoArticulo } from './entities/articulo.entity';
+import { Repository, Between } from 'typeorm';
+import { Articulo } from './entities/articulo.entity';
 import { CrearArticuloDto } from './dto/crear-articulo.dto';
 import { ActualizarArticuloDto } from './dto/actualizar-articulo.dto';
 import { FiltrosArticuloDto } from './dto/filtros-articulo.dto';
+import { Rubro } from '../rubros/entities/rubro.entity';
+import { StockPuntoMudras } from '../puntos-mudras/entities/stock-punto-mudras.entity';
 
 @Injectable()
 export class ArticulosService {
   constructor(
     @InjectRepository(Articulo)
     private articulosRepository: Repository<Articulo>,
+    @InjectRepository(Rubro)
+    private rubrosRepository: Repository<Rubro>,
+    @InjectRepository(StockPuntoMudras)
+    private stockPuntosRepository: Repository<StockPuntoMudras>,
   ) {}
   private readonly logger = new Logger(ArticulosService.name);
 
+  private parseNullableDate(value?: string | Date | null): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    return value instanceof Date ? value : new Date(value);
+  }
+
+  private async hydrateTotalStock(items?: Articulo | Articulo[] | null): Promise<void> {
+    if (!items) return;
+    const articulos = Array.isArray(items) ? items : [items];
+    if (!articulos.length) return;
+    const ids = articulos.map(a => a.id).filter((id): id is number => typeof id === 'number' && Number.isFinite(id));
+    if (!ids.length) return;
+
+    const totales = await this.stockPuntosRepository
+      .createQueryBuilder('spm')
+      .select('spm.articuloId', 'articuloId')
+      .addSelect('COALESCE(SUM(spm.cantidad), 0)', 'total')
+      .where('spm.articuloId IN (:...ids)', { ids })
+      .groupBy('spm.articuloId')
+      .getRawMany();
+
+    const map = new Map<number, number>();
+    for (const row of totales) {
+      map.set(Number(row.articuloId), Number(row.total));
+    }
+
+    articulos.forEach(art => {
+      const puntos = map.get(art.id) ?? 0;
+      const deposito = Number(art.Deposito ?? art.Stock ?? 0) || 0;
+      art.totalStock = Number((deposito + puntos).toFixed(2));
+    });
+  }
+
   async findAll(): Promise<Articulo[]> {
-    return this.articulosRepository.find({
-      relations: ['proveedor'],
+    const articulos = await this.articulosRepository.find({
+      relations: ['proveedor', 'rubro'],
       order: { id: 'ASC' },
     });
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findOne(id: number): Promise<Articulo> {
-    return this.articulosRepository.findOne({
+    const articulo = await this.articulosRepository.findOne({
       where: { id },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'rubro'],
     });
+    await this.hydrateTotalStock(articulo);
+    return articulo;
   }
 
   async findByCodigo(codigo: string): Promise<Articulo> {
-    return this.articulosRepository.findOne({
+    const articulo = await this.articulosRepository.findOne({
       where: { Codigo: codigo },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'rubro'],
     });
+    await this.hydrateTotalStock(articulo);
+    return articulo;
   }
 
   async findByRubro(rubro: string): Promise<Articulo[]> {
-    return this.articulosRepository.find({
+    const articulos = await this.articulosRepository.find({
       where: { Rubro: rubro },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'rubro'],
       order: { Descripcion: 'ASC' },
     });
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findByDescripcion(descripcion: string): Promise<Articulo[]> {
-    return this.articulosRepository
+    const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
       .where('articulo.Descripcion LIKE :descripcion', { descripcion: `%${descripcion}%` })
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findByProveedor(idProveedor: number): Promise<Articulo[]> {
-    return this.articulosRepository.find({
+    const articulos = await this.articulosRepository.find({
       where: { idProveedor },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'rubro'],
       order: { Descripcion: 'ASC' },
     });
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findConStock(): Promise<Articulo[]> {
-    return this.articulosRepository
+    const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
       .where('articulo.Stock > 0')
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findSinStock(): Promise<Articulo[]> {
-    return this.articulosRepository
+    const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
       .where('articulo.Stock <= 0 OR articulo.Stock IS NULL')
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findStockBajo(): Promise<Articulo[]> {
-    return this.articulosRepository
+    const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
       .where('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0')
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
   async findEnPromocion(): Promise<Articulo[]> {
-    return this.articulosRepository.find({
+    const articulos = await this.articulosRepository.find({
       where: { EnPromocion: true },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'rubro'],
       order: { Descripcion: 'ASC' },
     });
+    await this.hydrateTotalStock(articulos);
+    return articulos;
   }
 
-  // Nuevos métodos mejorados
   async crear(crearArticuloDto: CrearArticuloDto): Promise<Articulo> {
-    // Verificar que el código no exista
     const articuloExistente = await this.articulosRepository.findOne({
       where: { Codigo: crearArticuloDto.Codigo }
     });
@@ -106,11 +165,46 @@ export class ArticulosService {
       throw new BadRequestException(`Ya existe un artículo con el código ${crearArticuloDto.Codigo}`);
     }
 
-    const articulo = this.articulosRepository.create({
-      ...crearArticuloDto,
-    });
+    const nuevo = this.articulosRepository.create({
+      Codigo: crearArticuloDto.Codigo,
+      Rubro: crearArticuloDto.Rubro ?? null,
+      Descripcion: crearArticuloDto.Descripcion,
+      Marca: crearArticuloDto.Marca ?? null,
+      PrecioVenta: crearArticuloDto.precioVenta,
+      PrecioCompra: crearArticuloDto.PrecioCompra ?? null,
+      StockMinimo: crearArticuloDto.stockMinimo,
+      Stock: crearArticuloDto.stock,
+      Deposito: crearArticuloDto.deposito ?? null,
+      AlicuotaIva: crearArticuloDto.AlicuotaIva ?? null,
+      FechaCompra: this.parseNullableDate(crearArticuloDto.FechaCompra),
+      idProveedor: crearArticuloDto.idProveedor ?? null,
+      Lista2: crearArticuloDto.Lista2 ?? null,
+      Lista3: crearArticuloDto.Lista3 ?? null,
+      Unidad: crearArticuloDto.Unidad ?? null,
+      Lista4: crearArticuloDto.Lista4 ?? null,
+      PorcentajeGanancia: crearArticuloDto.PorcentajeGanancia ?? null,
+      Calculado: crearArticuloDto.Calculado ?? false,
+      CodigoProv: crearArticuloDto.CodigoProv ?? null,
+      CostoPromedio: crearArticuloDto.CostoPromedio ?? crearArticuloDto.PrecioCompra ?? null,
+      CostoEnDolares: crearArticuloDto.CostoEnDolares ?? false,
+      FechaModif: this.parseNullableDate(crearArticuloDto.FechaModif) ?? new Date(),
+      PrecioListaProveedor: crearArticuloDto.PrecioListaProveedor ?? null,
+      StockInicial: crearArticuloDto.StockInicial ?? crearArticuloDto.stock ?? null,
+      Ubicacion: crearArticuloDto.Ubicacion ?? null,
+      Lista1EnDolares: crearArticuloDto.Lista1EnDolares ?? false,
+      Dto1: crearArticuloDto.Dto1 ?? null,
+      Dto2: crearArticuloDto.Dto2 ?? null,
+      Dto3: crearArticuloDto.Dto3 ?? null,
+      Impuesto: crearArticuloDto.Impuesto ?? null,
+      ImpuestoPorcentual: crearArticuloDto.ImpuestoPorcentual ?? (crearArticuloDto.AlicuotaIva != null ? true : null),
+      EnPromocion: crearArticuloDto.EnPromocion ?? false,
+      UsaTalle: crearArticuloDto.UsaTalle ?? false,
+      Compuesto: crearArticuloDto.Compuesto ?? false,
+      Combustible: crearArticuloDto.Combustible ?? false,
+    } as Partial<Articulo>);
 
-    return this.articulosRepository.save(articulo);
+    const saved = await this.articulosRepository.save(nuevo as Articulo);
+    return this.articulosRepository.findOne({ where: { id: saved.id }, relations: ['proveedor', 'rubro'] });
   }
 
   async actualizar(actualizarArticuloDto: ActualizarArticuloDto): Promise<Articulo> {
@@ -133,14 +227,48 @@ export class ArticulosService {
       }
     }
 
-    const datosActualizados = {
-      ...actualizarArticuloDto,
-    };
+    // Mapear solo campos presentes del DTO a columnas reales
+    const patch: any = {};
+    if (actualizarArticuloDto.Codigo != null) patch.Codigo = actualizarArticuloDto.Codigo;
+    if (actualizarArticuloDto.Rubro != null) patch.Rubro = actualizarArticuloDto.Rubro;
+    if (actualizarArticuloDto.Descripcion != null) patch.Descripcion = actualizarArticuloDto.Descripcion;
+    if (actualizarArticuloDto.Marca != null) patch.Marca = actualizarArticuloDto.Marca;
+    if (actualizarArticuloDto.precioVenta != null) patch.PrecioVenta = actualizarArticuloDto.precioVenta;
+    if (actualizarArticuloDto.PrecioCompra != null) patch.PrecioCompra = actualizarArticuloDto.PrecioCompra;
+    if (actualizarArticuloDto.stock != null) patch.Stock = actualizarArticuloDto.stock;
+    if (actualizarArticuloDto.stockMinimo != null) patch.StockMinimo = actualizarArticuloDto.stockMinimo;
+    if (actualizarArticuloDto.deposito != null) patch.Deposito = actualizarArticuloDto.deposito;
+    if (actualizarArticuloDto.AlicuotaIva != null) patch.AlicuotaIva = actualizarArticuloDto.AlicuotaIva;
+    if (actualizarArticuloDto.FechaCompra != null) patch.FechaCompra = this.parseNullableDate(actualizarArticuloDto.FechaCompra);
+    if (actualizarArticuloDto.Impuesto != null) patch.Impuesto = actualizarArticuloDto.Impuesto;
+    if (actualizarArticuloDto.ImpuestoPorcentual != null) patch.ImpuestoPorcentual = actualizarArticuloDto.ImpuestoPorcentual as any;
+    if (actualizarArticuloDto.Unidad != null) patch.Unidad = actualizarArticuloDto.Unidad;
+    if (actualizarArticuloDto.idProveedor != null) patch.idProveedor = actualizarArticuloDto.idProveedor;
+    if (actualizarArticuloDto.Lista2 != null) patch.Lista2 = actualizarArticuloDto.Lista2;
+    if (actualizarArticuloDto.Lista3 != null) patch.Lista3 = actualizarArticuloDto.Lista3;
+    if (actualizarArticuloDto.Lista4 != null) patch.Lista4 = actualizarArticuloDto.Lista4;
+    if (actualizarArticuloDto.PorcentajeGanancia != null) patch.PorcentajeGanancia = actualizarArticuloDto.PorcentajeGanancia;
+    if (actualizarArticuloDto.Calculado != null) patch.Calculado = actualizarArticuloDto.Calculado;
+    if (actualizarArticuloDto.CodigoProv != null) patch.CodigoProv = actualizarArticuloDto.CodigoProv;
+    if (actualizarArticuloDto.CostoPromedio != null) patch.CostoPromedio = actualizarArticuloDto.CostoPromedio;
+    if (actualizarArticuloDto.CostoEnDolares != null) patch.CostoEnDolares = actualizarArticuloDto.CostoEnDolares;
+    if (actualizarArticuloDto.FechaModif != null) patch.FechaModif = this.parseNullableDate(actualizarArticuloDto.FechaModif) ?? new Date();
+    if (actualizarArticuloDto.PrecioListaProveedor != null) patch.PrecioListaProveedor = actualizarArticuloDto.PrecioListaProveedor;
+    if (actualizarArticuloDto.StockInicial != null) patch.StockInicial = actualizarArticuloDto.StockInicial;
+    if (actualizarArticuloDto.Ubicacion != null) patch.Ubicacion = actualizarArticuloDto.Ubicacion;
+    if (actualizarArticuloDto.Lista1EnDolares != null) patch.Lista1EnDolares = actualizarArticuloDto.Lista1EnDolares;
+    if (actualizarArticuloDto.Dto1 != null) patch.Dto1 = actualizarArticuloDto.Dto1;
+    if (actualizarArticuloDto.Dto2 != null) patch.Dto2 = actualizarArticuloDto.Dto2;
+    if (actualizarArticuloDto.Dto3 != null) patch.Dto3 = actualizarArticuloDto.Dto3;
+    if (actualizarArticuloDto.EnPromocion != null) patch.EnPromocion = actualizarArticuloDto.EnPromocion;
+    if (actualizarArticuloDto.UsaTalle != null) patch.UsaTalle = actualizarArticuloDto.UsaTalle;
+    if (actualizarArticuloDto.Compuesto != null) patch.Compuesto = actualizarArticuloDto.Compuesto;
+    if (actualizarArticuloDto.Combustible != null) patch.Combustible = actualizarArticuloDto.Combustible;
 
-    await this.articulosRepository.update(actualizarArticuloDto.id, datosActualizados);
+    await this.articulosRepository.update(actualizarArticuloDto.id, patch);
     return this.articulosRepository.findOne({
       where: { id: actualizarArticuloDto.id },
-      relations: ['proveedor']
+      relations: ['proveedor', 'rubro']
     });
   }
 
@@ -182,7 +310,11 @@ export class ArticulosService {
     }
 
     if (filtros.rubroId) {
-      queryBuilder.andWhere('articulo.rubroId = :rubroId', { rubroId: filtros.rubroId });
+      const rubro = await this.rubrosRepository.findOne({ where: { Id: filtros.rubroId } });
+      if (!rubro) {
+        throw new NotFoundException(`Rubro con ID ${filtros.rubroId} no encontrado`);
+      }
+      queryBuilder.andWhere('articulo.Rubro = :rubroFiltrado', { rubroFiltrado: rubro.Rubro });
     }
 
     if (filtros.proveedorId) {
@@ -191,15 +323,15 @@ export class ArticulosService {
 
 
     if (filtros.soloConStock) {
-      queryBuilder.andWhere('articulo.Deposito > 0');
+      queryBuilder.andWhere('articulo.Stock > 0');
     }
 
     if (filtros.soloStockBajo) {
-      queryBuilder.andWhere('articulo.Deposito <= articulo.StockMinimo AND articulo.StockMinimo > 0');
+      queryBuilder.andWhere('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0');
     }
 
     if (filtros.soloSinStock) {
-      queryBuilder.andWhere('(articulo.Deposito <= 0 OR articulo.Deposito IS NULL)');
+      queryBuilder.andWhere('(articulo.Stock <= 0 OR articulo.Stock IS NULL)');
     }
 
     if (filtros.soloEnPromocion) {
@@ -224,6 +356,7 @@ export class ArticulosService {
       .skip(filtros.pagina * filtros.limite)
       .take(filtros.limite)
       .getMany();
+    await this.hydrateTotalStock(articulos);
     this.logger.debug(`buscarConFiltros <- devueltos=${articulos.length} de total=${total}`);
     return { articulos, total };
   }
@@ -250,17 +383,17 @@ export class ArticulosService {
     ] = await Promise.all([
       this.articulosRepository.count(),
       this.articulosRepository.count(),
-      this.articulosRepository.count({ where: { Deposito: Between(0.01, 999999) } }),
-      this.articulosRepository.count({ where: { Deposito: 0 } }),
+      this.articulosRepository.count({ where: { Stock: Between(0.01, 999999) } }),
+      this.articulosRepository.count({ where: { Stock: 0 } }),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .where('articulo.Deposito <= articulo.StockMinimo AND articulo.StockMinimo > 0')
+        .where('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0')
         .getCount(),
       this.articulosRepository.count({ where: { EnPromocion: true } }),
       this.articulosRepository.count({ where: { EnPromocion: true } }),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .select('SUM(articulo.Deposito * articulo.PrecioVenta)', 'total')
+        .select('SUM(articulo.Stock * articulo.PrecioVenta)', 'total')
         .getRawOne()
         .then(result => parseFloat(result.total) || 0)
     ]);
@@ -280,7 +413,7 @@ export class ArticulosService {
   async buscarPorCodigoBarras(codigoBarras: string): Promise<Articulo> {
     return this.articulosRepository.findOne({
       where: { Codigo: codigoBarras },
-      relations: ['proveedor']
+      relations: ['proveedor', 'rubro']
     });
   }
 
@@ -291,7 +424,7 @@ export class ArticulosService {
       throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
     }
 
-    await this.articulosRepository.update(id, { Deposito: nuevoStock });
-    return this.articulosRepository.findOne({ where: { id }, relations: ['proveedor'] });
+    await this.articulosRepository.update(id, { Stock: nuevoStock });
+    return this.articulosRepository.findOne({ where: { id }, relations: ['proveedor', 'rubro'] });
   }
 }

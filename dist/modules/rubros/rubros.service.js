@@ -140,7 +140,7 @@ let RubrosService = class RubrosService {
         a.Codigo as codigo,
         a.Descripcion as descripcion,
         a.PrecioVenta as precio,
-        a.Deposito as stock,
+        a.Stock as stock,
         p.IdProveedor as proveedorId,
         p.Nombre as proveedorNombre
       ${baseQuery}
@@ -187,8 +187,7 @@ let RubrosService = class RubrosService {
     async eliminarArticuloDeRubro(articuloId) {
         try {
             const resultString = await this.rubrosRepository.query('UPDATE tbarticulos SET Rubro = NULL WHERE id = ?', [articuloId]);
-            const resultFK = await this.rubrosRepository.query('UPDATE tbarticulos SET rubroId = NULL WHERE id = ?', [articuloId]);
-            return (resultString.affectedRows > 0) || (resultFK.affectedRows > 0);
+            return resultString.affectedRows > 0;
         }
         catch (error) {
             console.error('Error al eliminar artículo del rubro:', error);
@@ -202,8 +201,7 @@ let RubrosService = class RubrosService {
             }
             const placeholders = articuloIds.map(() => '?').join(',');
             const resultString = await this.rubrosRepository.query(`UPDATE tbarticulos SET Rubro = NULL WHERE id IN (${placeholders})`, articuloIds);
-            const resultFK = await this.rubrosRepository.query(`UPDATE tbarticulos SET rubroId = NULL WHERE id IN (${placeholders})`, articuloIds);
-            return (resultString.affectedRows > 0) || (resultFK.affectedRows > 0);
+            return resultString.affectedRows > 0;
         }
         catch (error) {
             console.error('Error al eliminar artículos del rubro:', error);

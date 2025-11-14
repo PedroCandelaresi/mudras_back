@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CrearArticuloDto = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
-const articulo_entity_1 = require("../entities/articulo.entity");
 let CrearArticuloDto = class CrearArticuloDto {
 };
 exports.CrearArticuloDto = CrearArticuloDto;
@@ -64,40 +63,147 @@ __decorate([
     __metadata("design:type", Number)
 ], CrearArticuloDto.prototype, "stockMinimo", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true, description: 'Stock en depósito si se lleva control separado.' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "deposito", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true, description: 'Alicuota de IVA: 10.5 o 21 (porcentaje).' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(100),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "AlicuotaIva", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CrearArticuloDto.prototype, "FechaCompra", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "idProveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "Lista2", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "Lista3", void 0);
+__decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CrearArticuloDto.prototype, "Unidad", void 0);
 __decorate([
-    (0, graphql_1.Field)({ defaultValue: 'unidad' }),
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "Lista4", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "PorcentajeGanancia", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearArticuloDto.prototype, "Calculado", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CrearArticuloDto.prototype, "unidadMedida", void 0);
+], CrearArticuloDto.prototype, "CodigoProv", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => graphql_1.Float, { defaultValue: 1 }),
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0.001),
     __metadata("design:type", Number)
-], CrearArticuloDto.prototype, "cantidadPorEmpaque", void 0);
+], CrearArticuloDto.prototype, "CostoPromedio", void 0);
 __decorate([
-    (0, graphql_1.Field)({ defaultValue: 'unidad' }),
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearArticuloDto.prototype, "CostoEnDolares", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsDateString)(),
+    __metadata("design:type", String)
+], CrearArticuloDto.prototype, "FechaModif", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "PrecioListaProveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "StockInicial", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CrearArticuloDto.prototype, "tipoEmpaque", void 0);
+], CrearArticuloDto.prototype, "Ubicacion", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => graphql_1.Float, { defaultValue: 0 }),
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearArticuloDto.prototype, "Lista1EnDolares", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "Dto1", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "Dto2", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CrearArticuloDto.prototype, "Dto3", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true, description: 'Impuesto fijo aplicado si corresponde (no porcentaje).' }),
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
-    (0, class_validator_1.Max)(100),
     __metadata("design:type", Number)
-], CrearArticuloDto.prototype, "descuentoPorcentaje", void 0);
+], CrearArticuloDto.prototype, "Impuesto", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => graphql_1.Float, { defaultValue: 0 }),
-    (0, class_validator_1.IsNumber)(),
-    (0, class_validator_1.Min)(0),
-    __metadata("design:type", Number)
-], CrearArticuloDto.prototype, "descuentoMonto", void 0);
+    (0, graphql_1.Field)({ nullable: true, description: 'True si el impuesto es porcentual (IVA).' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearArticuloDto.prototype, "ImpuestoPorcentual", void 0);
 __decorate([
     (0, graphql_1.Field)({ defaultValue: false }),
     (0, class_validator_1.IsBoolean)(),
@@ -106,61 +212,21 @@ __decorate([
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", String)
-], CrearArticuloDto.prototype, "fechaInicioPromocion", void 0);
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", String)
-], CrearArticuloDto.prototype, "fechaFinPromocion", void 0);
-__decorate([
-    (0, graphql_1.Field)({ defaultValue: false }),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
-], CrearArticuloDto.prototype, "publicadoEnTienda", void 0);
+], CrearArticuloDto.prototype, "UsaTalle", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CrearArticuloDto.prototype, "descripcionTienda", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => [String], { nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsString)({ each: true }),
-    __metadata("design:type", Array)
-], CrearArticuloDto.prototype, "imagenesUrls", void 0);
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], CrearArticuloDto.prototype, "codigoBarras", void 0);
-__decorate([
-    (0, graphql_1.Field)({ defaultValue: true }),
     (0, class_validator_1.IsBoolean)(),
     __metadata("design:type", Boolean)
-], CrearArticuloDto.prototype, "manejaStock", void 0);
+], CrearArticuloDto.prototype, "Compuesto", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], CrearArticuloDto.prototype, "idProveedor", void 0);
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], CrearArticuloDto.prototype, "rubroId", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => articulo_entity_1.EstadoArticulo, { defaultValue: articulo_entity_1.EstadoArticulo.ACTIVO }),
-    (0, class_validator_1.IsEnum)(articulo_entity_1.EstadoArticulo),
-    __metadata("design:type", String)
-], CrearArticuloDto.prototype, "estado", void 0);
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CrearArticuloDto.prototype, "Combustible", void 0);
 exports.CrearArticuloDto = CrearArticuloDto = __decorate([
     (0, graphql_1.InputType)()
 ], CrearArticuloDto);

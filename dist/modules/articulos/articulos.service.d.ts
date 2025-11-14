@@ -3,10 +3,16 @@ import { Articulo } from './entities/articulo.entity';
 import { CrearArticuloDto } from './dto/crear-articulo.dto';
 import { ActualizarArticuloDto } from './dto/actualizar-articulo.dto';
 import { FiltrosArticuloDto } from './dto/filtros-articulo.dto';
+import { Rubro } from '../rubros/entities/rubro.entity';
+import { StockPuntoMudras } from '../puntos-mudras/entities/stock-punto-mudras.entity';
 export declare class ArticulosService {
     private articulosRepository;
-    constructor(articulosRepository: Repository<Articulo>);
+    private rubrosRepository;
+    private stockPuntosRepository;
+    constructor(articulosRepository: Repository<Articulo>, rubrosRepository: Repository<Rubro>, stockPuntosRepository: Repository<StockPuntoMudras>);
     private readonly logger;
+    private parseNullableDate;
+    private hydrateTotalStock;
     findAll(): Promise<Articulo[]>;
     findOne(id: number): Promise<Articulo>;
     findByCodigo(codigo: string): Promise<Articulo>;

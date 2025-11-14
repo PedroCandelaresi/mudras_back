@@ -1,19 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index, OneToMany } from 'typeorm';
-import { ObjectType, Field, ID, Int, Float, registerEnumType } from '@nestjs/graphql';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
 import { Rubro } from '../../rubros/entities/rubro.entity';
 import { MovimientoStock } from '../../stock/entities/movimiento-stock.entity';
-
-export enum EstadoArticulo {
-  ACTIVO = 'activo',
-  INACTIVO = 'inactivo',
-  DESCONTINUADO = 'descontinuado',
-}
-
-registerEnumType(EstadoArticulo, {
-  name: 'EstadoArticulo',
-  description: 'Estados disponibles para artículos',
-});
 
 @ObjectType()
 @Entity('tbarticulos')
@@ -29,10 +18,6 @@ export class Articulo {
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 25, nullable: true })
   Rubro: string;
-
-  @Field(() => Int, { nullable: true })
-  @Column({ type: 'int', nullable: true })
-  rubroId: number;
 
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 50, nullable: true })
@@ -53,6 +38,13 @@ export class Articulo {
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
   StockMinimo: number;
+
+  @Field(() => Float, { nullable: true })
+  @Column({ type: 'float', nullable: true })
+  Stock: number;
+
+  @Field(() => Float, { nullable: true })
+  totalStock?: number;
 
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
@@ -170,8 +162,8 @@ export class Articulo {
   proveedor?: Proveedor;
 
   @Field(() => Rubro, { nullable: true })
-  @ManyToOne(() => Rubro, rubro => rubro.articulos)
-  @JoinColumn({ name: 'rubroId' })
+  @ManyToOne(() => Rubro, rubro => rubro.articulos, { createForeignKeyConstraints: false })
+  @JoinColumn({ name: 'Rubro', referencedColumnName: 'Rubro' })
   rubro?: Rubro;
 
   @OneToMany(() => MovimientoStock, movimiento => movimiento.articulo)

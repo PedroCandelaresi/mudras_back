@@ -16,9 +16,7 @@ export declare class PagoCaja {
     marcaTarjeta?: string;
     ultimos4Digitos?: string;
     cuotas?: number;
-    numeroAutorizacion?: string;
     numeroComprobante?: string;
     observaciones?: string;
-    fecha: Date;
     creadoEn: Date;
 }

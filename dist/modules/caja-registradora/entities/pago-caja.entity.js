@@ -35,17 +35,18 @@ __decorate([
     __metadata("design:type", Number)
 ], PagoCaja.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ name: 'venta_id' }),
     __metadata("design:type", Number)
 ], PagoCaja.prototype, "ventaId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => venta_caja_entity_1.VentaCaja, venta => venta.pagos),
-    (0, typeorm_1.JoinColumn)({ name: 'ventaId' }),
+    (0, typeorm_1.JoinColumn)({ name: 'venta_id' }),
     (0, graphql_1.Field)(() => venta_caja_entity_1.VentaCaja),
     __metadata("design:type", venta_caja_entity_1.VentaCaja)
 ], PagoCaja.prototype, "venta", void 0);
 __decorate([
     (0, typeorm_1.Column)({
+        name: 'metodo_pago',
         type: 'enum',
         enum: MedioPagoCaja,
     }),
@@ -58,27 +59,22 @@ __decorate([
     __metadata("design:type", Number)
 ], PagoCaja.prototype, "monto", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 50, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'tipo_tarjeta', length: 50, nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], PagoCaja.prototype, "marcaTarjeta", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 4, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'numero_tarjeta_ultimos_4', length: 4, nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], PagoCaja.prototype, "ultimos4Digitos", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    (0, typeorm_1.Column)({ name: 'numero_cuotas', type: 'int', nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", Number)
 ], PagoCaja.prototype, "cuotas", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 50, nullable: true }),
-    (0, graphql_1.Field)({ nullable: true }),
-    __metadata("design:type", String)
-], PagoCaja.prototype, "numeroAutorizacion", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'referencia', length: 100, nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], PagoCaja.prototype, "numeroComprobante", void 0);
@@ -88,12 +84,7 @@ __decorate([
     __metadata("design:type", String)
 ], PagoCaja.prototype, "observaciones", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime' }),
-    (0, graphql_1.Field)(),
-    __metadata("design:type", Date)
-], PagoCaja.prototype, "fecha", void 0);
-__decorate([
-    (0, typeorm_1.CreateDateColumn)(),
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     (0, graphql_1.Field)(),
     __metadata("design:type", Date)
 ], PagoCaja.prototype, "creadoEn", void 0);
@@ -101,7 +92,6 @@ exports.PagoCaja = PagoCaja = __decorate([
     (0, typeorm_1.Entity)('pagos_caja'),
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Index)(['ventaId']),
-    (0, typeorm_1.Index)(['medioPago']),
-    (0, typeorm_1.Index)(['fecha'])
+    (0, typeorm_1.Index)(['medioPago'])
 ], PagoCaja);
 //# sourceMappingURL=pago-caja.entity.js.map

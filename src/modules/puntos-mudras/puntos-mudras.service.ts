@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { PuntoMudras, TipoPuntoMudras } from './entities/punto-mudras.entity';
 import { StockPuntoMudras } from './entities/stock-punto-mudras.entity';
 import { MovimientoStockPunto, TipoMovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
@@ -155,10 +155,9 @@ export class PuntosMudrasService {
     }
 
     if (punto.tipo === 'deposito') {
-      // Para depósitos, mostrar stock sin asignar (stock total - stock asignado a puntos)
-      return await this.obtenerStockSinAsignar();
+      const base = await this.obtenerStockSinAsignar();
+      return this.adjuntarDetallesArticulo(base);
     } else {
-      // Para puntos de venta, mostrar stock asignado específicamente
       const stockRecords = await this.stockRepository
         .createQueryBuilder('stock')
         .leftJoinAndSelect('stock.puntoMudras', 'punto')
@@ -173,7 +172,7 @@ export class PuntosMudrasService {
           'articulo.Codigo',
           'articulo.Descripcion',
           'articulo.PrecioVenta',
-          'articulo.Deposito',
+          'articulo.Stock',
           'articulo.Rubro',
           'rubro.Id',
           'rubro.Rubro'
@@ -183,13 +182,13 @@ export class PuntosMudrasService {
 
       console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
 
-      return stockRecords.map(record => ({
+      const base = stockRecords.map(record => ({
         id: record.articulo_id,
         nombre: record.articulo_Descripcion || 'Sin nombre',
         codigo: record.articulo_Codigo || 'Sin código',
         precio: parseFloat(record.articulo_PrecioVenta || '0'),
         stockAsignado: parseFloat(record.stock_cantidad || '0'),
-        stockTotal: parseFloat(record.articulo_Deposito || '0'),
+        stockTotal: parseFloat(record.articulo_Stock || '0'),
         rubro: record.articulo_Rubro || record.rubro_Rubro
           ? {
               id: record.rubro_Id || 0,
@@ -197,6 +196,8 @@ export class PuntosMudrasService {
             }
           : undefined,
       }));
+
+      return this.adjuntarDetallesArticulo(base);
     }
   }
 
@@ -210,14 +211,14 @@ export class PuntosMudrasService {
         a.Codigo,
         a.Descripcion,
         a.PrecioVenta,
-        a.Deposito as stockTotal,
+        a.Stock as stockTotal,
         a.Rubro,
         COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
-        (a.Deposito - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
+        (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
       FROM tbarticulos a
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
-      WHERE a.Deposito > 0
-      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Deposito, a.Rubro
+      WHERE a.Stock > 0
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Stock, a.Rubro
       HAVING stockDisponible > 0
       ORDER BY a.Descripcion
     `;
@@ -225,7 +226,7 @@ export class PuntosMudrasService {
     const stockRecords = await this.stockRepository.query(query);
     console.log(`📦 Encontrados ${stockRecords.length} artículos con stock disponible`);
 
-    return stockRecords.map(record => ({
+    const base = stockRecords.map(record => ({
       id: record.id,
       nombre: record.Descripcion || 'Sin nombre',
       codigo: record.Codigo || 'Sin código',
@@ -239,6 +240,7 @@ export class PuntosMudrasService {
           }
         : undefined,
     }));
+    return this.adjuntarDetallesArticulo(base);
   }
 
   // Nuevos métodos para filtros optimizados
@@ -252,7 +254,7 @@ export class PuntosMudrasService {
         p.Codigo as codigo
       FROM tbproveedores p
       INNER JOIN tbarticulos a ON a.idProveedor = p.IdProveedor
-      WHERE a.Deposito > 0
+      WHERE a.Stock > 0
       ORDER BY p.Nombre
     `;
 
@@ -292,15 +294,15 @@ export class PuntosMudrasService {
         a.Codigo,
         a.Descripcion,
         a.PrecioVenta,
-        a.Deposito as stockTotal,
+        a.Stock as stockTotal,
         a.Rubro,
         p.Nombre as proveedorNombre,
         COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
-        (a.Deposito - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
+        (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
       FROM tbarticulos a
       LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
-      WHERE a.Deposito > 0
+      WHERE a.Stock > 0
     `;
 
     const params: any[] = [];
@@ -321,7 +323,7 @@ export class PuntosMudrasService {
     }
 
     query += `
-      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Deposito, a.Rubro, p.Nombre
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Stock, a.Rubro, p.Nombre
       HAVING stockDisponible > 0
       ORDER BY a.Descripcion
       LIMIT 50
@@ -688,5 +690,20 @@ export class PuntosMudrasService {
       punto.totalArticulos = 0;
       punto.valorInventario = 0;
     }
+  }
+
+  private async adjuntarDetallesArticulo<T extends { id: number }>(items: T[]): Promise<(T & { articulo?: Articulo })[]> {
+    if (!items.length) return items;
+    const ids = Array.from(new Set(items.map(item => item.id).filter(id => typeof id === 'number' && Number.isFinite(id))));
+    if (!ids.length) return items;
+    const articulos = await this.articulosRepository.find({
+      where: { id: In(ids) },
+      relations: ['proveedor', 'rubro'],
+    });
+    const mapa = new Map(articulos.map(art => [art.id, art]));
+    return items.map(item => ({
+      ...item,
+      articulo: mapa.get(item.id),
+    }));
   }
 }

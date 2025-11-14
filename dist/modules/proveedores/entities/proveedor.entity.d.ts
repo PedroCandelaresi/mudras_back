@@ -1,6 +1,7 @@
 import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
 import { Rubro } from '../../rubros/entities/rubro.entity';
+import { OrdenCompra } from '../../compras/entities/orden-compra.entity';
 export declare enum EstadoProveedor {
     ACTIVO = "activo",
     INACTIVO = "inactivo",
@@ -33,4 +34,5 @@ export declare class Proveedor {
     articulos?: Articulo[];
     rubro?: Rubro;
     cuentasCorrientes?: CuentaCorriente[];
+    ordenesCompra?: OrdenCompra[];
 }

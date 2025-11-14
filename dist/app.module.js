@@ -55,13 +55,18 @@ const refresh_token_entity_1 = require("./modules/users-auth/entities/refresh-to
 const venta_caja_entity_1 = require("./modules/caja-registradora/entities/venta-caja.entity");
 const detalle_venta_caja_entity_1 = require("./modules/caja-registradora/entities/detalle-venta-caja.entity");
 const pago_caja_entity_1 = require("./modules/caja-registradora/entities/pago-caja.entity");
-const puesto_venta_entity_1 = require("./modules/caja-registradora/entities/puesto-venta.entity");
 const comprobante_afip_entity_1 = require("./modules/caja-registradora/entities/comprobante-afip.entity");
 const movimiento_inventario_entity_1 = require("./modules/caja-registradora/entities/movimiento-inventario.entity");
 const snapshot_inventario_entity_1 = require("./modules/caja-registradora/entities/snapshot-inventario.entity");
 const punto_mudras_entity_1 = require("./modules/puntos-mudras/entities/punto-mudras.entity");
 const stock_punto_mudras_entity_1 = require("./modules/puntos-mudras/entities/stock-punto-mudras.entity");
 const movimiento_stock_punto_entity_1 = require("./modules/puntos-mudras/entities/movimiento-stock-punto.entity");
+const compras_module_1 = require("./modules/compras/compras.module");
+const orden_compra_entity_1 = require("./modules/compras/entities/orden-compra.entity");
+const detalle_orden_compra_entity_1 = require("./modules/compras/entities/detalle-orden-compra.entity");
+const gastos_module_1 = require("./modules/gastos/gastos.module");
+const gasto_entity_1 = require("./modules/gastos/entities/gasto.entity");
+const categoria_gasto_entity_1 = require("./modules/gastos/entities/categoria-gasto.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -104,13 +109,16 @@ exports.AppModule = AppModule = __decorate([
                     venta_caja_entity_1.VentaCaja,
                     detalle_venta_caja_entity_1.DetalleVentaCaja,
                     pago_caja_entity_1.PagoCaja,
-                    puesto_venta_entity_1.PuestoVenta,
                     comprobante_afip_entity_1.ComprobanteAfip,
                     movimiento_inventario_entity_1.MovimientoInventario,
                     snapshot_inventario_entity_1.SnapshotInventarioMensual,
                     punto_mudras_entity_1.PuntoMudras,
                     stock_punto_mudras_entity_1.StockPuntoMudras,
                     movimiento_stock_punto_entity_1.MovimientoStockPunto,
+                    orden_compra_entity_1.OrdenCompra,
+                    detalle_orden_compra_entity_1.DetalleOrdenCompra,
+                    gasto_entity_1.Gasto,
+                    categoria_gasto_entity_1.CategoriaGasto,
                 ],
                 synchronize: false,
                 logging: true,
@@ -134,6 +142,8 @@ exports.AppModule = AppModule = __decorate([
             promociones_module_1.PromocionesModule,
             caja_registradora_module_1.CajaRegistradoraModule,
             puntos_mudras_module_1.PuntosMudrasModule,
+            compras_module_1.ComprasModule,
+            gastos_module_1.GastosModule,
             auth_module_1.AuthModule,
             users_auth_module_1.UsersAuthModule,
             roles_module_1.RolesModule,

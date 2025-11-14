@@ -9,22 +9,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Articulo = exports.EstadoArticulo = void 0;
+exports.Articulo = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const proveedor_entity_1 = require("../../proveedores/entities/proveedor.entity");
 const rubro_entity_1 = require("../../rubros/entities/rubro.entity");
 const movimiento_stock_entity_1 = require("../../stock/entities/movimiento-stock.entity");
-var EstadoArticulo;
-(function (EstadoArticulo) {
-    EstadoArticulo["ACTIVO"] = "activo";
-    EstadoArticulo["INACTIVO"] = "inactivo";
-    EstadoArticulo["DESCONTINUADO"] = "descontinuado";
-})(EstadoArticulo || (exports.EstadoArticulo = EstadoArticulo = {}));
-(0, graphql_1.registerEnumType)(EstadoArticulo, {
-    name: 'EstadoArticulo',
-    description: 'Estados disponibles para artículos',
-});
 let Articulo = class Articulo {
 };
 exports.Articulo = Articulo;
@@ -43,11 +33,6 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'varchar', length: 25, nullable: true }),
     __metadata("design:type", String)
 ], Articulo.prototype, "Rubro", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
-    __metadata("design:type", Number)
-], Articulo.prototype, "rubroId", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true }),
@@ -73,6 +58,15 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
     __metadata("design:type", Number)
 ], Articulo.prototype, "StockMinimo", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, typeorm_1.Column)({ type: 'float', nullable: true }),
+    __metadata("design:type", Number)
+], Articulo.prototype, "Stock", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], Articulo.prototype, "totalStock", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
@@ -216,8 +210,8 @@ __decorate([
 ], Articulo.prototype, "proveedor", void 0);
 __decorate([
     (0, graphql_1.Field)(() => rubro_entity_1.Rubro, { nullable: true }),
-    (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, rubro => rubro.articulos),
-    (0, typeorm_1.JoinColumn)({ name: 'rubroId' }),
+    (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, rubro => rubro.articulos, { createForeignKeyConstraints: false }),
+    (0, typeorm_1.JoinColumn)({ name: 'Rubro', referencedColumnName: 'Rubro' }),
     __metadata("design:type", rubro_entity_1.Rubro)
 ], Articulo.prototype, "rubro", void 0);
 __decorate([

@@ -1,26 +1,44 @@
 import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { IsInt, IsOptional, IsString, Min, Max } from 'class-validator';
 
 @InputType()
 export class ListarUsuariosAuthInput {
   @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
   pagina?: number;
 
   @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
   limite?: number;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   busqueda?: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   username?: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   email?: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   nombre?: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   estado?: string;
 }
 
@@ -64,6 +82,21 @@ export class UsuariosAuthPaginadosModel {
 
   @Field(() => Int)
   total!: number;
+}
+
+@ObjectType()
+export class UsuarioCajaAuthModel {
+  @Field()
+  id!: string;
+
+  @Field({ nullable: true })
+  username?: string | null;
+
+  @Field({ nullable: true })
+  email?: string | null;
+
+  @Field()
+  displayName!: string;
 }
 
 @InputType()

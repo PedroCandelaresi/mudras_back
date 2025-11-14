@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { Cliente } from '../../clientes/entities/cliente.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { UserAuth } from '../../users-auth/entities/user.entity';
 import { DetalleVenta } from './detalle-venta.entity';
 
 export enum EstadoVenta {
@@ -34,7 +34,7 @@ registerEnumType(TipoPago, {
 @ObjectType()
 @Index(['numero'], { unique: true })
 @Index(['clienteId'])
-@Index(['usuarioId'])
+@Index(['usuarioAuthId'])
 @Index(['estado'])
 @Index(['fecha'])
 @Index(['tipoPago'])
@@ -59,13 +59,13 @@ export class Venta {
   @Field(() => Cliente)
   cliente: Cliente;
 
-  @Column()
-  usuarioId: number;
+  @Column({ name: 'usuarioAuthId', type: 'char', length: 36 })
+  @Field()
+  usuarioAuthId: string;
 
-  @ManyToOne(() => Usuario)
-  @JoinColumn({ name: 'usuarioId' })
-  @Field(() => Usuario)
-  usuario: Usuario;
+  @ManyToOne(() => UserAuth)
+  @JoinColumn({ name: 'usuarioAuthId' })
+  usuarioAuth: UserAuth;
 
   @Column({
     type: 'enum',

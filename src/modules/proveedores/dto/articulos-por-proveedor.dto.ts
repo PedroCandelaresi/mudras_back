@@ -12,7 +12,7 @@ export class ArticuloProveedor {
   Descripcion: string;
 
   @Field(() => Int, { nullable: true })
-  Deposito?: number;
+  Stock?: number;
 
   @Field(() => Int, { nullable: true })
   PrecioVenta?: number;

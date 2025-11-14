@@ -13,6 +13,7 @@ export interface JwtPayload {
     roles: string[];
     typ: 'EMPRESA' | 'CLIENTE';
     perms: string[];
+    uid?: number;
 }
 export declare class AuthService {
     private readonly usersRepo;
@@ -25,8 +26,10 @@ export declare class AuthService {
     private readonly jwtService;
     constructor(usersRepo: Repository<UserAuth>, userRolesRepo: Repository<UserRole>, rolesRepo: Repository<Role>, providersRepo: Repository<UserProvider>, refreshRepo: Repository<RefreshToken>, rolePermRepo: Repository<RolePermission>, permsRepo: Repository<Permission>, jwtService: JwtService);
     validateUser(username: string, plainPassword: string): Promise<UserAuth>;
+    validateClientEmail(email: string, plainPassword: string): Promise<UserAuth>;
     getUserRolesSlugs(userId: string): Promise<string[]>;
     obtenerPermisosEfectivos(userId: string): Promise<string[]>;
+    private obtenerUsuarioInternoId;
     emitirTokens(user: UserAuth): Promise<{
         accessToken: string;
         refreshToken: string;

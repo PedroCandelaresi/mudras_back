@@ -27,6 +27,18 @@ let UsersService = class UsersService {
         this.userRolesRepo = userRolesRepo;
         this.rolesRepo = rolesRepo;
     }
+    async listarEmpresaPorRolSlug(rolSlug) {
+        const rows = await this.usersRepo
+            .createQueryBuilder('u')
+            .leftJoin('u.userRoles', 'ur')
+            .leftJoin('ur.role', 'r')
+            .where('u.userType = :typ', { typ: 'EMPRESA' })
+            .andWhere('u.isActive = :act', { act: true })
+            .andWhere('r.slug = :slug', { slug: rolSlug })
+            .orderBy('u.displayName', 'ASC')
+            .getMany();
+        return rows;
+    }
     async listar(entrada = {}) {
         const paginaNormalizada = Math.max(0, entrada.pagina ?? 0);
         const limiteNormalizado = Math.min(Math.max(1, entrada.limite ?? 20), 100);
@@ -97,6 +109,42 @@ let UsersService = class UsersService {
                 await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: rol.id }));
             }
         }
+        try {
+            const username = dto.username || '';
+            let nombre = '';
+            let apellido = '';
+            if (username.includes('.')) {
+                const [n, a] = username.split('.', 2);
+                nombre = (n || '').trim();
+                apellido = (a || '').trim();
+            }
+            if (!nombre || !apellido) {
+                const partes = (dto.displayName || '').split(/\s+/).filter(Boolean);
+                if (partes.length >= 2) {
+                    nombre = partes.slice(0, -1).join(' ');
+                    apellido = partes.slice(-1).join(' ');
+                }
+                else if (partes.length === 1) {
+                    nombre = partes[0];
+                    apellido = '';
+                }
+            }
+            const passwordHash = await bcrypt.hash(dto.passwordTemporal, 10);
+            await this.usersRepo.query(`INSERT INTO usuarios (nombre, apellido, username, email, password, rol, estado, salario)
+         SELECT ?, ?, ?, ?, ?, ?, ?, 0.00
+         WHERE NOT EXISTS (
+           SELECT 1 FROM usuarios u WHERE u.username = ? OR (u.email IS NOT NULL AND u.email = ?)
+         )`, [nombre || username, apellido || '', username, dto.email ?? null, passwordHash, 'caja', 'activo', username, dto.email ?? null]);
+            const fila = await this.usersRepo.query(`SELECT id FROM usuarios WHERE username = ? LIMIT 1`, [username]);
+            const usuarioId = fila?.[0]?.id != null ? Number(fila[0].id) : undefined;
+            if (usuarioId && Number.isFinite(usuarioId)) {
+                await this.usersRepo.query(`INSERT INTO usuarios_auth_map (usuario_id, auth_user_id)
+           SELECT ?, ?
+           WHERE NOT EXISTS (SELECT 1 FROM usuarios_auth_map WHERE usuario_id = ? OR auth_user_id = ?)`, [usuarioId, user.id, usuarioId, user.id]);
+            }
+        }
+        catch (e) {
+        }
         return this.obtener(user.id);
     }
     async obtener(id) {
@@ -129,6 +177,10 @@ let UsersService = class UsersService {
         return this.obtener(user.id);
     }
     async eliminar(id) {
+        try {
+            await this.usersRepo.query(`DELETE FROM usuarios_auth_map WHERE auth_user_id = ?`, [id]);
+        }
+        catch { }
         const ok = await this.usersRepo.delete({ id });
         return ok.affected > 0;
     }

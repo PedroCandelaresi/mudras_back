@@ -1,4 +1,4 @@
-import { InputType, Field } from '@nestjs/graphql';
+import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsEnum, IsNumber, IsString, IsOptional, IsArray, ValidateNested, Min, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TipoVentaCaja } from '../entities/venta-caja.entity';
@@ -6,7 +6,7 @@ import { MedioPagoCaja } from '../entities/pago-caja.entity';
 
 @InputType()
 export class DetalleVentaCajaInput {
-  @Field()
+  @Field(() => Int)
   @IsNumber()
   articuloId: number;
 
@@ -59,7 +59,7 @@ export class PagoCajaInput {
   @IsString()
   ultimos4Digitos?: string;
 
-  @Field({ nullable: true })
+  @Field(() => Int, { nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(1)
@@ -87,19 +87,14 @@ export class CrearVentaCajaInput {
   @IsEnum(TipoVentaCaja)
   tipoVenta: TipoVentaCaja;
 
-  @Field()
-@IsNumber()
-puestoVentaId: number;
-
-@Field({ nullable: true })
+@Field(() => Int, { nullable: true })
 @IsOptional()
 @IsNumber()
 clienteId?: number;
 
-@Field({ nullable: true })
-@IsOptional()
-@IsNumber()
-puntoMudrasId?: number;
+  @Field(() => Int)
+  @IsNumber()
+  puntoMudrasId: number;
 
 @Field(() => [DetalleVentaCajaInput])
 @IsArray()
@@ -141,6 +136,6 @@ detalles: DetalleVentaCajaInput[];
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsNumber()
-  usuarioId?: number;
+  @IsString()
+  usuarioAuthId?: string;
 }

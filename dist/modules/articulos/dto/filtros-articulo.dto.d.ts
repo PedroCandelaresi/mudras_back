@@ -1,4 +1,3 @@
-import { EstadoArticulo } from '../entities/articulo.entity';
 export declare class FiltrosArticuloDto {
     busqueda?: string;
     codigo?: string;
@@ -6,7 +5,6 @@ export declare class FiltrosArticuloDto {
     marca?: string;
     rubroId?: number;
     proveedorId?: number;
-    estado?: EstadoArticulo;
     soloConStock?: boolean;
     soloStockBajo?: boolean;
     soloSinStock?: boolean;

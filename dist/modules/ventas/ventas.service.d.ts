@@ -5,7 +5,7 @@ export declare class VentasService {
     private ventasRepository;
     private detallesVentaRepository;
     constructor(ventasRepository: Repository<Venta>, detallesVentaRepository: Repository<DetalleVenta>);
-    crearVenta(clienteId: number, usuarioId: number, tipoPago: TipoPago, detalles: Array<{
+    crearVenta(clienteId: number, usuarioAuthId: string, tipoPago: TipoPago, detalles: Array<{
         articuloId: number;
         cantidad: number;
         precioUnitario: number;
@@ -15,7 +15,7 @@ export declare class VentasService {
     findAll(): Promise<Venta[]>;
     obtenerVenta(id: number): Promise<Venta>;
     obtenerVentasPorCliente(clienteId: number): Promise<Venta[]>;
-    obtenerVentasPorUsuario(usuarioId: number): Promise<Venta[]>;
+    obtenerVentasPorUsuarioAuth(usuarioAuthId: string): Promise<Venta[]>;
     obtenerVentasPorFecha(fechaDesde: Date, fechaHasta: Date): Promise<Venta[]>;
     confirmarVenta(id: number): Promise<Venta>;
     cancelarVenta(id: number, motivoCancelacion: string): Promise<Venta>;

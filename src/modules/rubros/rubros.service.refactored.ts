@@ -61,7 +61,7 @@ export class RubrosServiceRefactored {
         a.Codigo as codigo,
         a.Descripcion as descripcion,
         a.PrecioVenta as precio,
-        a.Deposito as stock,
+        a.Stock as stock,
         p.IdProveedor as proveedorId,
         p.Nombre as proveedorNombre
       FROM tbarticulos a
@@ -306,7 +306,7 @@ export class RubrosServiceRefactored {
         COUNT(DISTINCT a.id) as totalArticulos,
         COUNT(DISTINCT pr.proveedor_id) as totalProveedores,
         AVG(a.PrecioVenta) as precioPromedio,
-        SUM(a.Deposito) as stockTotal
+        SUM(a.Stock) as stockTotal
       FROM tbrubros r
       LEFT JOIN tbarticulos a ON a.Rubro = r.Rubro
       LEFT JOIN tb_proveedor_rubro pr ON pr.rubro_nombre = r.Rubro

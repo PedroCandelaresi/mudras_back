@@ -14,5 +14,6 @@ export declare class UsuariosService {
     remove(id: number): Promise<void>;
     login(loginDto: LoginDto): Promise<Usuario>;
     findByRol(rol: RolUsuario): Promise<Usuario[]>;
+    findByAuthRolSlug(rolSlug: string): Promise<Usuario[]>;
     createUsuariosEjemplo(): Promise<void>;
 }

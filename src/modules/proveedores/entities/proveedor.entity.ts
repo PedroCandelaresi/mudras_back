@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, ID, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
 import { Rubro } from '../../rubros/entities/rubro.entity';
+import { OrdenCompra } from '../../compras/entities/orden-compra.entity';
 
 export enum EstadoProveedor {
   ACTIVO = 'activo',
@@ -91,33 +92,11 @@ export class Proveedor {
   Saldo: number;
 
   @Field(() => Float, { nullable: true })
-  @Column({
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    nullable: true,
-    default: 0,
-    name: 'PorcentajeRecargoProveedor',
-    transformer: {
-      to: (value?: number) => value ?? 0,
-      from: (value: any) => (value != null ? Number(value) : null),
-    },
-  })
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
   PorcentajeRecargoProveedor?: number;
 
   @Field(() => Float, { nullable: true })
-  @Column({
-    type: 'decimal',
-    precision: 5,
-    scale: 2,
-    nullable: true,
-    default: 0,
-    name: 'PorcentajeDescuentoProveedor',
-    transformer: {
-      to: (value?: number) => value ?? 0,
-      from: (value: any) => (value != null ? Number(value) : null),
-    },
-  })
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
   PorcentajeDescuentoProveedor?: number;
 
   @Field({ nullable: true })
@@ -139,11 +118,15 @@ export class Proveedor {
   articulos?: Articulo[];
 
   @Field(() => Rubro, { nullable: true })
-  @ManyToOne(() => Rubro, rubro => rubro.proveedores)
+  @ManyToOne(() => Rubro, rubro => rubro.proveedores, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'rubroId' })
   rubro?: Rubro;
 
   @OneToMany(() => CuentaCorriente, cuentaCorriente => cuentaCorriente.proveedor)
   @Field(() => [CuentaCorriente], { nullable: true })
   cuentasCorrientes?: CuentaCorriente[];
+
+  @OneToMany(() => OrdenCompra, (oc) => oc.proveedor)
+  @Field(() => [OrdenCompra], { nullable: true })
+  ordenesCompra?: OrdenCompra[];
 }

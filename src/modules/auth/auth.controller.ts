@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
+import { LoginEmailDto } from './dto/login-email.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -33,6 +34,28 @@ export class AuthController {
       path: '/'
     });
     return res.json({ usuario: { id: user.id, username: user.username, displayName: user.displayName, roles: await this.authService.getUserRolesSlugs(user.id) }, ...tokens });
+  }
+
+  // Login de CLIENTE por email/password
+  @Post('login-email')
+  async loginEmail(@Body() dto: LoginEmailDto, @Req() _req: any, @Res() res: Response) {
+    const user = await this.authService.validateClientEmail(dto.email, dto.password);
+    const tokens = await this.authService.emitirTokens(user);
+    res.cookie('mudras_token', tokens.accessToken, { 
+      httpOnly: true, 
+      sameSite: 'none', 
+      secure: true,
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    res.cookie('mudras_refresh', tokens.refreshToken, { 
+      httpOnly: true, 
+      sameSite: 'none', 
+      secure: true,
+      domain: process.env.NODE_ENV === 'production' ? '.mudras.nqn.net.ar' : undefined,
+      path: '/'
+    });
+    return res.json({ usuario: { id: user.id, email: user.email, displayName: user.displayName, roles: await this.authService.getUserRolesSlugs(user.id) }, ...tokens });
   }
 
   @UseGuards(JwtAuthGuard)

@@ -36,15 +36,15 @@ __decorate([
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], FiltrosHistorialInput.prototype, "usuarioId", void 0);
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], FiltrosHistorialInput.prototype, "usuarioAuthId", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
-], FiltrosHistorialInput.prototype, "puestoVentaId", void 0);
+], FiltrosHistorialInput.prototype, "puntoMudrasId", void 0);
 __decorate([
     (0, graphql_1.Field)(() => pago_caja_entity_1.MedioPagoCaja, { nullable: true }),
     (0, class_validator_1.IsOptional)(),

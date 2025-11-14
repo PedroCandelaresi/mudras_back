@@ -3,8 +3,8 @@ import { MedioPagoCaja } from '../entities/pago-caja.entity';
 export declare class FiltrosHistorialInput {
     fechaDesde?: string;
     fechaHasta?: string;
-    usuarioId?: number;
-    puestoVentaId?: number;
+    usuarioAuthId?: string;
+    puntoMudrasId?: number;
     medioPago?: MedioPagoCaja;
     estado?: EstadoVentaCaja;
     tipoVenta?: TipoVentaCaja;

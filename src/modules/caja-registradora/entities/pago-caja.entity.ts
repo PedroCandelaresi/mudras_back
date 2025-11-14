@@ -20,21 +20,21 @@ registerEnumType(MedioPagoCaja, {
 @ObjectType()
 @Index(['ventaId'])
 @Index(['medioPago'])
-@Index(['fecha'])
 export class PagoCaja {
   @PrimaryGeneratedColumn()
   @Field(() => ID)
   id: number;
 
-  @Column()
+  @Column({ name: 'venta_id' })
   ventaId: number;
 
   @ManyToOne(() => VentaCaja, venta => venta.pagos)
-  @JoinColumn({ name: 'ventaId' })
+  @JoinColumn({ name: 'venta_id' })
   @Field(() => VentaCaja)
   venta: VentaCaja;
 
   @Column({
+    name: 'metodo_pago',
     type: 'enum',
     enum: MedioPagoCaja,
   })
@@ -45,23 +45,19 @@ export class PagoCaja {
   @Field()
   monto: number;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ name: 'tipo_tarjeta', length: 50, nullable: true })
   @Field({ nullable: true })
   marcaTarjeta?: string; // Visa, Mastercard, etc.
 
-  @Column({ length: 4, nullable: true })
+  @Column({ name: 'numero_tarjeta_ultimos_4', length: 4, nullable: true })
   @Field({ nullable: true })
   ultimos4Digitos?: string;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ name: 'numero_cuotas', type: 'int', nullable: true })
   @Field({ nullable: true })
   cuotas?: number;
 
-  @Column({ length: 50, nullable: true })
-  @Field({ nullable: true })
-  numeroAutorizacion?: string;
-
-  @Column({ length: 100, nullable: true })
+  @Column({ name: 'referencia', length: 100, nullable: true })
   @Field({ nullable: true })
   numeroComprobante?: string;
 
@@ -69,11 +65,7 @@ export class PagoCaja {
   @Field({ nullable: true })
   observaciones?: string;
 
-  @Column({ type: 'datetime' })
-  @Field()
-  fecha: Date;
-
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   @Field()
   creadoEn: Date;
 }

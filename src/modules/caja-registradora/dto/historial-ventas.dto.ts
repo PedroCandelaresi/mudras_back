@@ -17,13 +17,13 @@ export class FiltrosHistorialInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsNumber()
-  usuarioId?: number;
+  @IsString()
+  usuarioAuthId?: string;
 
   @Field({ nullable: true })
   @IsOptional()
   @IsNumber()
-  puestoVentaId?: number;
+  puntoMudrasId?: number;
 
   @Field(() => MedioPagoCaja, { nullable: true })
   @IsOptional()

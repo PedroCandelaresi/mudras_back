@@ -172,7 +172,7 @@ export class RubrosService {
         a.Codigo as codigo,
         a.Descripcion as descripcion,
         a.PrecioVenta as precio,
-        a.Deposito as stock,
+        a.Stock as stock,
         p.IdProveedor as proveedorId,
         p.Nombre as proveedorNombre
       ${baseQuery}
@@ -248,19 +248,12 @@ export class RubrosService {
 
   async eliminarArticuloDeRubro(articuloId: number): Promise<boolean> {
     try {
-      // Opción 1: Usar campo string (actual)
       const resultString = await this.rubrosRepository.query(
         'UPDATE tbarticulos SET Rubro = NULL WHERE id = ?',
         [articuloId]
       );
 
-      // Opción 2: Usar FK (después de migración)
-      const resultFK = await this.rubrosRepository.query(
-        'UPDATE tbarticulos SET rubroId = NULL WHERE id = ?',
-        [articuloId]
-      );
-
-      return (resultString.affectedRows > 0) || (resultFK.affectedRows > 0);
+      return resultString.affectedRows > 0;
     } catch (error) {
       console.error('Error al eliminar artículo del rubro:', error);
       throw new Error('No se pudo eliminar el artículo del rubro');
@@ -276,19 +269,12 @@ export class RubrosService {
       // Crear placeholders para la query IN
       const placeholders = articuloIds.map(() => '?').join(',');
       
-      // Opción 1: Usar campo string (actual)
       const resultString = await this.rubrosRepository.query(
         `UPDATE tbarticulos SET Rubro = NULL WHERE id IN (${placeholders})`,
         articuloIds
       );
 
-      // Opción 2: Usar FK (después de migración)
-      const resultFK = await this.rubrosRepository.query(
-        `UPDATE tbarticulos SET rubroId = NULL WHERE id IN (${placeholders})`,
-        articuloIds
-      );
-
-      return (resultString.affectedRows > 0) || (resultFK.affectedRows > 0);
+      return resultString.affectedRows > 0;
     } catch (error) {
       console.error('Error al eliminar artículos del rubro:', error);
       throw new Error('No se pudo eliminar los artículos del rubro');

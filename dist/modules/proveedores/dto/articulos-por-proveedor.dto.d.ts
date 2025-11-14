@@ -2,7 +2,7 @@ export declare class ArticuloProveedor {
     Id: number;
     Codigo?: string;
     Descripcion: string;
-    Deposito?: number;
+    Stock?: number;
     PrecioVenta?: number;
     Rubro?: string;
     StockMinimo?: number;

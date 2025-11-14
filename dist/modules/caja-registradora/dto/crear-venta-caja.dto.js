@@ -19,7 +19,7 @@ let DetalleVentaCajaInput = class DetalleVentaCajaInput {
 };
 exports.DetalleVentaCajaInput = DetalleVentaCajaInput;
 __decorate([
-    (0, graphql_1.Field)(),
+    (0, graphql_1.Field)(() => graphql_1.Int),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], DetalleVentaCajaInput.prototype, "articuloId", void 0);
@@ -85,7 +85,7 @@ __decorate([
     __metadata("design:type", String)
 ], PagoCajaInput.prototype, "ultimos4Digitos", void 0);
 __decorate([
-    (0, graphql_1.Field)({ nullable: true }),
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(1),
@@ -121,19 +121,13 @@ __decorate([
     __metadata("design:type", String)
 ], CrearVentaCajaInput.prototype, "tipoVenta", void 0);
 __decorate([
-    (0, graphql_1.Field)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], CrearVentaCajaInput.prototype, "puestoVentaId", void 0);
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CrearVentaCajaInput.prototype, "clienteId", void 0);
 __decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
+    (0, graphql_1.Field)(() => graphql_1.Int),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CrearVentaCajaInput.prototype, "puntoMudrasId", void 0);
@@ -185,9 +179,9 @@ __decorate([
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
-], CrearVentaCajaInput.prototype, "usuarioId", void 0);
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CrearVentaCajaInput.prototype, "usuarioAuthId", void 0);
 exports.CrearVentaCajaInput = CrearVentaCajaInput = __decorate([
     (0, graphql_1.InputType)()
 ], CrearVentaCajaInput);

@@ -90,6 +90,11 @@ export class CreateProveedorInput {
   @MaxLength(20)
   Rubro?: string;
 
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsInt()
+  rubroId?: number;
+
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()

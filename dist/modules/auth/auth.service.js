@@ -53,6 +53,10 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async validateUser(username, plainPassword) {
+        const isEmail = /@/.test(username || '');
+        if (isEmail) {
+            throw new common_1.UnauthorizedException('Para clientes usa /cliente y Google/Instagram');
+        }
         const user = await this.usersRepo.findOne({ where: { username } });
         if (!user || !user.isActive || user.userType !== 'EMPRESA') {
             throw new common_1.UnauthorizedException('Credenciales inválidas');
@@ -63,6 +67,27 @@ let AuthService = class AuthService {
         const ok = await bcrypt.compare(plainPassword, user.passwordHash);
         if (!ok) {
             throw new common_1.UnauthorizedException('Credenciales inválidas');
+        }
+        return user;
+    }
+    async validateClientEmail(email, plainPassword) {
+        const user = await this.usersRepo.findOne({ where: { email } });
+        if (!user || !user.isActive || user.userType !== 'CLIENTE') {
+            throw new common_1.UnauthorizedException('Credenciales inválidas');
+        }
+        if (!user.passwordHash) {
+            throw new common_1.UnauthorizedException('Usuario sin contraseña local');
+        }
+        const ok = await bcrypt.compare(plainPassword, user.passwordHash);
+        if (!ok) {
+            throw new common_1.UnauthorizedException('Credenciales inválidas');
+        }
+        const roles = await this.getUserRolesSlugs(user.id);
+        if (!roles.includes('cliente')) {
+            const rolCliente = await this.rolesRepo.findOne({ where: { slug: 'cliente' } });
+            if (rolCliente) {
+                await this.userRolesRepo.save(this.userRolesRepo.create({ userId: user.id, roleId: rolCliente.id }));
+            }
         }
         return user;
     }
@@ -86,6 +111,22 @@ let AuthService = class AuthService {
             set.add('*');
         return Array.from(set);
     }
+    async obtenerUsuarioInternoId(authUserId) {
+        try {
+            const rows = await this.usersRepo.query('SELECT usuario_id AS usuarioId FROM usuarios_auth_map WHERE auth_user_id = ? LIMIT 1', [authUserId]);
+            const id = rows?.[0]?.usuarioId;
+            if (typeof id === 'number' && Number.isFinite(id))
+                return id;
+            if (id != null) {
+                const n = Number(id);
+                return Number.isFinite(n) ? n : undefined;
+            }
+            return undefined;
+        }
+        catch {
+            return undefined;
+        }
+    }
     async emitirTokens(user) {
         const roles = await this.getUserRolesSlugs(user.id);
         const perms = await this.obtenerPermisosEfectivos(user.id);
@@ -96,6 +137,9 @@ let AuthService = class AuthService {
             typ: user.userType,
             perms,
         };
+        const uid = await this.obtenerUsuarioInternoId(user.id);
+        if (uid)
+            payload.uid = uid;
         const accessToken = await this.jwtService.signAsync(payload);
         const opaque = (0, crypto_1.randomUUID)();
         const tokenHash = await bcrypt.hash(opaque, 10);

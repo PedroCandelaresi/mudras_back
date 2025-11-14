@@ -118,6 +118,12 @@ __decorate([
     __metadata("design:type", String)
 ], CreateProveedorInput.prototype, "Rubro", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateProveedorInput.prototype, "rubroId", void 0);
+__decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),

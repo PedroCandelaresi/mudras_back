@@ -29,7 +29,7 @@ __decorate([
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
     __metadata("design:type", Number)
-], ArticuloProveedor.prototype, "Deposito", void 0);
+], ArticuloProveedor.prototype, "Stock", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
     __metadata("design:type", Number)

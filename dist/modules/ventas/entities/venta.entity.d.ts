@@ -1,5 +1,5 @@
 import { Cliente } from '../../clientes/entities/cliente.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
+import { UserAuth } from '../../users-auth/entities/user.entity';
 import { DetalleVenta } from './detalle-venta.entity';
 export declare enum EstadoVenta {
     PENDIENTE = "pendiente",
@@ -21,8 +21,8 @@ export declare class Venta {
     fecha: Date;
     clienteId: number;
     cliente: Cliente;
-    usuarioId: number;
-    usuario: Usuario;
+    usuarioAuthId: string;
+    usuarioAuth: UserAuth;
     estado: EstadoVenta;
     tipoPago: TipoPago;
     subtotal: number;

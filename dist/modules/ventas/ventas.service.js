@@ -23,7 +23,7 @@ let VentasService = class VentasService {
         this.ventasRepository = ventasRepository;
         this.detallesVentaRepository = detallesVentaRepository;
     }
-    async crearVenta(clienteId, usuarioId, tipoPago, detalles, descuentoGeneral = 0, observaciones) {
+    async crearVenta(clienteId, usuarioAuthId, tipoPago, detalles, descuentoGeneral = 0, observaciones) {
         let subtotal = 0;
         for (const detalle of detalles) {
             const montoDetalle = detalle.cantidad * detalle.precioUnitario;
@@ -38,7 +38,7 @@ let VentasService = class VentasService {
         const venta = this.ventasRepository.create({
             numero: `V-${Date.now()}`,
             clienteId,
-            usuarioId,
+            usuarioAuthId,
             tipoPago,
             subtotal,
             descuentoMonto: montoDescuento,
@@ -65,14 +65,14 @@ let VentasService = class VentasService {
     }
     async findAll() {
         return this.ventasRepository.find({
-            relations: ['cliente', 'usuario', 'detalles', 'detalles.articulo'],
+            relations: ['cliente', 'usuarioAuth', 'detalles', 'detalles.articulo'],
             order: { creadoEn: 'DESC' },
         });
     }
     async obtenerVenta(id) {
         const venta = await this.ventasRepository.findOne({
             where: { id },
-            relations: ['cliente', 'usuario', 'detalles', 'detalles.articulo'],
+            relations: ['cliente', 'usuarioAuth', 'detalles', 'detalles.articulo'],
         });
         if (!venta) {
             throw new common_1.NotFoundException(`Venta con ID ${id} no encontrada`);
@@ -86,9 +86,9 @@ let VentasService = class VentasService {
             order: { creadoEn: 'DESC' },
         });
     }
-    async obtenerVentasPorUsuario(usuarioId) {
+    async obtenerVentasPorUsuarioAuth(usuarioAuthId) {
         return this.ventasRepository.find({
-            where: { usuarioId },
+            where: { usuarioAuthId },
             relations: ['cliente', 'detalles', 'detalles.articulo'],
             order: { creadoEn: 'DESC' },
         });
@@ -97,7 +97,7 @@ let VentasService = class VentasService {
         return this.ventasRepository
             .createQueryBuilder('venta')
             .leftJoinAndSelect('venta.cliente', 'cliente')
-            .leftJoinAndSelect('venta.usuario', 'usuario')
+            .leftJoinAndSelect('venta.usuarioAuth', 'usuarioAuth')
             .leftJoinAndSelect('venta.detalles', 'detalles')
             .leftJoinAndSelect('detalles.articulo', 'articulo')
             .where('venta.fecha >= :fechaDesde AND venta.fecha <= :fechaHasta', {

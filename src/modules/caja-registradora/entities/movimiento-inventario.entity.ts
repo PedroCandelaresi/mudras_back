@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { PuestoVenta } from './puesto-venta.entity';
+import { UserAuth } from '../../users-auth/entities/user.entity';
+import { PuntoMudras } from '../../puntos-mudras/entities/punto-mudras.entity';
 import { VentaCaja } from './venta-caja.entity';
 
 export enum TipoMovimientoInventario {
@@ -26,33 +26,34 @@ registerEnumType(TipoMovimientoInventario, {
 @Entity('movimientos_inventario')
 @ObjectType()
 @Index(['articuloId'])
-@Index(['puestoVentaId'])
 @Index(['tipoMovimiento'])
 @Index(['fecha'])
-@Index(['usuarioId'])
+@Index(['usuarioAuthId'])
 @Index(['ventaCajaId'])
 export class MovimientoInventario {
   @PrimaryGeneratedColumn()
   @Field(() => ID)
   id: number;
 
-  @Column()
+  @Column({ name: 'articulo_id' })
   articuloId: number;
 
   @ManyToOne(() => Articulo)
-  @JoinColumn({ name: 'articuloId' })
+  @JoinColumn({ name: 'articulo_id' })
   @Field(() => Articulo)
   articulo: Articulo;
 
-  @Column({ nullable: true })
-  puestoVentaId?: number;
+  // Origen en punto Mudras (venta)
+  @Column({ name: 'punto_mudras_id', nullable: true })
+  puntoMudrasId?: number | null;
 
-  @ManyToOne(() => PuestoVenta, { nullable: true })
-  @JoinColumn({ name: 'puestoVentaId' })
-  @Field(() => PuestoVenta, { nullable: true })
-  puestoVenta?: PuestoVenta;
+  @ManyToOne(() => PuntoMudras, { nullable: true })
+  @JoinColumn({ name: 'punto_mudras_id' })
+  @Field(() => PuntoMudras, { nullable: true })
+  puntoMudras?: PuntoMudras | null;
 
   @Column({
+    name: 'tipo_movimiento',
     type: 'enum',
     enum: TipoMovimientoInventario,
   })
@@ -63,19 +64,10 @@ export class MovimientoInventario {
   @Field()
   cantidad: number; // Positivo para entradas, negativo para salidas
 
-  @Column({ type: 'decimal', precision: 10, scale: 3 })
-  @Field()
-  stockAnterior: number;
+  // Columnas de stock anterior/nuevo y costo no existen en la tabla actual,
+  // por lo que se omiten en el mapeo de la entidad.
 
-  @Column({ type: 'decimal', precision: 10, scale: 3 })
-  @Field()
-  stockNuevo: number;
-
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  @Field({ nullable: true })
-  costoUnitario?: number;
-
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  @Column({ name: 'precio_venta', type: 'decimal', precision: 12, scale: 2, nullable: true })
   @Field({ nullable: true })
   precioVenta?: number;
 
@@ -83,31 +75,31 @@ export class MovimientoInventario {
   @Field({ nullable: true })
   observaciones?: string;
 
-  @Column({ length: 50, nullable: true })
+  @Column({ name: 'numero_comprobante', length: 50, nullable: true })
   @Field({ nullable: true })
   numeroComprobante?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'venta_caja_id', nullable: true })
   ventaCajaId?: number;
 
   @ManyToOne(() => VentaCaja, { nullable: true })
-  @JoinColumn({ name: 'ventaCajaId' })
+  @JoinColumn({ name: 'venta_caja_id' })
   @Field(() => VentaCaja, { nullable: true })
   ventaCaja?: VentaCaja;
 
-  @Column({ type: 'datetime' })
+  @Column({ name: 'fecha', type: 'datetime' })
   @Field()
   fecha: Date;
 
-  @Column()
-  usuarioId: number;
+  @Column({ name: 'usuarioAuthId', type: 'char', length: 36 })
+  @Field()
+  usuarioAuthId: string;
 
-  @ManyToOne(() => Usuario)
-  @JoinColumn({ name: 'usuarioId' })
-  @Field(() => Usuario)
-  usuario: Usuario;
+  @ManyToOne(() => UserAuth)
+  @JoinColumn({ name: 'usuarioAuthId' })
+  usuarioAuth: UserAuth;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   @Field()
   creadoEn: Date;
 }

@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FiltrosArticuloDto = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
-const articulo_entity_1 = require("../entities/articulo.entity");
 let FiltrosArticuloDto = class FiltrosArticuloDto {
 };
 exports.FiltrosArticuloDto = FiltrosArticuloDto;
@@ -52,12 +51,6 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], FiltrosArticuloDto.prototype, "proveedorId", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => articulo_entity_1.EstadoArticulo, { nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(articulo_entity_1.EstadoArticulo),
-    __metadata("design:type", String)
-], FiltrosArticuloDto.prototype, "estado", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),

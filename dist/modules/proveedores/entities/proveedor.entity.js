@@ -15,6 +15,7 @@ const graphql_1 = require("@nestjs/graphql");
 const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
 const cuenta_corriente_entity_1 = require("../../cuentas-corrientes/entities/cuenta-corriente.entity");
 const rubro_entity_1 = require("../../rubros/entities/rubro.entity");
+const orden_compra_entity_1 = require("../../compras/entities/orden-compra.entity");
 var EstadoProveedor;
 (function (EstadoProveedor) {
     EstadoProveedor["ACTIVO"] = "activo";
@@ -120,34 +121,12 @@ __decorate([
 ], Proveedor.prototype, "Saldo", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
-    (0, typeorm_1.Column)({
-        type: 'decimal',
-        precision: 5,
-        scale: 2,
-        nullable: true,
-        default: 0,
-        name: 'PorcentajeRecargoProveedor',
-        transformer: {
-            to: (value) => value ?? 0,
-            from: (value) => (value != null ? Number(value) : null),
-        },
-    }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 }),
     __metadata("design:type", Number)
 ], Proveedor.prototype, "PorcentajeRecargoProveedor", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
-    (0, typeorm_1.Column)({
-        type: 'decimal',
-        precision: 5,
-        scale: 2,
-        nullable: true,
-        default: 0,
-        name: 'PorcentajeDescuentoProveedor',
-        transformer: {
-            to: (value) => value ?? 0,
-            from: (value) => (value != null ? Number(value) : null),
-        },
-    }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 }),
     __metadata("design:type", Number)
 ], Proveedor.prototype, "PorcentajeDescuentoProveedor", void 0);
 __decorate([
@@ -172,7 +151,7 @@ __decorate([
 ], Proveedor.prototype, "articulos", void 0);
 __decorate([
     (0, graphql_1.Field)(() => rubro_entity_1.Rubro, { nullable: true }),
-    (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, rubro => rubro.proveedores),
+    (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, rubro => rubro.proveedores, { createForeignKeyConstraints: false }),
     (0, typeorm_1.JoinColumn)({ name: 'rubroId' }),
     __metadata("design:type", rubro_entity_1.Rubro)
 ], Proveedor.prototype, "rubro", void 0);
@@ -181,6 +160,11 @@ __decorate([
     (0, graphql_1.Field)(() => [cuenta_corriente_entity_1.CuentaCorriente], { nullable: true }),
     __metadata("design:type", Array)
 ], Proveedor.prototype, "cuentasCorrientes", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => orden_compra_entity_1.OrdenCompra, (oc) => oc.proveedor),
+    (0, graphql_1.Field)(() => [orden_compra_entity_1.OrdenCompra], { nullable: true }),
+    __metadata("design:type", Array)
+], Proveedor.prototype, "ordenesCompra", void 0);
 exports.Proveedor = Proveedor = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('tbproveedores')

@@ -18,7 +18,7 @@ export class VentasResolver {
   @Permisos('ventas.create')
   crearVenta(
     @Args('clienteId', { type: () => Int }) clienteId: number,
-    @Args('usuarioId', { type: () => Int }) usuarioId: number,
+    @Args('usuarioAuthId', { type: () => String }) usuarioAuthId: string,
     @Args('tipoPago', { type: () => TipoPago }) tipoPago: TipoPago,
     @Args('detalles', { type: () => [DetalleVentaInput] }) detalles: DetalleVentaInput[],
     @Args('descuentoGeneral', { defaultValue: 0 }) descuentoGeneral: number,
@@ -26,7 +26,7 @@ export class VentasResolver {
   ) {
     return this.ventasService.crearVenta(
       clienteId,
-      usuarioId,
+      usuarioAuthId,
       tipoPago,
       detalles,
       descuentoGeneral,
@@ -52,10 +52,10 @@ export class VentasResolver {
     return this.ventasService.obtenerVentasPorCliente(clienteId);
   }
 
-  @Query(() => [Venta], { name: 'ventasPorUsuario' })
+  @Query(() => [Venta], { name: 'ventasPorUsuarioAuth' })
   @Permisos('ventas.read')
-  obtenerVentasPorUsuario(@Args('usuarioId', { type: () => Int }) usuarioId: number) {
-    return this.ventasService.obtenerVentasPorUsuario(usuarioId);
+  obtenerVentasPorUsuarioAuth(@Args('usuarioAuthId', { type: () => String }) usuarioAuthId: string) {
+    return this.ventasService.obtenerVentasPorUsuarioAuth(usuarioAuthId);
   }
 
   @Query(() => [Venta], { name: 'ventasPorFecha' })

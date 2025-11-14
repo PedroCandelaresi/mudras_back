@@ -13,8 +13,8 @@ exports.MovimientoInventario = exports.TipoMovimientoInventario = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
-const usuario_entity_1 = require("../../usuarios/entities/usuario.entity");
-const puesto_venta_entity_1 = require("./puesto-venta.entity");
+const user_entity_1 = require("../../users-auth/entities/user.entity");
+const punto_mudras_entity_1 = require("../../puntos-mudras/entities/punto-mudras.entity");
 const venta_caja_entity_1 = require("./venta-caja.entity");
 var TipoMovimientoInventario;
 (function (TipoMovimientoInventario) {
@@ -42,27 +42,28 @@ __decorate([
     __metadata("design:type", Number)
 ], MovimientoInventario.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ name: 'articulo_id' }),
     __metadata("design:type", Number)
 ], MovimientoInventario.prototype, "articuloId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => articulo_entity_1.Articulo),
-    (0, typeorm_1.JoinColumn)({ name: 'articuloId' }),
+    (0, typeorm_1.JoinColumn)({ name: 'articulo_id' }),
     (0, graphql_1.Field)(() => articulo_entity_1.Articulo),
     __metadata("design:type", articulo_entity_1.Articulo)
 ], MovimientoInventario.prototype, "articulo", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ name: 'punto_mudras_id', nullable: true }),
     __metadata("design:type", Number)
-], MovimientoInventario.prototype, "puestoVentaId", void 0);
+], MovimientoInventario.prototype, "puntoMudrasId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => puesto_venta_entity_1.PuestoVenta, { nullable: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'puestoVentaId' }),
-    (0, graphql_1.Field)(() => puesto_venta_entity_1.PuestoVenta, { nullable: true }),
-    __metadata("design:type", puesto_venta_entity_1.PuestoVenta)
-], MovimientoInventario.prototype, "puestoVenta", void 0);
+    (0, typeorm_1.ManyToOne)(() => punto_mudras_entity_1.PuntoMudras, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'punto_mudras_id' }),
+    (0, graphql_1.Field)(() => punto_mudras_entity_1.PuntoMudras, { nullable: true }),
+    __metadata("design:type", punto_mudras_entity_1.PuntoMudras)
+], MovimientoInventario.prototype, "puntoMudras", void 0);
 __decorate([
     (0, typeorm_1.Column)({
+        name: 'tipo_movimiento',
         type: 'enum',
         enum: TipoMovimientoInventario,
     }),
@@ -75,22 +76,7 @@ __decorate([
     __metadata("design:type", Number)
 ], MovimientoInventario.prototype, "cantidad", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 3 }),
-    (0, graphql_1.Field)(),
-    __metadata("design:type", Number)
-], MovimientoInventario.prototype, "stockAnterior", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 3 }),
-    (0, graphql_1.Field)(),
-    __metadata("design:type", Number)
-], MovimientoInventario.prototype, "stockNuevo", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 12, scale: 2, nullable: true }),
-    (0, graphql_1.Field)({ nullable: true }),
-    __metadata("design:type", Number)
-], MovimientoInventario.prototype, "costoUnitario", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'decimal', precision: 12, scale: 2, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'precio_venta', type: 'decimal', precision: 12, scale: 2, nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", Number)
 ], MovimientoInventario.prototype, "precioVenta", void 0);
@@ -100,37 +86,37 @@ __decorate([
     __metadata("design:type", String)
 ], MovimientoInventario.prototype, "observaciones", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 50, nullable: true }),
+    (0, typeorm_1.Column)({ name: 'numero_comprobante', length: 50, nullable: true }),
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], MovimientoInventario.prototype, "numeroComprobante", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ name: 'venta_caja_id', nullable: true }),
     __metadata("design:type", Number)
 ], MovimientoInventario.prototype, "ventaCajaId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => venta_caja_entity_1.VentaCaja, { nullable: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'ventaCajaId' }),
+    (0, typeorm_1.JoinColumn)({ name: 'venta_caja_id' }),
     (0, graphql_1.Field)(() => venta_caja_entity_1.VentaCaja, { nullable: true }),
     __metadata("design:type", venta_caja_entity_1.VentaCaja)
 ], MovimientoInventario.prototype, "ventaCaja", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'datetime' }),
+    (0, typeorm_1.Column)({ name: 'fecha', type: 'datetime' }),
     (0, graphql_1.Field)(),
     __metadata("design:type", Date)
 ], MovimientoInventario.prototype, "fecha", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], MovimientoInventario.prototype, "usuarioId", void 0);
+    (0, typeorm_1.Column)({ name: 'usuarioAuthId', type: 'char', length: 36 }),
+    (0, graphql_1.Field)(),
+    __metadata("design:type", String)
+], MovimientoInventario.prototype, "usuarioAuthId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => usuario_entity_1.Usuario),
-    (0, typeorm_1.JoinColumn)({ name: 'usuarioId' }),
-    (0, graphql_1.Field)(() => usuario_entity_1.Usuario),
-    __metadata("design:type", usuario_entity_1.Usuario)
-], MovimientoInventario.prototype, "usuario", void 0);
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserAuth),
+    (0, typeorm_1.JoinColumn)({ name: 'usuarioAuthId' }),
+    __metadata("design:type", user_entity_1.UserAuth)
+], MovimientoInventario.prototype, "usuarioAuth", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)(),
+    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     (0, graphql_1.Field)(),
     __metadata("design:type", Date)
 ], MovimientoInventario.prototype, "creadoEn", void 0);
@@ -138,10 +124,9 @@ exports.MovimientoInventario = MovimientoInventario = __decorate([
     (0, typeorm_1.Entity)('movimientos_inventario'),
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Index)(['articuloId']),
-    (0, typeorm_1.Index)(['puestoVentaId']),
     (0, typeorm_1.Index)(['tipoMovimiento']),
     (0, typeorm_1.Index)(['fecha']),
-    (0, typeorm_1.Index)(['usuarioId']),
+    (0, typeorm_1.Index)(['usuarioAuthId']),
     (0, typeorm_1.Index)(['ventaCajaId'])
 ], MovimientoInventario);
 //# sourceMappingURL=movimiento-inventario.entity.js.map

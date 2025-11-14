@@ -1,10 +1,11 @@
-import { InputType, Field, Float, ID } from '@nestjs/graphql';
-import { IsString, IsNumber, IsOptional, IsBoolean, IsEnum, IsArray, IsDateString, Min, Max } from 'class-validator';
-import { EstadoArticulo } from '../entities/articulo.entity';
+import { InputType, Field, Float, ID, Int } from '@nestjs/graphql';
+import { IsString, IsNumber, IsOptional, IsBoolean, IsDateString, Min, Max } from 'class-validator';
+import { Type } from 'class-transformer';
 
 @InputType()
 export class ActualizarArticuloDto {
   @Field(() => ID)
+  @Type(() => Number)
   @IsNumber()
   id: number;
 
@@ -52,39 +53,124 @@ export class ActualizarArticuloDto {
   @Min(0)
   stockMinimo?: number;
 
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  deposito?: number;
+
+  @Field(() => Float, { nullable: true, description: 'Alicuota de IVA: 10.5 o 21 (porcentaje).' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  AlicuotaIva?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsDateString()
+  FechaCompra?: string;
+
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  idProveedor?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  Lista2?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  Lista3?: number;
+
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
   Unidad?: string;
 
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  Lista4?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  PorcentajeGanancia?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  Calculado?: boolean;
+
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  unidadMedida?: string;
+  CodigoProv?: string;
 
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
-  @Min(0.001)
-  cantidadPorEmpaque?: number;
+  CostoPromedio?: number;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  CostoEnDolares?: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsDateString()
+  FechaModif?: string;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  PrecioListaProveedor?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  StockInicial?: number;
 
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
-  tipoEmpaque?: string;
+  Ubicacion?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  Lista1EnDolares?: boolean;
 
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
-  @Min(0)
-  @Max(100)
-  descuentoPorcentaje?: number;
+  Dto1?: number;
 
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
+  Dto2?: number;
+
+  @Field(() => Float, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  Dto3?: number;
+
+  @Field(() => Float, { nullable: true, description: 'Impuesto fijo aplicado si corresponde.' })
+  @IsOptional()
+  @IsNumber()
   @Min(0)
-  descuentoMonto?: number;
+  Impuesto?: number;
+
+  @Field({ nullable: true, description: 'True si el impuesto es porcentual (IVA).' })
+  @IsOptional()
+  @IsBoolean()
+  ImpuestoPorcentual?: boolean;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -93,52 +179,16 @@ export class ActualizarArticuloDto {
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsDateString()
-  fechaInicioPromocion?: string;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsDateString()
-  fechaFinPromocion?: string;
+  @IsBoolean()
+  UsaTalle?: boolean;
 
   @Field({ nullable: true })
   @IsOptional()
   @IsBoolean()
-  publicadoEnTienda?: boolean;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  descripcionTienda?: string;
-
-  @Field(() => [String], { nullable: true })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  imagenesUrls?: string[];
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsString()
-  codigoBarras?: string;
+  Compuesto?: boolean;
 
   @Field({ nullable: true })
   @IsOptional()
   @IsBoolean()
-  manejaStock?: boolean;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsNumber()
-  idProveedor?: number;
-
-  @Field({ nullable: true })
-  @IsOptional()
-  @IsNumber()
-  rubroId?: number;
-
-  @Field(() => EstadoArticulo, { nullable: true })
-  @IsOptional()
-  @IsEnum(EstadoArticulo)
-  estado?: EstadoArticulo;
+  Combustible?: boolean;
 }

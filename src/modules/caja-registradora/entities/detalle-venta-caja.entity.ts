@@ -12,47 +12,47 @@ export class DetalleVentaCaja {
   @Field(() => ID)
   id: number;
 
-  @Column()
+  @Column({ name: 'venta_id' })
   ventaId: number;
 
   @ManyToOne(() => VentaCaja, venta => venta.detalles)
-  @JoinColumn({ name: 'ventaId' })
+  @JoinColumn({ name: 'venta_id' })
   @Field(() => VentaCaja)
   venta: VentaCaja;
 
-  @Column()
+  @Column({ name: 'articulo_id' })
   articuloId: number;
 
   @ManyToOne(() => Articulo)
-  @JoinColumn({ name: 'articuloId' })
+  @JoinColumn({ name: 'articulo_id' })
   @Field(() => Articulo)
   articulo: Articulo;
 
-  @Column({ type: 'decimal', precision: 10, scale: 3 })
+  @Column({ name: 'cantidad', type: 'decimal', precision: 10, scale: 3 })
   @Field()
   cantidad: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  @Column({ name: 'precio_unitario', type: 'decimal', precision: 12, scale: 2 })
   @Field()
   precioUnitario: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ name: 'descuento_porcentaje', type: 'decimal', precision: 5, scale: 2, default: 0 })
   @Field()
   descuentoPorcentaje: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ name: 'descuento_monto', type: 'decimal', precision: 12, scale: 2, default: 0 })
   @Field()
   descuentoMonto: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2 })
+  @Column({ name: 'subtotal', type: 'decimal', precision: 12, scale: 2 })
   @Field()
   subtotal: number;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ name: 'observaciones', type: 'text', nullable: true })
   @Field({ nullable: true })
   observaciones?: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   @Field()
   creadoEn: Date;
 }

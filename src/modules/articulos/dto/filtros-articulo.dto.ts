@@ -1,6 +1,5 @@
 import { InputType, Field, Float } from '@nestjs/graphql';
-import { IsString, IsNumber, IsOptional, IsBoolean, IsEnum } from 'class-validator';
-import { EstadoArticulo } from '../entities/articulo.entity';
+import { IsString, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 
 @InputType()
 export class FiltrosArticuloDto {
@@ -33,11 +32,6 @@ export class FiltrosArticuloDto {
   @IsOptional()
   @IsNumber()
   proveedorId?: number;
-
-  @Field(() => EstadoArticulo, { nullable: true })
-  @IsOptional()
-  @IsEnum(EstadoArticulo)
-  estado?: EstadoArticulo;
 
   @Field({ nullable: true })
   @IsOptional()
@@ -90,4 +84,3 @@ export class FiltrosArticuloDto {
   @IsString()
   direccionOrden: 'ASC' | 'DESC';
 }
-

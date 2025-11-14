@@ -1,11 +1,9 @@
 import { Articulo } from '../../articulos/entities/articulo.entity';
-import { PuestoVenta } from './puesto-venta.entity';
 export declare class SnapshotInventarioMensual {
     id: number;
     articuloId: number;
     articulo: Articulo;
     puestoVentaId?: number;
-    puestoVenta?: PuestoVenta;
     anio: number;
     mes: number;
     stockInicial: number;

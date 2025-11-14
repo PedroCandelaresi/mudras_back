@@ -13,7 +13,6 @@ exports.SnapshotInventarioMensual = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
-const puesto_venta_entity_1 = require("./puesto-venta.entity");
 let SnapshotInventarioMensual = class SnapshotInventarioMensual {
 };
 exports.SnapshotInventarioMensual = SnapshotInventarioMensual;
@@ -36,12 +35,6 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", Number)
 ], SnapshotInventarioMensual.prototype, "puestoVentaId", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => puesto_venta_entity_1.PuestoVenta, { nullable: true }),
-    (0, typeorm_1.JoinColumn)({ name: 'puestoVentaId' }),
-    (0, graphql_1.Field)(() => puesto_venta_entity_1.PuestoVenta, { nullable: true }),
-    __metadata("design:type", puesto_venta_entity_1.PuestoVenta)
-], SnapshotInventarioMensual.prototype, "puestoVenta", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'int' }),
     (0, graphql_1.Field)(),
@@ -101,8 +94,6 @@ exports.SnapshotInventarioMensual = SnapshotInventarioMensual = __decorate([
     (0, typeorm_1.Entity)('snapshots_inventario_mensual'),
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Index)(['articuloId']),
-    (0, typeorm_1.Index)(['puestoVentaId']),
-    (0, typeorm_1.Index)(['anio', 'mes']),
-    (0, typeorm_1.Index)(['anio', 'mes', 'articuloId', 'puestoVentaId'], { unique: true })
+    (0, typeorm_1.Index)(['anio', 'mes'])
 ], SnapshotInventarioMensual);
 //# sourceMappingURL=snapshot-inventario.entity.js.map

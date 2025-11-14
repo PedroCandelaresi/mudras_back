@@ -9,6 +9,7 @@ import { PuntosMudrasService } from './puntos-mudras.service';
 import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
+import { Articulo } from '../articulos/entities/articulo.entity';
 
 @ObjectType()
 export class RubroInfo {
@@ -74,6 +75,9 @@ export class ArticuloConStockPuntoMudras {
 
   @Field(() => RubroInfo, { nullable: true })
   rubro?: RubroInfo;
+
+  @Field(() => Articulo, { nullable: true })
+  articulo?: Articulo;
 }
 
 @ObjectType()

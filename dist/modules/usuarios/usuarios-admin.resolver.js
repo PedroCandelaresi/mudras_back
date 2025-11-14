@@ -24,6 +24,7 @@ const permissions_guard_1 = require("../auth/guards/permissions.guard");
 const permissions_decorator_1 = require("../auth/decorators/permissions.decorator");
 const usuarios_service_1 = require("./usuarios.service");
 const usuario_entity_1 = require("./entities/usuario.entity");
+const usuarios_auth_dto_2 = require("./dto/usuarios-auth.dto");
 let UsuariosAdminResolver = class UsuariosAdminResolver {
     constructor(usersService, usuariosGestionService) {
         this.usersService = usersService;
@@ -63,14 +64,29 @@ let UsuariosAdminResolver = class UsuariosAdminResolver {
     async listarUsuariosGestionPorRol(rol) {
         console.log('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:start', { rol });
         try {
-            const resultado = await this.usuariosGestionService.findByRol(rol);
-            console.log('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:resultado', { rol, cantidad: resultado?.length ?? 0 });
-            return resultado;
+            const porRolInterno = await this.usuariosGestionService.findByRol(rol);
+            let porRolAuth = [];
+            if (rol === usuario_entity_1.RolUsuario.CAJA) {
+                porRolAuth = await this.usuariosGestionService.findByAuthRolSlug('caja_registradora');
+            }
+            const mapa = new Map();
+            for (const u of porRolInterno)
+                mapa.set(u.id, u);
+            for (const u of porRolAuth)
+                mapa.set(u.id, u);
+            const salida = Array.from(mapa.values()).sort((a, b) => `${a.nombre} ${a.apellido}`.localeCompare(`${b.nombre} ${b.apellido}`));
+            console.log('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:resultado', { rol, cantidad: salida?.length ?? 0 });
+            return salida;
         }
         catch (error) {
             console.error('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:error', { rol, error });
             throw error;
         }
+    }
+    async usuariosCajaAuth(rolSlug) {
+        const slug = (rolSlug && rolSlug.trim()) || 'caja_registradora';
+        const users = await this.usersService.listarEmpresaPorRolSlug(slug);
+        return users.map((u) => ({ id: u.id, username: u.username, email: u.email, displayName: u.displayName }));
     }
 };
 exports.UsuariosAdminResolver = UsuariosAdminResolver;
@@ -132,6 +148,14 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], UsuariosAdminResolver.prototype, "listarUsuariosGestionPorRol", null);
+__decorate([
+    (0, permissions_decorator_1.Permisos)('caja.read'),
+    (0, graphql_1.Query)(() => [usuarios_auth_dto_2.UsuarioCajaAuthModel], { name: 'usuariosCajaAuth' }),
+    __param(0, (0, graphql_1.Args)('rolSlug', { type: () => String, nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UsuariosAdminResolver.prototype, "usuariosCajaAuth", null);
 exports.UsuariosAdminResolver = UsuariosAdminResolver = __decorate([
     (0, graphql_1.Resolver)(() => usuarios_auth_dto_1.UsuarioAuthResumenModel),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),

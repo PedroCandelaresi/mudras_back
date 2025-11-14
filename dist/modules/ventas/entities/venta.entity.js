@@ -13,7 +13,7 @@ exports.Venta = exports.TipoPago = exports.EstadoVenta = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const cliente_entity_1 = require("../../clientes/entities/cliente.entity");
-const usuario_entity_1 = require("../../usuarios/entities/usuario.entity");
+const user_entity_1 = require("../../users-auth/entities/user.entity");
 const detalle_venta_entity_1 = require("./detalle-venta.entity");
 var EstadoVenta;
 (function (EstadoVenta) {
@@ -68,15 +68,15 @@ __decorate([
     __metadata("design:type", cliente_entity_1.Cliente)
 ], Venta.prototype, "cliente", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", Number)
-], Venta.prototype, "usuarioId", void 0);
+    (0, typeorm_1.Column)({ name: 'usuarioAuthId', type: 'char', length: 36 }),
+    (0, graphql_1.Field)(),
+    __metadata("design:type", String)
+], Venta.prototype, "usuarioAuthId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => usuario_entity_1.Usuario),
-    (0, typeorm_1.JoinColumn)({ name: 'usuarioId' }),
-    (0, graphql_1.Field)(() => usuario_entity_1.Usuario),
-    __metadata("design:type", usuario_entity_1.Usuario)
-], Venta.prototype, "usuario", void 0);
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.UserAuth),
+    (0, typeorm_1.JoinColumn)({ name: 'usuarioAuthId' }),
+    __metadata("design:type", user_entity_1.UserAuth)
+], Venta.prototype, "usuarioAuth", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
@@ -164,7 +164,7 @@ exports.Venta = Venta = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Index)(['numero'], { unique: true }),
     (0, typeorm_1.Index)(['clienteId']),
-    (0, typeorm_1.Index)(['usuarioId']),
+    (0, typeorm_1.Index)(['usuarioAuthId']),
     (0, typeorm_1.Index)(['estado']),
     (0, typeorm_1.Index)(['fecha']),
     (0, typeorm_1.Index)(['tipoPago'])

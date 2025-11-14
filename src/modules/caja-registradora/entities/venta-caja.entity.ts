@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { Cliente } from '../../clientes/entities/cliente.entity';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { PuestoVenta } from './puesto-venta.entity';
+import { UserAuth } from '../../users-auth/entities/user.entity';
+import { PuntoMudras } from '../../puntos-mudras/entities/punto-mudras.entity';
 import { DetalleVentaCaja } from './detalle-venta-caja.entity';
 import { PagoCaja } from './pago-caja.entity';
 import { ComprobanteAfip } from './comprobante-afip.entity';
@@ -37,8 +37,7 @@ registerEnumType(EstadoVentaCaja, {
 @ObjectType()
 @Index(['numeroVenta'], { unique: true })
 @Index(['clienteId'])
-@Index(['usuarioId'])
-@Index(['puestoVentaId'])
+@Index(['usuarioAuthId'])
 @Index(['estado'])
 @Index(['fecha'])
 @Index(['tipoVenta'])
@@ -47,15 +46,16 @@ export class VentaCaja {
   @Field(() => ID)
   id: number;
 
-  @Column({ length: 20, unique: true })
+  @Column({ name: 'numero_venta', length: 20, unique: true })
   @Field()
   numeroVenta: string;
 
-  @Column({ type: 'datetime' })
+  @Column({ name: 'fecha', type: 'datetime' })
   @Field()
   fecha: Date;
 
   @Column({
+    name: 'tipo_venta',
     type: 'enum',
     enum: TipoVentaCaja,
   })
@@ -63,6 +63,7 @@ export class VentaCaja {
   tipoVenta: TipoVentaCaja;
 
   @Column({
+    name: 'estado',
     type: 'enum',
     enum: EstadoVentaCaja,
     default: EstadoVentaCaja.BORRADOR,
@@ -70,39 +71,41 @@ export class VentaCaja {
   @Field(() => EstadoVentaCaja)
   estado: EstadoVentaCaja;
 
-  @Column()
-  puestoVentaId: number;
+  // Nuevo origen de venta: Punto Mudras de tipo 'venta'
+  @Column({ name: 'punto_mudras_id' })
+  @Field(() => Number)
+  puntoMudrasId: number;
 
-  @ManyToOne(() => PuestoVenta, puesto => puesto.ventas)
-  @JoinColumn({ name: 'puestoVentaId' })
-  @Field(() => PuestoVenta)
-  puestoVenta: PuestoVenta;
+  @ManyToOne(() => PuntoMudras)
+  @JoinColumn({ name: 'punto_mudras_id' })
+  @Field(() => PuntoMudras)
+  puntoMudras: PuntoMudras;
 
-  @Column()
-  clienteId: number;
+  @Column({ name: 'cliente_id', nullable: true })
+  clienteId?: number | null;
 
-  @ManyToOne(() => Cliente, cliente => cliente.ventas)
-  @JoinColumn({ name: 'clienteId' })
-  @Field(() => Cliente)
-  cliente: Cliente;
+  @ManyToOne(() => Cliente, cliente => cliente.ventas, { nullable: true })
+  @JoinColumn({ name: 'cliente_id' })
+  @Field(() => Cliente, { nullable: true })
+  cliente?: Cliente | null;
 
-  @Column()
-  usuarioId: number;
+  @Column({ name: 'usuarioAuthId', type: 'char', length: 36 })
+  @Field()
+  usuarioAuthId: string;
 
-  @ManyToOne(() => Usuario)
-  @JoinColumn({ name: 'usuarioId' })
-  @Field(() => Usuario)
-  usuario: Usuario;
+  @ManyToOne(() => UserAuth)
+  @JoinColumn({ name: 'usuarioAuthId' })
+  usuarioAuth: UserAuth;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
   @Field()
   subtotal: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
+  @Column({ name: 'descuento_porcentaje', type: 'decimal', precision: 5, scale: 2, default: 0 })
   @Field()
   descuentoPorcentaje: number;
 
-  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  @Column({ name: 'descuento_monto', type: 'decimal', precision: 12, scale: 2, default: 0 })
   @Field()
   descuentoMonto: number;
 
@@ -122,20 +125,20 @@ export class VentaCaja {
   @Field({ nullable: true })
   observaciones?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'venta_original_id', nullable: true })
   @Field({ nullable: true })
   ventaOriginalId?: number; // Para devoluciones
 
   @ManyToOne(() => VentaCaja, { nullable: true })
-  @JoinColumn({ name: 'ventaOriginalId' })
+  @JoinColumn({ name: 'venta_original_id' })
   @Field(() => VentaCaja, { nullable: true })
   ventaOriginal?: VentaCaja;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   @Field()
   creadoEn: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   @Field()
   actualizadoEn: Date;
 

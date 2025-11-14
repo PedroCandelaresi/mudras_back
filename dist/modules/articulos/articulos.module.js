@@ -13,12 +13,14 @@ const articulos_service_1 = require("./articulos.service");
 const articulos_resolver_1 = require("./articulos.resolver");
 const articulo_entity_1 = require("./entities/articulo.entity");
 const auth_module_1 = require("../auth/auth.module");
+const rubro_entity_1 = require("../rubros/entities/rubro.entity");
+const stock_punto_mudras_entity_1 = require("../puntos-mudras/entities/stock-punto-mudras.entity");
 let ArticulosModule = class ArticulosModule {
 };
 exports.ArticulosModule = ArticulosModule;
 exports.ArticulosModule = ArticulosModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([articulo_entity_1.Articulo]), auth_module_1.AuthModule],
+        imports: [typeorm_1.TypeOrmModule.forFeature([articulo_entity_1.Articulo, rubro_entity_1.Rubro, stock_punto_mudras_entity_1.StockPuntoMudras]), auth_module_1.AuthModule],
         providers: [articulos_resolver_1.ArticulosResolver, articulos_service_1.ArticulosService],
         exports: [articulos_service_1.ArticulosService],
     })

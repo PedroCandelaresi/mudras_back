@@ -15,7 +15,6 @@ const caja_registradora_resolver_1 = require("./resolvers/caja-registradora.reso
 const venta_caja_entity_1 = require("./entities/venta-caja.entity");
 const detalle_venta_caja_entity_1 = require("./entities/detalle-venta-caja.entity");
 const pago_caja_entity_1 = require("./entities/pago-caja.entity");
-const puesto_venta_entity_1 = require("./entities/puesto-venta.entity");
 const comprobante_afip_entity_1 = require("./entities/comprobante-afip.entity");
 const movimiento_inventario_entity_1 = require("./entities/movimiento-inventario.entity");
 const snapshot_inventario_entity_1 = require("./entities/snapshot-inventario.entity");
@@ -23,6 +22,7 @@ const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const cliente_entity_1 = require("../clientes/entities/cliente.entity");
 const stock_punto_mudras_entity_1 = require("../puntos-mudras/entities/stock-punto-mudras.entity");
 const movimiento_stock_punto_entity_1 = require("../puntos-mudras/entities/movimiento-stock-punto.entity");
+const punto_mudras_entity_1 = require("../puntos-mudras/entities/punto-mudras.entity");
 let CajaRegistradoraModule = class CajaRegistradoraModule {
 };
 exports.CajaRegistradoraModule = CajaRegistradoraModule;
@@ -33,13 +33,13 @@ exports.CajaRegistradoraModule = CajaRegistradoraModule = __decorate([
                 venta_caja_entity_1.VentaCaja,
                 detalle_venta_caja_entity_1.DetalleVentaCaja,
                 pago_caja_entity_1.PagoCaja,
-                puesto_venta_entity_1.PuestoVenta,
                 comprobante_afip_entity_1.ComprobanteAfip,
                 movimiento_inventario_entity_1.MovimientoInventario,
                 snapshot_inventario_entity_1.SnapshotInventarioMensual,
                 articulo_entity_1.Articulo,
                 cliente_entity_1.Cliente,
                 stock_punto_mudras_entity_1.StockPuntoMudras,
+                punto_mudras_entity_1.PuntoMudras,
                 movimiento_stock_punto_entity_1.MovimientoStockPunto,
             ]),
         ],

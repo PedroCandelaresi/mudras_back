@@ -15,7 +15,7 @@ export class VentasService {
 
   async crearVenta(
     clienteId: number,
-    usuarioId: number,
+    usuarioAuthId: string,
     tipoPago: TipoPago,
     detalles: Array<{
       articuloId: number;
@@ -46,7 +46,7 @@ export class VentasService {
     const venta = this.ventasRepository.create({
       numero: `V-${Date.now()}`, // Generar número único temporal
       clienteId,
-      usuarioId,
+      usuarioAuthId,
       tipoPago,
       subtotal,
       descuentoMonto: montoDescuento,
@@ -79,7 +79,7 @@ export class VentasService {
 
   async findAll(): Promise<Venta[]> {
     return this.ventasRepository.find({
-      relations: ['cliente', 'usuario', 'detalles', 'detalles.articulo'],
+      relations: ['cliente', 'usuarioAuth', 'detalles', 'detalles.articulo'],
       order: { creadoEn: 'DESC' },
     });
   }
@@ -87,7 +87,7 @@ export class VentasService {
   async obtenerVenta(id: number): Promise<Venta> {
     const venta = await this.ventasRepository.findOne({
       where: { id },
-      relations: ['cliente', 'usuario', 'detalles', 'detalles.articulo'],
+      relations: ['cliente', 'usuarioAuth', 'detalles', 'detalles.articulo'],
     });
 
     if (!venta) {
@@ -105,9 +105,9 @@ export class VentasService {
     });
   }
 
-  async obtenerVentasPorUsuario(usuarioId: number): Promise<Venta[]> {
+  async obtenerVentasPorUsuarioAuth(usuarioAuthId: string): Promise<Venta[]> {
     return this.ventasRepository.find({
-      where: { usuarioId },
+      where: { usuarioAuthId },
       relations: ['cliente', 'detalles', 'detalles.articulo'],
       order: { creadoEn: 'DESC' },
     });
@@ -117,7 +117,7 @@ export class VentasService {
     return this.ventasRepository
       .createQueryBuilder('venta')
       .leftJoinAndSelect('venta.cliente', 'cliente')
-      .leftJoinAndSelect('venta.usuario', 'usuario')
+      .leftJoinAndSelect('venta.usuarioAuth', 'usuarioAuth')
       .leftJoinAndSelect('venta.detalles', 'detalles')
       .leftJoinAndSelect('detalles.articulo', 'articulo')
       .where('venta.fecha >= :fechaDesde AND venta.fecha <= :fechaHasta', {

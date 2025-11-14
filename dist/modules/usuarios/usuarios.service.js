@@ -118,6 +118,22 @@ let UsuariosService = class UsuariosService {
             throw error;
         }
     }
+    async findByAuthRolSlug(rolSlug) {
+        try {
+            const rows = await this.usuariosRepository.query(`SELECT u.*
+         FROM usuarios u
+         JOIN usuarios_auth_map m ON m.usuario_id = u.id
+         JOIN mudras_auth_user_roles ur ON ur.user_id = m.auth_user_id
+         JOIN mudras_auth_roles r ON r.id = ur.role_id
+         WHERE r.slug = ?
+         ORDER BY u.nombre ASC`, [rolSlug]);
+            return rows;
+        }
+        catch (error) {
+            console.error('🛠️ [UsuariosService] findByAuthRolSlug:error', { rolSlug, error });
+            return [];
+        }
+    }
     async createUsuariosEjemplo() {
         const usuariosEjemplo = [
             {

@@ -23,6 +23,12 @@ export declare class UsuariosAuthPaginadosModel {
     items: UsuarioAuthResumenModel[];
     total: number;
 }
+export declare class UsuarioCajaAuthModel {
+    id: string;
+    username?: string | null;
+    email?: string | null;
+    displayName: string;
+}
 export declare class CrearUsuarioAuthInput {
     username: string;
     email?: string;

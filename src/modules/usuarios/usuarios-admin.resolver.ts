@@ -15,6 +15,7 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permisos } from '../auth/decorators/permissions.decorator';
 import { UsuariosService } from './usuarios.service';
 import { RolUsuario, Usuario } from './entities/usuario.entity';
+import { UsuarioCajaAuthModel } from './dto/usuarios-auth.dto';
 
 @Resolver(() => UsuarioAuthResumenModel)
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
@@ -87,12 +88,37 @@ export class UsuariosAdminResolver {
   async listarUsuariosGestionPorRol(@Args('rol', { type: () => RolUsuario }) rol: RolUsuario) {
     console.log('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:start', { rol });
     try {
-      const resultado = await this.usuariosGestionService.findByRol(rol);
-      console.log('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:resultado', { rol, cantidad: resultado?.length ?? 0 });
-      return resultado;
+      // 1) Usuarios por rol interno en tabla `usuarios`
+      const porRolInterno = await this.usuariosGestionService.findByRol(rol);
+
+      // 2) Si el rol es CAJA, sumar también usuarios con rol auth `caja_registradora`
+      let porRolAuth: Usuario[] = [];
+      if (rol === RolUsuario.CAJA) {
+        porRolAuth = await this.usuariosGestionService.findByAuthRolSlug('caja_registradora');
+      }
+
+      // Unificar por id evitando duplicados
+      const mapa = new Map<number, Usuario>();
+      for (const u of porRolInterno) mapa.set(u.id, u);
+      for (const u of porRolAuth) mapa.set(u.id, u);
+      const salida = Array.from(mapa.values()).sort((a, b) => `${a.nombre} ${a.apellido}`.localeCompare(`${b.nombre} ${b.apellido}`));
+
+      console.log('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:resultado', { rol, cantidad: salida?.length ?? 0 });
+      return salida;
     } catch (error) {
       console.error('🛠️ [UsuariosAdminResolver] listarUsuariosGestionPorRol:error', { rol, error });
       throw error;
     }
+  }
+
+  // Nuevo listado de usuarios (solo mudras_auth_users) por rol slug (default: caja_registradora)
+  @Permisos('caja.read')
+  @Query(() => [UsuarioCajaAuthModel], { name: 'usuariosCajaAuth' })
+  async usuariosCajaAuth(
+    @Args('rolSlug', { type: () => String, nullable: true }) rolSlug?: string,
+  ): Promise<UsuarioCajaAuthModel[]> {
+    const slug = (rolSlug && rolSlug.trim()) || 'caja_registradora';
+    const users = await this.usersService.listarEmpresaPorRolSlug(slug);
+    return users.map((u) => ({ id: u.id, username: u.username, email: u.email, displayName: u.displayName }));
   }
 }

@@ -3,7 +3,6 @@ export declare class BuscarArticuloInput {
     codigoBarras?: string;
     sku?: string;
     nombre?: string;
-    puestoVentaId?: number;
     puntoMudrasId?: number;
     limite: number;
 }

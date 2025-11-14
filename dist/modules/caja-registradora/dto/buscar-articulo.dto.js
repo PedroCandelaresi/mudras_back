@@ -42,12 +42,6 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
-], BuscarArticuloInput.prototype, "puestoVentaId", void 0);
-__decorate([
-    (0, graphql_1.Field)({ nullable: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsNumber)(),
-    __metadata("design:type", Number)
 ], BuscarArticuloInput.prototype, "puntoMudrasId", void 0);
 __decorate([
     (0, graphql_1.Field)({ defaultValue: 10 }),

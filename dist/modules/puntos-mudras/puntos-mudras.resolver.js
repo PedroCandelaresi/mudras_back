@@ -24,6 +24,7 @@ const puntos_mudras_service_1 = require("./puntos-mudras.service");
 const punto_mudras_entity_1 = require("./entities/punto-mudras.entity");
 const crear_punto_mudras_dto_1 = require("./dto/crear-punto-mudras.dto");
 const actualizar_punto_mudras_dto_1 = require("./dto/actualizar-punto-mudras.dto");
+const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 let RubroInfo = class RubroInfo {
 };
 exports.RubroInfo = RubroInfo;
@@ -117,6 +118,10 @@ __decorate([
     (0, graphql_1.Field)(() => RubroInfo, { nullable: true }),
     __metadata("design:type", RubroInfo)
 ], ArticuloConStockPuntoMudras.prototype, "rubro", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => articulo_entity_1.Articulo, { nullable: true }),
+    __metadata("design:type", articulo_entity_1.Articulo)
+], ArticuloConStockPuntoMudras.prototype, "articulo", void 0);
 exports.ArticuloConStockPuntoMudras = ArticuloConStockPuntoMudras = __decorate([
     (0, graphql_1.ObjectType)()
 ], ArticuloConStockPuntoMudras);

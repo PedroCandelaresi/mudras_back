@@ -2,6 +2,7 @@ import { PuntosMudrasService } from './puntos-mudras.service';
 import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
+import { Articulo } from '../articulos/entities/articulo.entity';
 export declare class RubroInfo {
     id: number;
     nombre: string;
@@ -27,6 +28,7 @@ export declare class ArticuloConStockPuntoMudras {
     stockAsignado: number;
     stockTotal: number;
     rubro?: RubroInfo;
+    articulo?: Articulo;
 }
 export declare class EstadisticasPuntosMudras {
     totalPuntos: number;

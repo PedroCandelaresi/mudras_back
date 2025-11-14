@@ -137,6 +137,31 @@ export class UsuariosService {
     }
   }
 
+  /**
+   * Lista usuarios internos (tabla `usuarios`) que tengan asignado un rol de autenticación
+   * específico (slug en `mudras_auth_roles`) vía mapeo `usuarios_auth_map`.
+   * Útil para casos donde se asignan roles en auth (p.ej. caja_registradora) y se requiere
+   * reflejarlo en la selección de usuarios de gestión.
+   */
+  async findByAuthRolSlug(rolSlug: string): Promise<Usuario[]> {
+    try {
+      const rows: Usuario[] = await this.usuariosRepository.query(
+        `SELECT u.*
+         FROM usuarios u
+         JOIN usuarios_auth_map m ON m.usuario_id = u.id
+         JOIN mudras_auth_user_roles ur ON ur.user_id = m.auth_user_id
+         JOIN mudras_auth_roles r ON r.id = ur.role_id
+         WHERE r.slug = ?
+         ORDER BY u.nombre ASC`,
+        [rolSlug],
+      );
+      return rows;
+    } catch (error) {
+      console.error('🛠️ [UsuariosService] findByAuthRolSlug:error', { rolSlug, error });
+      return [];
+    }
+  }
+
   async createUsuariosEjemplo(): Promise<void> {
     const usuariosEjemplo = [
       {

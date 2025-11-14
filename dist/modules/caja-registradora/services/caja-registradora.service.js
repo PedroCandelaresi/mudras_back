@@ -20,25 +20,26 @@ const venta_caja_entity_1 = require("../entities/venta-caja.entity");
 const detalle_venta_caja_entity_1 = require("../entities/detalle-venta-caja.entity");
 const pago_caja_entity_1 = require("../entities/pago-caja.entity");
 const movimiento_inventario_entity_1 = require("../entities/movimiento-inventario.entity");
-const puesto_venta_entity_1 = require("../entities/puesto-venta.entity");
+const punto_mudras_entity_1 = require("../../puntos-mudras/entities/punto-mudras.entity");
 const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
 const stock_punto_mudras_entity_1 = require("../../puntos-mudras/entities/stock-punto-mudras.entity");
 const movimiento_stock_punto_entity_1 = require("../../puntos-mudras/entities/movimiento-stock-punto.entity");
 const cliente_entity_1 = require("../../clientes/entities/cliente.entity");
 let CajaRegistradoraService = class CajaRegistradoraService {
-    constructor(ventaCajaRepository, detalleVentaCajaRepository, pagoCajaRepository, movimientoInventarioRepository, puestoVentaRepository, articuloRepository, stockPuntoRepository, dataSource) {
+    constructor(ventaCajaRepository, detalleVentaCajaRepository, pagoCajaRepository, movimientoInventarioRepository, articuloRepository, stockPuntoRepository, puntoMudrasRepository, dataSource) {
         this.ventaCajaRepository = ventaCajaRepository;
         this.detalleVentaCajaRepository = detalleVentaCajaRepository;
         this.pagoCajaRepository = pagoCajaRepository;
         this.movimientoInventarioRepository = movimientoInventarioRepository;
-        this.puestoVentaRepository = puestoVentaRepository;
         this.articuloRepository = articuloRepository;
         this.stockPuntoRepository = stockPuntoRepository;
+        this.puntoMudrasRepository = puntoMudrasRepository;
         this.dataSource = dataSource;
     }
     async buscarArticulos(input) {
         const query = this.articuloRepository.createQueryBuilder('articulo')
-            .leftJoinAndSelect('articulo.rubro', 'rubro');
+            .leftJoinAndSelect('articulo.rubro', 'rubro')
+            .leftJoinAndSelect('articulo.proveedor', 'proveedor');
         if (input.codigoBarras) {
             query.andWhere('articulo.Codigo = :codigoBarras', { codigoBarras: input.codigoBarras });
         }
@@ -53,7 +54,12 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         const articulos = await query.getMany();
         const articulosConStock = [];
         for (const articulo of articulos) {
-            const stockDisponible = await this.calcularStockDisponible(articulo.id, input.puestoVentaId, input.puntoMudrasId);
+            const stockDisponible = await this.calcularStockDisponible(articulo.id, undefined, input.puntoMudrasId);
+            if (input.puntoMudrasId && stockDisponible <= 0) {
+                continue;
+            }
+            const precioFinal = this.calcularPrecioFinalArticulo(articulo);
+            articulo.PrecioVenta = precioFinal;
             articulosConStock.push({
                 ...articulo,
                 stockDisponible,
@@ -63,25 +69,25 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         }
         return articulosConStock;
     }
-    async crearVenta(input, usuarioId) {
+    async crearVenta(input, usuarioAuthId) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
-            const puesto = await queryRunner.manager.findOne(puesto_venta_entity_1.PuestoVenta, {
-                where: { id: input.puestoVentaId, activo: true }
+            if (!input.puntoMudrasId) {
+                throw new common_1.BadRequestException('Debe seleccionar un punto de Mudras de tipo venta');
+            }
+            const punto = await queryRunner.manager.findOne(punto_mudras_entity_1.PuntoMudras, {
+                where: { id: input.puntoMudrasId, activo: true, tipo: punto_mudras_entity_1.TipoPuntoMudras.venta },
             });
-            if (!puesto) {
-                throw new common_1.NotFoundException('Puesto de venta no encontrado o inactivo');
+            if (!punto) {
+                throw new common_1.NotFoundException('Punto de Mudras no encontrado, inactivo o no es de tipo venta');
             }
             if (!input.detalles || input.detalles.length === 0) {
                 throw new common_1.BadRequestException('La venta debe incluir al menos un artículo');
             }
-            const puntoMudrasId = input.puntoMudrasId ?? this.obtenerPuntoMudrasId(puesto);
-            if (puesto.descontarStock && !puntoMudrasId) {
-                throw new common_1.BadRequestException('El puesto de venta seleccionado requiere un punto de stock asociado. Selecciona un punto de Mudras válido.');
-            }
-            if (puesto.descontarStock) {
+            const puntoMudrasId = input.puntoMudrasId;
+            if (punto.manejaStockFisico) {
                 for (const detalle of input.detalles) {
                     const cantidad = Number(detalle.cantidad);
                     if (cantidad <= 0) {
@@ -89,6 +95,10 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                     }
                     await this.verificarStockDisponible(queryRunner, detalle.articuloId, cantidad, puntoMudrasId);
                 }
+            }
+            const hayNoEfectivo = (input.pagos || []).some((p) => String(p.medioPago).toLowerCase() !== 'efectivo');
+            if (hayNoEfectivo && !(input.cuitCliente && String(input.cuitCliente).trim().length >= 7)) {
+                throw new common_1.BadRequestException('DNI/CUIT del cliente requerido para pagos no en efectivo');
             }
             const numeroVenta = await this.generarNumeroVenta(queryRunner);
             const clienteVentaId = await this.obtenerClienteParaVenta(queryRunner, input.clienteId);
@@ -116,9 +126,9 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                 fecha: new Date(),
                 tipoVenta: input.tipoVenta ?? venta_caja_entity_1.TipoVentaCaja.MOSTRADOR,
                 estado: venta_caja_entity_1.EstadoVentaCaja.CONFIRMADA,
-                puestoVentaId: input.puestoVentaId,
-                clienteId: clienteVentaId,
-                usuarioId,
+                puntoMudrasId: puntoMudrasId,
+                clienteId: clienteVentaId ?? null,
+                usuarioAuthId,
                 subtotal,
                 descuentoPorcentaje: Number(input.descuentoPorcentaje || 0),
                 descuentoMonto: descuentoTotal,
@@ -146,11 +156,12 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                     observaciones: detalleInput.observaciones,
                 });
                 await queryRunner.manager.save(detalle_venta_caja_entity_1.DetalleVentaCaja, detalle);
-                if (puesto.descontarStock) {
-                    await this.crearMovimientoInventario(queryRunner, detalleInput.articuloId, input.puestoVentaId, -cantidad, movimiento_inventario_entity_1.TipoMovimientoInventario.VENTA, usuarioId, ventaGuardada.id, precioUnitario, numeroVenta);
-                    await this.ajustarStockArticulo(queryRunner, detalleInput.articuloId, -cantidad);
+                if (punto.manejaStockFisico) {
+                    await this.crearMovimientoInventario(queryRunner, detalleInput.articuloId, puntoMudrasId ?? null, -cantidad, movimiento_inventario_entity_1.TipoMovimientoInventario.VENTA, usuarioAuthId, ventaGuardada.id, precioUnitario, numeroVenta);
+                    const { stockAnterior, stockNuevo } = await this.ajustarStockArticulo(queryRunner, detalleInput.articuloId, -cantidad);
+                    await this.registrarMovimientoStockLegacy(queryRunner, detalleInput.articuloId, stockAnterior, stockNuevo, usuarioAuthId);
                     if (puntoMudrasId) {
-                        await this.ajustarStockPunto(queryRunner, puntoMudrasId, detalleInput.articuloId, -cantidad, usuarioId, numeroVenta, movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.VENTA, `Venta caja ${numeroVenta}`);
+                        await this.ajustarStockPunto(queryRunner, puntoMudrasId, detalleInput.articuloId, -cantidad, usuarioAuthId, numeroVenta, movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.VENTA, `Venta caja ${numeroVenta}`);
                     }
                 }
             }
@@ -162,10 +173,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                     marcaTarjeta: pagoInput.marcaTarjeta,
                     ultimos4Digitos: pagoInput.ultimos4Digitos,
                     cuotas: pagoInput.cuotas ? Number(pagoInput.cuotas) : undefined,
-                    numeroAutorizacion: pagoInput.numeroAutorizacion,
-                    numeroComprobante: pagoInput.numeroComprobante,
+                    numeroComprobante: pagoInput.numeroComprobante || pagoInput.numeroAutorizacion,
                     observaciones: pagoInput.observaciones,
-                    fecha: new Date(),
                 });
                 await queryRunner.manager.save(pago_caja_entity_1.PagoCaja, pago);
             }
@@ -174,7 +183,7 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             await queryRunner.commitTransaction();
             return await this.ventaCajaRepository.findOne({
                 where: { id: ventaGuardada.id },
-                relations: ['puestoVenta', 'cliente', 'usuario', 'detalles', 'detalles.articulo', 'pagos']
+                relations: ['puntoMudras', 'usuarioAuth', 'detalles', 'detalles.articulo', 'pagos']
             });
         }
         catch (error) {
@@ -187,9 +196,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
     }
     async obtenerHistorialVentas(filtros) {
         const query = this.ventaCajaRepository.createQueryBuilder('venta')
-            .leftJoinAndSelect('venta.cliente', 'cliente')
-            .leftJoinAndSelect('venta.usuario', 'usuario')
-            .leftJoinAndSelect('venta.puestoVenta', 'puesto')
+            .leftJoinAndSelect('venta.usuarioAuth', 'usuarioAuth')
+            .leftJoinAndSelect('venta.puntoMudras', 'punto')
             .leftJoinAndSelect('venta.detalles', 'detalles')
             .leftJoinAndSelect('venta.pagos', 'pagos')
             .orderBy('venta.fecha', 'DESC');
@@ -199,11 +207,11 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         if (filtros.fechaHasta) {
             query.andWhere('venta.fecha <= :fechaHasta', { fechaHasta: filtros.fechaHasta });
         }
-        if (filtros.usuarioId) {
-            query.andWhere('venta.usuarioId = :usuarioId', { usuarioId: filtros.usuarioId });
+        if (filtros.usuarioAuthId) {
+            query.andWhere('venta.usuarioAuthId = :usuarioAuthId', { usuarioAuthId: filtros.usuarioAuthId });
         }
-        if (filtros.puestoVentaId) {
-            query.andWhere('venta.puestoVentaId = :puestoVentaId', { puestoVentaId: filtros.puestoVentaId });
+        if (filtros.puntoMudrasId) {
+            query.andWhere('venta.puntoMudrasId = :puntoMudrasId', { puntoMudrasId: filtros.puntoMudrasId });
         }
         if (filtros.estado) {
             query.andWhere('venta.estado = :estado', { estado: filtros.estado });
@@ -224,8 +232,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             numeroVenta: venta.numeroVenta,
             fecha: venta.fecha,
             nombreCliente: venta.cliente?.nombre || 'Cliente Genérico',
-            nombreUsuario: venta.usuario?.nombre || 'Usuario',
-            nombrePuesto: venta.puestoVenta?.nombre || 'Puesto',
+            nombreUsuario: venta?.usuarioAuth?.displayName || 'Usuario',
+            nombrePuesto: venta.puntoMudras?.nombre || 'Punto',
             total: venta.total,
             estado: venta.estado,
             tipoVenta: venta.tipoVenta,
@@ -239,8 +247,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             paginaActual: Math.floor(filtros.offset / filtros.limite) + 1,
         };
     }
-    async calcularStockDisponible(articuloId, puestoVentaId, puntoMudrasId) {
-        const puntoDestinoId = puntoMudrasId ?? (await this.obtenerPuntoDesdePuesto(puestoVentaId));
+    async calcularStockDisponible(articuloId, _puestoVentaId, puntoMudrasId) {
+        const puntoDestinoId = puntoMudrasId;
         if (puntoDestinoId) {
             const stockPunto = await this.stockPuntoRepository.findOne({
                 where: { puntoMudrasId: puntoDestinoId, articuloId },
@@ -253,81 +261,30 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         const articulo = await this.articuloRepository.findOne({
             where: { id: articuloId },
         });
-        return Number(articulo?.Deposito || 0);
+        return Number(articulo?.Stock || 0);
     }
-    async obtenerPuntoDesdePuesto(puestoVentaId) {
-        if (!puestoVentaId) {
-            return undefined;
-        }
-        const puesto = await this.puestoVentaRepository.findOne({ where: { id: puestoVentaId } });
-        if (!puesto) {
-            return undefined;
-        }
-        return this.obtenerPuntoMudrasId(puesto) ?? undefined;
-    }
-    async crearMovimientoInventario(queryRunner, articuloId, puestoVentaId, cantidad, tipoMovimiento, usuarioId, ventaCajaId, precioVenta, numeroComprobante) {
-        const stockAnterior = await this.calcularStockDisponible(articuloId, puestoVentaId);
-        const stockNuevo = stockAnterior + cantidad;
+    async crearMovimientoInventario(queryRunner, articuloId, puntoMudrasId, cantidad, tipoMovimiento, usuarioAuthId, ventaCajaId, precioVenta, numeroComprobante) {
         const movimiento = queryRunner.manager.create(movimiento_inventario_entity_1.MovimientoInventario, {
             articuloId,
-            puestoVentaId,
+            puntoMudrasId: puntoMudrasId ?? undefined,
             tipoMovimiento,
             cantidad,
-            stockAnterior,
-            stockNuevo,
             precioVenta,
             numeroComprobante,
             ventaCajaId,
             fecha: new Date(),
-            usuarioId,
+            usuarioAuthId,
         });
         await queryRunner.manager.save(movimiento_inventario_entity_1.MovimientoInventario, movimiento);
     }
-    obtenerPuntoMudrasId(puesto) {
-        if (!puesto || !puesto.configuracion) {
-            return null;
-        }
-        try {
-            const config = typeof puesto.configuracion === 'string'
-                ? JSON.parse(puesto.configuracion)
-                : puesto.configuracion;
-            const posibleId = config?.puntoMudrasId ??
-                config?.puntoId ??
-                config?.puntoMudras?.id ??
-                config?.puntoMudrasID;
-            if (posibleId === undefined || posibleId === null) {
-                return null;
-            }
-            const parsed = Number(posibleId);
-            return Number.isFinite(parsed) ? parsed : null;
-        }
-        catch {
-            return null;
-        }
-    }
     async obtenerClienteParaVenta(queryRunner, clienteId) {
-        if (clienteId) {
-            const clienteExistente = await queryRunner.manager.findOne(cliente_entity_1.Cliente, { where: { id: clienteId } });
-            if (!clienteExistente) {
-                throw new common_1.NotFoundException('Cliente no encontrado');
-            }
-            return clienteExistente.id;
+        if (!clienteId)
+            return null;
+        const clienteExistente = await queryRunner.manager.findOne(cliente_entity_1.Cliente, { where: { id: clienteId } });
+        if (!clienteExistente) {
+            throw new common_1.NotFoundException('Cliente no encontrado');
         }
-        const nombreGenerico = 'Consumidor Final';
-        let cliente = await queryRunner.manager.findOne(cliente_entity_1.Cliente, { where: { nombre: nombreGenerico } });
-        if (!cliente) {
-            cliente = queryRunner.manager.create(cliente_entity_1.Cliente, {
-                nombre: nombreGenerico,
-                apellido: 'Mostrador',
-                tipo: cliente_entity_1.TipoCliente.MINORISTA,
-                estado: cliente_entity_1.EstadoCliente.ACTIVO,
-                descuentoGeneral: 0,
-                limiteCredito: 0,
-                saldoActual: 0,
-            });
-            cliente = await queryRunner.manager.save(cliente_entity_1.Cliente, cliente);
-        }
-        return cliente.id;
+        return clienteExistente.id;
     }
     async verificarStockDisponible(queryRunner, articuloId, cantidad, puntoMudrasId) {
         const stockGlobal = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_read');
@@ -349,7 +306,7 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         if (!articulo) {
             throw new common_1.NotFoundException(`Artículo con ID ${articuloId} no encontrado`);
         }
-        return Number(articulo.Deposito || 0);
+        return Number(articulo.Stock || 0);
     }
     async obtenerStockPunto(queryRunner, puntoMudrasId, articuloId, lock = 'pessimistic_read') {
         const registro = await queryRunner.manager.findOne(stock_punto_mudras_entity_1.StockPuntoMudras, {
@@ -364,7 +321,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         if (stockNuevo < 0) {
             throw new common_1.BadRequestException(`Stock global insuficiente para el artículo ${articuloId} (resultado: ${stockNuevo})`);
         }
-        await queryRunner.manager.update(articulo_entity_1.Articulo, { id: articuloId }, { Deposito: stockNuevo });
+        await queryRunner.manager.update(articulo_entity_1.Articulo, { id: articuloId }, { Stock: stockNuevo });
+        return { stockAnterior, stockNuevo };
     }
     async ajustarStockPunto(queryRunner, puntoMudrasId, articuloId, delta, usuarioId, referencia, tipoMovimiento, motivo) {
         const registro = await queryRunner.manager.findOne(stock_punto_mudras_entity_1.StockPuntoMudras, {
@@ -389,6 +347,7 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             });
             await queryRunner.manager.save(stock_punto_mudras_entity_1.StockPuntoMudras, nuevoRegistro);
         }
+        const usuarioIdNum = typeof usuarioId === 'string' ? Number(usuarioId) : usuarioId;
         const movimiento = queryRunner.manager.create(movimiento_stock_punto_entity_1.MovimientoStockPunto, {
             puntoMudrasOrigenId: delta < 0 ? puntoMudrasId : undefined,
             puntoMudrasDestinoId: delta > 0 ? puntoMudrasId : undefined,
@@ -397,7 +356,7 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             cantidad: Math.abs(delta),
             cantidadAnterior,
             cantidadNueva,
-            usuarioId,
+            usuarioId: Number.isFinite(usuarioIdNum) ? usuarioIdNum : undefined,
             referenciaExterna: referencia,
             motivo: motivo ?? (tipoMovimiento === movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.VENTA
                 ? `Venta caja ${referencia}`
@@ -407,19 +366,38 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         });
         await queryRunner.manager.save(movimiento_stock_punto_entity_1.MovimientoStockPunto, movimiento);
     }
-    async obtenerPuestosVenta() {
-        return await this.puestoVentaRepository.find({
-            where: { activo: true },
-            order: { nombre: 'ASC' }
-        });
+    async registrarMovimientoStockLegacy(queryRunner, articuloId, stockAnterior, stockNuevo, usuarioAuthId) {
+        try {
+            const art = await queryRunner.manager.findOne(articulo_entity_1.Articulo, { where: { id: articuloId } });
+            const rawCodigo = art?.Codigo ?? String(articuloId);
+            const codigo = String(rawCodigo).substring(0, 20);
+            let usuarioId = null;
+            if (usuarioAuthId) {
+                try {
+                    const rows = await queryRunner.manager.query('SELECT usuario_id AS usuarioId FROM usuarios_auth_map WHERE auth_user_id = ? LIMIT 1', [usuarioAuthId]);
+                    const uid = rows?.[0]?.usuarioId;
+                    if (typeof uid === 'number' && Number.isFinite(uid))
+                        usuarioId = uid;
+                    else if (uid != null) {
+                        const n = Number(uid);
+                        usuarioId = Number.isFinite(n) ? n : null;
+                    }
+                }
+                catch { }
+            }
+            const hoy = new Date();
+            const fechaSql = hoy.toISOString().slice(0, 10);
+            await queryRunner.manager.query('INSERT INTO tbStock (Fecha, Codigo, Stock, StockAnterior, Usuario) VALUES (DATE(?), ?, ?, ?, ?)', [fechaSql, codigo, stockNuevo, stockAnterior, usuarioId]);
+        }
+        catch {
+        }
     }
     async obtenerDetalleVenta(id) {
         return await this.ventaCajaRepository.findOne({
             where: { id },
             relations: [
-                'puestoVenta',
-                'cliente',
-                'usuario',
+                'puntoMudras',
+                'usuarioAuth',
                 'detalles',
                 'detalles.articulo',
                 'detalles.articulo.rubro',
@@ -429,14 +407,14 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             ]
         });
     }
-    async cancelarVenta(id, usuarioId, motivo) {
+    async cancelarVenta(id, usuarioAuthId, motivo) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
             const venta = await queryRunner.manager.findOne(venta_caja_entity_1.VentaCaja, {
                 where: { id },
-                relations: ['detalles', 'puestoVenta']
+                relations: ['detalles', 'puntoMudras']
             });
             if (!venta) {
                 throw new common_1.NotFoundException('Venta no encontrada');
@@ -447,8 +425,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             venta.estado = venta_caja_entity_1.EstadoVentaCaja.CANCELADA;
             venta.observaciones = `${venta.observaciones || ''}\nCANCELADA: ${motivo || 'Sin motivo especificado'}`;
             await queryRunner.manager.save(venta_caja_entity_1.VentaCaja, venta);
-            if (venta.puestoVenta?.descontarStock) {
-                let puntoMudrasId = this.obtenerPuntoMudrasId(venta.puestoVenta);
+            if (venta.puntoMudras) {
+                let puntoMudrasId = venta.puntoMudras?.id ?? null;
                 if (!puntoMudrasId) {
                     const movimientoVenta = await queryRunner.manager.findOne(movimiento_stock_punto_entity_1.MovimientoStockPunto, {
                         where: {
@@ -463,10 +441,11 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                 }
                 for (const detalle of venta.detalles || []) {
                     const cantidad = Number(detalle.cantidad);
-                    await this.crearMovimientoInventario(queryRunner, detalle.articuloId, venta.puestoVentaId, cantidad, movimiento_inventario_entity_1.TipoMovimientoInventario.DEVOLUCION, usuarioId || venta.usuarioId, venta.id, detalle.precioUnitario, `CANCELACION-${venta.numeroVenta}`);
-                    await this.ajustarStockArticulo(queryRunner, detalle.articuloId, cantidad);
+                    await this.crearMovimientoInventario(queryRunner, detalle.articuloId, venta.puntoMudrasId ?? null, cantidad, movimiento_inventario_entity_1.TipoMovimientoInventario.DEVOLUCION, usuarioAuthId || venta.usuarioAuthId, venta.id, detalle.precioUnitario, `CANCELACION-${venta.numeroVenta}`);
+                    const { stockAnterior, stockNuevo } = await this.ajustarStockArticulo(queryRunner, detalle.articuloId, cantidad);
+                    await this.registrarMovimientoStockLegacy(queryRunner, detalle.articuloId, stockAnterior, stockNuevo, usuarioAuthId || venta.usuarioAuthId);
                     if (puntoMudrasId) {
-                        await this.ajustarStockPunto(queryRunner, puntoMudrasId, detalle.articuloId, cantidad, usuarioId || venta.usuarioId, `CANCELACION-${venta.numeroVenta}`, movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.DEVOLUCION, `Cancelación ${venta.numeroVenta}`);
+                        await this.ajustarStockPunto(queryRunner, puntoMudrasId, detalle.articuloId, cantidad, usuarioAuthId || venta.usuarioAuthId, `CANCELACION-${venta.numeroVenta}`, movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.DEVOLUCION, `Cancelación ${venta.numeroVenta}`);
                     }
                 }
             }
@@ -481,14 +460,14 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             await queryRunner.release();
         }
     }
-    async procesarDevolucion(ventaOriginalId, articulosDevolver, usuarioId, motivo) {
+    async procesarDevolucion(ventaOriginalId, articulosDevolver, usuarioAuthId, motivo) {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
         try {
             const ventaOriginal = await queryRunner.manager.findOne(venta_caja_entity_1.VentaCaja, {
                 where: { id: ventaOriginalId },
-                relations: ['detalles', 'puestoVenta', 'cliente']
+                relations: ['detalles', 'puntoMudras']
             });
             if (!ventaOriginal) {
                 throw new common_1.NotFoundException('Venta original no encontrada');
@@ -530,9 +509,9 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                 fecha: new Date(),
                 tipoVenta: ventaOriginal.tipoVenta,
                 estado: venta_caja_entity_1.EstadoVentaCaja.CONFIRMADA,
-                puestoVentaId: ventaOriginal.puestoVentaId,
+                puntoMudrasId: ventaOriginal.puntoMudrasId,
                 clienteId: ventaOriginal.clienteId,
-                usuarioId: usuarioId || ventaOriginal.usuarioId,
+                usuarioAuthId: usuarioAuthId || ventaOriginal.usuarioAuthId,
                 subtotal: -subtotalDevolucion,
                 descuentoPorcentaje: 0,
                 descuentoMonto: 0,
@@ -549,8 +528,8 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                     ...detalleData
                 });
                 await queryRunner.manager.save(detalle_venta_caja_entity_1.DetalleVentaCaja, detalle);
-                if (ventaOriginal.puestoVenta?.descontarStock) {
-                    await this.crearMovimientoInventario(queryRunner, detalleData.articuloId, ventaOriginal.puestoVentaId, Math.abs(detalleData.cantidad), movimiento_inventario_entity_1.TipoMovimientoInventario.DEVOLUCION, usuarioId || ventaOriginal.usuarioId, ventaDevolucionGuardada.id, detalleData.precioUnitario, numeroDevolucion);
+                if (ventaOriginal.puntoMudras) {
+                    await this.crearMovimientoInventario(queryRunner, detalleData.articuloId, ventaOriginal.puntoMudrasId ?? null, Math.abs(detalleData.cantidad), movimiento_inventario_entity_1.TipoMovimientoInventario.DEVOLUCION, usuarioAuthId || ventaOriginal.usuarioAuthId, ventaDevolucionGuardada.id, detalleData.precioUnitario, numeroDevolucion);
                 }
             }
             const totalDevuelto = Math.abs(subtotalDevolucion);
@@ -574,21 +553,73 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         }
     }
     async generarNumeroVenta(queryRunner) {
-        const ultimaVenta = await queryRunner.manager.findOne(venta_caja_entity_1.VentaCaja, {
-            order: { id: 'DESC' }
-        });
+        const ultimaVenta = await queryRunner.manager
+            .createQueryBuilder(venta_caja_entity_1.VentaCaja, 'v')
+            .orderBy('v.id', 'DESC')
+            .getOne();
         const ultimoNumero = ultimaVenta ? parseInt(ultimaVenta.numeroVenta.split('-')[1]) : 0;
         const nuevoNumero = ultimoNumero + 1;
         return `V-${nuevoNumero.toString().padStart(8, '0')}`;
     }
     async generarNumeroDevolucion(queryRunner) {
-        const ultimaDevolucion = await queryRunner.manager.findOne(venta_caja_entity_1.VentaCaja, {
-            where: { numeroVenta: { $like: 'D-%' } },
-            order: { id: 'DESC' }
-        });
+        const ultimaDevolucion = await queryRunner.manager
+            .createQueryBuilder(venta_caja_entity_1.VentaCaja, 'v')
+            .where('v.numeroVenta LIKE :pref', { pref: 'D-%' })
+            .orderBy('v.id', 'DESC')
+            .getOne();
         const ultimoNumero = ultimaDevolucion ? parseInt(ultimaDevolucion.numeroVenta.split('-')[1]) : 0;
         const nuevoNumero = ultimoNumero + 1;
         return `D-${nuevoNumero.toString().padStart(8, '0')}`;
+    }
+    obtenerCostoReferencia(articulo) {
+        const fuentes = [
+            articulo.PrecioCompra,
+            articulo.CostoPromedio,
+            articulo.PrecioListaProveedor,
+        ];
+        for (const fuente of fuentes) {
+            if (fuente != null && !Number.isNaN(Number(fuente))) {
+                const valor = Number(fuente);
+                if (valor > 0) {
+                    return valor;
+                }
+            }
+        }
+        return Number(articulo.PrecioCompra ?? 0) || 0;
+    }
+    aplicarIncremento(base, porcentaje) {
+        const valor = Number(porcentaje ?? 0);
+        if (!valor)
+            return base;
+        const limitado = valor <= -100 ? -99.99 : valor;
+        return base * (1 + limitado / 100);
+    }
+    aplicarDescuento(base, porcentaje) {
+        const valor = Number(porcentaje ?? 0);
+        if (!valor)
+            return base;
+        const limitado = Math.min(95, Math.max(0, valor));
+        return base * (1 - limitado / 100);
+    }
+    calcularPrecioFinalArticulo(articulo) {
+        const costo = this.obtenerCostoReferencia(articulo);
+        if (!costo) {
+            return Number(articulo.PrecioVenta ?? 0) || 0;
+        }
+        let precio = Math.max(0, costo);
+        if (precio === 0) {
+            return Number(articulo.PrecioVenta ?? 0) || 0;
+        }
+        precio = this.aplicarIncremento(precio, articulo.PorcentajeGanancia);
+        precio = this.aplicarIncremento(precio, articulo.rubro?.PorcentajeRecargo);
+        precio = this.aplicarDescuento(precio, articulo.rubro?.PorcentajeDescuento);
+        precio = this.aplicarIncremento(precio, articulo.proveedor?.PorcentajeRecargoProveedor);
+        precio = this.aplicarDescuento(precio, articulo.proveedor?.PorcentajeDescuentoProveedor);
+        precio = this.aplicarIncremento(precio, articulo.AlicuotaIva);
+        if (!Number.isFinite(precio) || precio <= 0) {
+            return Number(articulo.PrecioVenta ?? 0) || 0;
+        }
+        return Number(precio.toFixed(2));
     }
 };
 exports.CajaRegistradoraService = CajaRegistradoraService;
@@ -598,9 +629,9 @@ exports.CajaRegistradoraService = CajaRegistradoraService = __decorate([
     __param(1, (0, typeorm_1.InjectRepository)(detalle_venta_caja_entity_1.DetalleVentaCaja)),
     __param(2, (0, typeorm_1.InjectRepository)(pago_caja_entity_1.PagoCaja)),
     __param(3, (0, typeorm_1.InjectRepository)(movimiento_inventario_entity_1.MovimientoInventario)),
-    __param(4, (0, typeorm_1.InjectRepository)(puesto_venta_entity_1.PuestoVenta)),
-    __param(5, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
-    __param(6, (0, typeorm_1.InjectRepository)(stock_punto_mudras_entity_1.StockPuntoMudras)),
+    __param(4, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
+    __param(5, (0, typeorm_1.InjectRepository)(stock_punto_mudras_entity_1.StockPuntoMudras)),
+    __param(6, (0, typeorm_1.InjectRepository)(punto_mudras_entity_1.PuntoMudras)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
