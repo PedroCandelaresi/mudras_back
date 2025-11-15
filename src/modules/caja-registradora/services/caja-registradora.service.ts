@@ -421,13 +421,6 @@ export class CajaRegistradoraService {
     cantidad: number,
     puntoMudrasId?: number | null,
   ): Promise<void> {
-    const stockGlobal = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_read');
-    if (stockGlobal < cantidad) {
-      throw new BadRequestException(
-        `Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockGlobal}, requiere: ${cantidad})`,
-      );
-    }
-
     if (puntoMudrasId) {
       const stockPunto = await this.obtenerStockPunto(queryRunner, puntoMudrasId, articuloId, 'pessimistic_read');
       if (stockPunto < cantidad) {
@@ -435,6 +428,14 @@ export class CajaRegistradoraService {
           `Stock insuficiente en el punto seleccionado para el artículo ${articuloId} (disponible: ${stockPunto}, requiere: ${cantidad})`,
         );
       }
+      return;
+    }
+
+    const stockGlobal = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_read');
+    if (stockGlobal < cantidad) {
+      throw new BadRequestException(
+        `Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockGlobal}, requiere: ${cantidad})`,
+      );
     }
   }
 
@@ -453,6 +454,23 @@ export class CajaRegistradoraService {
     }
 
     return Number(articulo.Stock || 0);
+  }
+
+  private async obtenerStockTotalPuntos(
+    queryRunner: QueryRunner,
+    articuloId: number,
+  ): Promise<number> {
+    const qb = queryRunner.manager
+      .createQueryBuilder(StockPuntoMudras, 'stock')
+      .select('COALESCE(SUM(stock.cantidad), 0)', 'total')
+      .where('stock.articuloId = :articuloId', { articuloId });
+
+    try {
+      qb.setLock('pessimistic_read');
+    } catch {}
+
+    const resultado = await qb.getRawOne<{ total: string }>();
+    return Number(resultado?.total || 0);
   }
 
   private async obtenerStockPunto(
@@ -474,13 +492,18 @@ export class CajaRegistradoraService {
     articuloId: number,
     delta: number,
   ): Promise<{ stockAnterior: number; stockNuevo: number }> {
-    const stockAnterior = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_write');
-    const stockNuevo = stockAnterior + delta;
+    let stockAnterior = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_write');
+    let stockNuevo = stockAnterior + delta;
 
     if (stockNuevo < 0) {
-      throw new BadRequestException(
-        `Stock global insuficiente para el artículo ${articuloId} (resultado: ${stockNuevo})`,
-      );
+      const stockPuntos = await this.obtenerStockTotalPuntos(queryRunner, articuloId);
+      if (stockPuntos + delta < 0) {
+        throw new BadRequestException(
+          `Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockPuntos}, requiere: ${Math.abs(delta)})`,
+        );
+      }
+      stockAnterior = Math.max(stockAnterior, stockPuntos);
+      stockNuevo = stockAnterior + delta;
     }
 
     await queryRunner.manager.update(Articulo, { id: articuloId }, { Stock: stockNuevo });
