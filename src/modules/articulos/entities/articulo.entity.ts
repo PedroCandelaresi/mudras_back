@@ -62,6 +62,10 @@ export class Articulo {
   @Column({ type: 'int', nullable: true })
   idProveedor: number;
 
+  @Field(() => Int, { nullable: true })
+  @Column({ type: 'int', nullable: true })
+  rubroId: number;
+
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
   Lista2: number;
@@ -163,7 +167,7 @@ export class Articulo {
 
   @Field(() => Rubro, { nullable: true })
   @ManyToOne(() => Rubro, rubro => rubro.articulos, { createForeignKeyConstraints: false })
-  @JoinColumn({ name: 'Rubro', referencedColumnName: 'Rubro' })
+  @JoinColumn({ name: 'rubroId', referencedColumnName: 'Id' })
   rubro?: Rubro;
 
   @OneToMany(() => MovimientoStock, movimiento => movimiento.articulo)

@@ -131,6 +131,7 @@ type Articulo {
   movimientosStock: [MovimientoStock!]
   proveedor: Proveedor
   rubro: Rubro
+  rubroId: Int
   totalStock: Float
 }
 
@@ -175,6 +176,7 @@ type ArticuloConStock {
   movimientosStock: [MovimientoStock!]
   proveedor: Proveedor
   rubro: Rubro
+  rubroId: Int
   stockDespuesVenta: Float!
   stockDisponible: Float!
   totalStock: Float

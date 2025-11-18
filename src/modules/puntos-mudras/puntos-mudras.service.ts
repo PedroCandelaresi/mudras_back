@@ -5,6 +5,8 @@ import { PuntoMudras, TipoPuntoMudras } from './entities/punto-mudras.entity';
 import { StockPuntoMudras } from './entities/stock-punto-mudras.entity';
 import { MovimientoStockPunto, TipoMovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
 import { Articulo } from '../articulos/entities/articulo.entity';
+import { Proveedor } from '../proveedores/entities/proveedor.entity';
+import { Rubro } from '../rubros/entities/rubro.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { FiltrosPuntosMudrasInput, FiltrosStockInput, FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
@@ -162,7 +164,7 @@ export class PuntosMudrasService {
         .createQueryBuilder('stock')
         .leftJoinAndSelect('stock.puntoMudras', 'punto')
         .leftJoin('tbarticulos', 'articulo', 'articulo.id = stock.articuloId')
-        .leftJoin('tbrubros', 'rubro', 'rubro.Rubro = articulo.Rubro')
+        .leftJoin('tbrubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
         .select([
           'stock.id',
           'stock.articuloId',
@@ -313,7 +315,7 @@ export class PuntosMudrasService {
     }
 
     if (rubro) {
-      query += ` AND a.Rubro = ?`;
+      query += ` AND a.Rubro COLLATE utf8mb4_unicode_ci = ?`;
       params.push(rubro);
     }
 
@@ -380,7 +382,7 @@ export class PuntosMudrasService {
         pr.rubro_nombre as rubroNombre,
         COUNT(a.id) as cantidadArticulos
       FROM tb_proveedor_rubro pr
-      LEFT JOIN tbarticulos a ON a.idProveedor = pr.proveedor_id AND a.Rubro = pr.rubro_nombre
+      LEFT JOIN tbarticulos a ON a.idProveedor = pr.proveedor_id AND a.Rubro COLLATE utf8mb4_unicode_ci = pr.rubro_nombre COLLATE utf8mb4_unicode_ci
       GROUP BY pr.id, pr.proveedor_id, pr.proveedor_nombre, pr.rubro_nombre
       ORDER BY pr.proveedor_nombre, pr.rubro_nombre
     `;
@@ -396,7 +398,7 @@ export class PuntosMudrasService {
         COUNT(DISTINCT pr.rubro_nombre) as rubrosUnicos,
         COALESCE(SUM(
           (SELECT COUNT(*) FROM tbarticulos a 
-           WHERE a.idProveedor = pr.proveedor_id AND a.Rubro = pr.rubro_nombre)
+           WHERE a.idProveedor = pr.proveedor_id AND a.Rubro COLLATE utf8mb4_unicode_ci = pr.rubro_nombre COLLATE utf8mb4_unicode_ci)
         ), 0) as totalArticulos
       FROM tb_proveedor_rubro pr
     `;
@@ -696,11 +698,30 @@ export class PuntosMudrasService {
     if (!items.length) return items;
     const ids = Array.from(new Set(items.map(item => item.id).filter(id => typeof id === 'number' && Number.isFinite(id))));
     if (!ids.length) return items;
+    // Fetch articles without performing a text-based join on `Rubro` to avoid collation issues.
+    // Load proveedor relation (numeric FK) and fetch rubros separately by numeric `rubroId` when available.
     const articulos = await this.articulosRepository.find({
       where: { id: In(ids) },
-      relations: ['proveedor', 'rubro'],
+      relations: ['proveedor'],
     });
+
     const mapa = new Map(articulos.map(art => [art.id, art]));
+
+    // Collect rubroIds and fetch rubros in a separate query (numeric join)
+    const rubroIds = Array.from(new Set(articulos.map(a => a.rubroId).filter(id => typeof id === 'number' && Number.isFinite(id))));
+    let rubroMapa = new Map<number, Rubro>();
+    if (rubroIds.length) {
+      const rubros = await this.dataSource.getRepository(Rubro).findBy({ Id: In(rubroIds) });
+      rubroMapa = new Map(rubros.map(r => [r.Id, r]));
+    }
+
+    // Attach rubro entity where possible (avoid text-based joins that caused collations mix)
+    for (const art of articulos) {
+      if (!art.rubro && art.rubroId && rubroMapa.has(art.rubroId)) {
+        art.rubro = rubroMapa.get(art.rubroId);
+      }
+    }
+
     return items.map(item => ({
       ...item,
       articulo: mapa.get(item.id),
