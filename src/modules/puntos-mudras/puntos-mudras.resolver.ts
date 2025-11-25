@@ -197,6 +197,7 @@ export class PuntosMudrasResolver {
   async obtenerRubrosPorProveedor(
     @Args('proveedorId', { type: () => ID }) proveedorId: string,
   ): Promise<RubroBasico[]> {
+    // Validamos el identificador en el borde de la API para devolver un error claro.
     const parsedId = Number(proveedorId);
     if (!Number.isFinite(parsedId)) {
       throw new BadRequestException('El identificador del proveedor debe ser numérico.');
