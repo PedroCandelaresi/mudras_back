@@ -129,7 +129,7 @@ export class RubrosService {
         p.Telefono as telefono
       FROM tbproveedores p
       INNER JOIN tbarticulos a ON p.IdProveedor = a.idProveedor
-      INNER JOIN tbrubros r ON a.Rubro = r.Rubro
+      INNER JOIN tbrubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       WHERE r.Id = ?
       ORDER BY p.Nombre ASC
     `;

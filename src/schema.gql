@@ -635,6 +635,7 @@ type EstadisticasArticulos {
   articulosSinStock: Int!
   articulosStockBajo: Int!
   totalArticulos: Int!
+  totalUnidades: Float!
   valorTotalStock: Float!
 }
 

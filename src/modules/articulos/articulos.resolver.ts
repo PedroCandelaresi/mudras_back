@@ -166,4 +166,7 @@ class EstadisticasArticulos {
 
   @Field()
   valorTotalStock: number;
+  
+  @Field()
+  totalUnidades: number;
 }

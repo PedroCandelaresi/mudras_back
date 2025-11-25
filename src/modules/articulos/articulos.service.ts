@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Articulo } from './entities/articulo.entity';
 import { CrearArticuloDto } from './dto/crear-articulo.dto';
 import { ActualizarArticuloDto } from './dto/actualizar-articulo.dto';
@@ -19,6 +19,7 @@ export class ArticulosService {
     private stockPuntosRepository: Repository<StockPuntoMudras>,
   ) {}
   private readonly logger = new Logger(ArticulosService.name);
+  private readonly stockSumSubquery = '(SELECT COALESCE(SUM(spm.cantidad), 0) FROM stock_puntos_mudras spm WHERE spm.articulo_id = articulo.id)';
 
   private parseNullableDate(value?: string | Date | null): Date | null {
     if (!value) {
@@ -49,9 +50,8 @@ export class ArticulosService {
     }
 
     articulos.forEach(art => {
-      const puntos = map.get(art.id) ?? 0;
-      const deposito = Number(art.Deposito ?? art.Stock ?? 0) || 0;
-      art.totalStock = Number((deposito + puntos).toFixed(2));
+      const puntosYDepositos = map.get(art.id) ?? 0;
+      art.totalStock = Number(puntosYDepositos.toFixed(2));
     });
   }
 
@@ -117,7 +117,7 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where('articulo.Stock > 0')
+      .where(`${this.stockSumSubquery} > 0`)
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -128,7 +128,7 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where('articulo.Stock <= 0 OR articulo.Stock IS NULL')
+      .where(`${this.stockSumSubquery} = 0`)
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -139,7 +139,7 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0')
+      .where(`${this.stockSumSubquery} > 0 AND ${this.stockSumSubquery} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -322,16 +322,22 @@ export class ArticulosService {
     }
 
 
+    // Estado de stock: considerar el stock total real (sum(stock_puntos_mudras) en puntos de venta y depósitos)
+    const totalStockSubquery = this.stockSumSubquery;
+
     if (filtros.soloConStock) {
-      queryBuilder.andWhere('articulo.Stock > 0');
+      // Disponible: totalStock > StockMinimo
+      queryBuilder.andWhere(`${totalStockSubquery} > articulo.StockMinimo`);
     }
 
     if (filtros.soloStockBajo) {
-      queryBuilder.andWhere('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0');
+      // Stock Bajo: 0 < totalStock <= StockMinimo
+      queryBuilder.andWhere(`${totalStockSubquery} > 0 AND ${totalStockSubquery} <= articulo.StockMinimo AND articulo.StockMinimo > 0`);
     }
 
     if (filtros.soloSinStock) {
-      queryBuilder.andWhere('(articulo.Stock <= 0 OR articulo.Stock IS NULL)');
+      // Sin stock: totalStock == 0
+      queryBuilder.andWhere(`${totalStockSubquery} = 0`);
     }
 
     if (filtros.soloEnPromocion) {
@@ -370,7 +376,9 @@ export class ArticulosService {
     articulosEnPromocion: number;
     articulosPublicadosEnTienda: number;
     valorTotalStock: number;
+    totalUnidades: number;
   }> {
+    const stockSum = this.stockSumSubquery;
     const [
       totalArticulos,
       articulosActivos,
@@ -383,20 +391,33 @@ export class ArticulosService {
     ] = await Promise.all([
       this.articulosRepository.count(),
       this.articulosRepository.count(),
-      this.articulosRepository.count({ where: { Stock: Between(0.01, 999999) } }),
-      this.articulosRepository.count({ where: { Stock: 0 } }),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .where('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0')
+        .where(`${stockSum} > 0`)
+        .getCount(),
+      this.articulosRepository
+        .createQueryBuilder('articulo')
+        .where(`${stockSum} = 0`)
+        .getCount(),
+      this.articulosRepository
+        .createQueryBuilder('articulo')
+        .where(`${stockSum} > 0 AND ${stockSum} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
         .getCount(),
       this.articulosRepository.count({ where: { EnPromocion: true } }),
       this.articulosRepository.count({ where: { EnPromocion: true } }),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .select('SUM(articulo.Stock * articulo.PrecioVenta)', 'total')
+        .select(`COALESCE(SUM(${stockSum} * articulo.PrecioVenta), 0)`, 'total')
         .getRawOne()
         .then(result => parseFloat(result.total) || 0)
     ]);
+
+    // Calcular total de unidades global: suma de cantidades en puntos de venta y depósitos (stock_puntos_mudras)
+    const totalUnidades = await this.stockPuntosRepository
+      .createQueryBuilder('spm')
+      .select('COALESCE(SUM(spm.cantidad), 0)', 'total')
+      .getRawOne()
+      .then(r => Number(parseFloat(r.total).toFixed(2)) || 0);
 
     return {
       totalArticulos,
@@ -407,6 +428,8 @@ export class ArticulosService {
       articulosEnPromocion,
       articulosPublicadosEnTienda,
       valorTotalStock
+      ,
+      totalUnidades
     };
   }
 
