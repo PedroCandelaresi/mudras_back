@@ -145,6 +145,9 @@ export class ArticuloFiltrado {
   @Field(() => Float)
   stockDisponible: number;
 
+  @Field(() => Float)
+  stockEnDestino: number;
+
   @Field()
   rubro: string;
 
@@ -211,8 +214,9 @@ export class PuntosMudrasResolver {
     @Args('proveedorId', { type: () => Int, nullable: true }) proveedorId?: number,
     @Args('rubro', { nullable: true }) rubro?: string,
     @Args('busqueda', { nullable: true }) busqueda?: string,
+    @Args('destinoId', { type: () => Int, nullable: true }) destinoId?: number,
   ): Promise<ArticuloFiltrado[]> {
-    return await this.puntosMudrasService.buscarArticulosConFiltros(proveedorId, rubro, busqueda);
+    return await this.puntosMudrasService.buscarArticulosConFiltros(proveedorId, rubro, busqueda, destinoId);
   }
 
   @Mutation(() => PuntoMudras)

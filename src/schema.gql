@@ -202,6 +202,7 @@ type ArticuloFiltrado {
   rubro: String!
   stockAsignado: Float!
   stockDisponible: Float!
+  stockEnDestino: Float!
   stockTotal: Float!
 }
 
@@ -1048,7 +1049,7 @@ type Query {
   balanceGeneral: BalanceGeneral!
   buscarArticulos(filtros: FiltrosArticuloDto!): ArticulosConPaginacion!
   buscarArticulosCaja(input: BuscarArticuloInput!): [ArticuloConStock!]!
-  buscarArticulosParaAsignacion(busqueda: String, proveedorId: Int, rubro: String): [ArticuloFiltrado!]!
+  buscarArticulosParaAsignacion(busqueda: String, destinoId: Int, proveedorId: Int, rubro: String): [ArticuloFiltrado!]!
   buscarClientesPorNombre(nombre: String!): [Cliente!]!
   buscarRubros(busqueda: String, limite: Int! = 50, pagina: Int! = 0): RubrosResponse!
   categoriasGasto: [CategoriaGasto!]!

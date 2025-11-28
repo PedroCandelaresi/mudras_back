@@ -219,7 +219,7 @@ export class PuntosMudrasService {
         (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
       FROM tbarticulos a
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
-      WHERE a.Stock > 0
+      WHERE 1=1
       GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Stock, a.Rubro
       HAVING stockDisponible > 0
       ORDER BY a.Descripcion
@@ -286,9 +286,10 @@ export class PuntosMudrasService {
   async buscarArticulosConFiltros(
     proveedorId?: number,
     rubro?: string,
-    busqueda?: string
+    busqueda?: string,
+    destinoId?: number
   ): Promise<any[]> {
-    console.log(`🔍 Buscando artículos con filtros: proveedor=${proveedorId}, rubro=${rubro}, busqueda=${busqueda}`);
+    console.log(`🔍 Buscando artículos con filtros: proveedor=${proveedorId}, rubro=${rubro}, busqueda=${busqueda}, destino=${destinoId}`);
     
     let query = `
       SELECT 
@@ -300,14 +301,15 @@ export class PuntosMudrasService {
         a.Rubro,
         p.Nombre as proveedorNombre,
         COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
-        (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
+        (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible,
+        COALESCE(SUM(CASE WHEN spm.punto_mudras_id = ? THEN spm.cantidad END), 0) as stockEnDestino
       FROM tbarticulos a
       LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
       WHERE a.Stock > 0
     `;
 
-    const params: any[] = [];
+    const params: any[] = [destinoId ?? 0];
 
     if (proveedorId) {
       query += ` AND a.idProveedor = ?`;
@@ -319,14 +321,13 @@ export class PuntosMudrasService {
       params.push(rubro);
     }
 
-    if (busqueda && busqueda.length >= 3) {
+    if (busqueda) {
       query += ` AND (a.Descripcion LIKE ? OR a.Codigo LIKE ?)`;
       params.push(`%${busqueda}%`, `%${busqueda}%`);
     }
 
     query += `
       GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Stock, a.Rubro, p.Nombre
-      HAVING stockDisponible > 0
       ORDER BY a.Descripcion
       LIMIT 50
     `;
@@ -342,6 +343,7 @@ export class PuntosMudrasService {
       stockTotal: parseFloat(record.stockTotal || '0'),
       stockAsignado: parseFloat(record.stockAsignado || '0'),
       stockDisponible: parseFloat(record.stockDisponible || '0'),
+      stockEnDestino: parseFloat(record.stockEnDestino || '0'),
       rubro: record.Rubro || 'Sin rubro',
       proveedor: record.proveedorNombre || 'Sin proveedor'
     }));
@@ -354,7 +356,7 @@ export class PuntosMudrasService {
   ): Promise<boolean> {
     console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}`);
     
-    const stockRecord = await this.stockRepository.findOne({
+    let stockRecord = await this.stockRepository.findOne({
       where: {
         puntoMudrasId: puntoMudrasId,
         articuloId: articuloId
@@ -362,11 +364,18 @@ export class PuntosMudrasService {
     });
 
     if (!stockRecord) {
-      console.log(`❌ No se encontró registro de stock para punto ${puntoMudrasId} y artículo ${articuloId}`);
-      return false;
+      console.log(`ℹ️ No había registro de stock para punto ${puntoMudrasId} y artículo ${articuloId}. Creando uno nuevo.`);
+      stockRecord = this.stockRepository.create({
+        puntoMudrasId,
+        articuloId,
+        cantidad: Math.max(0, nuevaCantidad),
+        stockMinimo: 0,
+        stockMaximo: null,
+      });
+    } else {
+      stockRecord.cantidad = Math.max(0, nuevaCantidad);
     }
 
-    stockRecord.cantidad = nuevaCantidad;
     await this.stockRepository.save(stockRecord);
     
     console.log(`✅ Stock actualizado exitosamente`);
