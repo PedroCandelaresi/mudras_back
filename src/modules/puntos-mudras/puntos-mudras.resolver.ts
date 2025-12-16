@@ -9,6 +9,7 @@ import { PuntosMudrasService } from './puntos-mudras.service';
 import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
+import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
 
 @ObjectType()
@@ -158,7 +159,7 @@ export class ArticuloFiltrado {
 @Resolver(() => PuntoMudras)
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class PuntosMudrasResolver {
-  constructor(private readonly puntosMudrasService: PuntosMudrasService) {}
+  constructor(private readonly puntosMudrasService: PuntosMudrasService) { }
 
   @Query(() => [PuntoMudras])
   @Permisos('stock.read')
@@ -258,6 +259,26 @@ export class PuntosMudrasResolver {
     return await this.puntosMudrasService.modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad);
   }
 
+  @Mutation(() => Boolean)
+  @RequireSecretKey()
+  @Permisos('stock.update')
+  async transferirStock(
+    @Args('input', new ValidationPipe()) input: TransferirStockInput,
+  ): Promise<boolean> {
+    await this.puntosMudrasService.transferirStock(input);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  @RequireSecretKey()
+  @Permisos('stock.update')
+  async ajustarStock(
+    @Args('input', new ValidationPipe()) input: AjustarStockInput,
+  ): Promise<boolean> {
+    await this.puntosMudrasService.ajustarStock(input);
+    return true;
+  }
+
   @Query(() => [RelacionProveedorRubro])
   @Permisos('stock.read')
   async obtenerRelacionesProveedorRubro(): Promise<RelacionProveedorRubro[]> {
@@ -269,4 +290,46 @@ export class PuntosMudrasResolver {
   async obtenerEstadisticasProveedorRubro(): Promise<EstadisticasProveedorRubro> {
     return await this.puntosMudrasService.obtenerEstadisticasProveedorRubro();
   }
+  @Query(() => [MatrizStockItem])
+  @Permisos('stock.read')
+  async obtenerMatrizStock(
+    @Args('busqueda', { nullable: true }) busqueda?: string,
+    @Args('rubro', { nullable: true }) rubro?: string,
+    @Args('proveedorId', { type: () => Int, nullable: true }) proveedorId?: number,
+  ): Promise<MatrizStockItem[]> {
+    return await this.puntosMudrasService.obtenerMatrizStock({ busqueda, rubro, proveedorId });
+  }
+}
+
+@ObjectType()
+export class StockPunto {
+  @Field(() => Int)
+  puntoId: number;
+
+  @Field()
+  puntoNombre: string;
+
+  @Field(() => Float)
+  cantidad: number;
+}
+
+@ObjectType()
+export class MatrizStockItem {
+  @Field(() => Int)
+  id: number;
+
+  @Field()
+  codigo: string;
+
+  @Field()
+  nombre: string;
+
+  @Field({ nullable: true })
+  rubro?: string;
+
+  @Field(() => Float)
+  stockTotal: number;
+
+  @Field(() => [StockPunto])
+  stockPorPunto: StockPunto[];
 }

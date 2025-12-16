@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, In } from 'typeorm';
+import { Repository, DataSource, In, MoreThan } from 'typeorm';
 import { PuntoMudras, TipoPuntoMudras } from './entities/punto-mudras.entity';
 import { StockPuntoMudras } from './entities/stock-punto-mudras.entity';
 import { MovimientoStockPunto, TipoMovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
@@ -24,7 +24,7 @@ export class PuntosMudrasService {
     @InjectRepository(Articulo)
     private articulosRepository: Repository<Articulo>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   // CRUD Puntos Mudras
   async crear(input: CrearPuntoMudrasDto): Promise<PuntoMudras> {
@@ -106,47 +106,111 @@ export class PuntosMudrasService {
   async actualizar(input: ActualizarPuntoMudrasDto): Promise<PuntoMudras> {
     const { id, ...updateData } = input;
     const punto = await this.obtenerPorId(id);
-    
+
     // Aplicar todos los campos directamente
     Object.assign(punto, updateData);
-    
+
     return await this.puntosMudrasRepository.save(punto);
   }
 
   async eliminar(id: number): Promise<boolean> {
     const punto = await this.obtenerPorId(id);
-    
-    console.log(`🗑️ Eliminando punto ${punto.nombre} (ID: ${id})`);
-    
-    // Eliminar todos los registros de stock asociados
-    const stockEliminados = await this.stockRepository.delete({
-      puntoMudrasId: id
-    });
-    
-    console.log(`📦 Eliminados ${stockEliminados.affected || 0} registros de stock`);
-    
-    // Eliminar todos los movimientos de stock asociados (origen y destino)
-    const movimientosEliminados1 = await this.movimientosRepository.delete({
-      puntoMudrasOrigenId: id
-    });
-    
-    const movimientosEliminados2 = await this.movimientosRepository.delete({
-      puntoMudrasDestinoId: id
-    });
-    
-    console.log(`📋 Eliminados ${(movimientosEliminados1.affected || 0) + (movimientosEliminados2.affected || 0)} movimientos de stock`);
 
-    // Finalmente eliminar el punto
-    await this.puntosMudrasRepository.remove(punto);
-    console.log(`✅ Punto eliminado exitosamente`);
-    
-    return true;
+    console.log(`🗑️ Eliminando punto ${punto.nombre} (ID: ${id})`);
+
+    // 1. Encontrar el depósito principal (el de menor ID que sea tipo 'deposito')
+    const depositoPrincipal = await this.puntosMudrasRepository.findOne({
+      where: { tipo: TipoPuntoMudras.deposito },
+      order: { id: 'ASC' }
+    });
+
+    if (!depositoPrincipal) {
+      throw new Error('No se encontró un depósito principal para transferir el stock.');
+    }
+
+    // Evitar auto-transferencia si se intenta borrar el depósito principal (aunque debería estar protegido por reglas de negocio)
+    if (depositoPrincipal.id === id) {
+      throw new BadRequestException('No se puede eliminar el depósito principal.');
+    }
+
+    console.log(`🔄 Transfiriendo stock al depósito principal: ${depositoPrincipal.nombre} (ID: ${depositoPrincipal.id})`);
+
+    // 2. Obtener todo el stock del punto a eliminar
+    const stockRecords = await this.stockRepository.find({
+      where: { puntoMudrasId: id, cantidad: MoreThan(0) }
+    });
+
+    // 3. Transferir cada registro de stock
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      for (const record of stockRecords) {
+        // Buscar o crear stock en depósito principal
+        let stockDestino = await queryRunner.manager.findOne(StockPuntoMudras, {
+          where: {
+            puntoMudrasId: depositoPrincipal.id,
+            articuloId: record.articuloId
+          }
+        });
+
+        if (!stockDestino) {
+          stockDestino = queryRunner.manager.create(StockPuntoMudras, {
+            puntoMudrasId: depositoPrincipal.id,
+            articuloId: record.articuloId,
+            cantidad: record.cantidad,
+            stockMinimo: 0
+          });
+        } else {
+          stockDestino.cantidad = Number(stockDestino.cantidad) + Number(record.cantidad);
+        }
+
+        await queryRunner.manager.save(stockDestino);
+
+        // Registrar movimiento de transferencia por eliminación
+        const movimiento = queryRunner.manager.create(MovimientoStockPunto, {
+          puntoMudrasOrigenId: id,
+          puntoMudrasDestinoId: depositoPrincipal.id,
+          articuloId: record.articuloId,
+          tipoMovimiento: TipoMovimientoStockPunto.TRANSFERENCIA,
+          cantidad: record.cantidad,
+          motivo: `Transferencia automática por eliminación de punto: ${punto.nombre}`
+        });
+        await queryRunner.manager.save(movimiento);
+      }
+
+      // 4. Eliminar registros de stock del punto (ahora que ya se movieron)
+      await queryRunner.manager.delete(StockPuntoMudras, { puntoMudrasId: id });
+
+      // 5. Eliminar movimientos asociados (o actualizarlos a NULL si se prefiere mantener historial, pero aquí borramos según lógica anterior)
+      // Nota: Si queremos mantener historial, deberíamos poner NULL en origen/destino, pero la lógica anterior los borraba.
+      // Vamos a mantener la lógica de borrar para limpiar, pero idealmente deberíamos hacer SET NULL en la FK.
+      // Dado que la FK tiene ON DELETE SET NULL, simplemente borrando el punto se actualizan los movimientos.
+      // Pero si queremos borrar los movimientos explícitamente como antes:
+      await queryRunner.manager.delete(MovimientoStockPunto, { puntoMudrasOrigenId: id });
+      await queryRunner.manager.delete(MovimientoStockPunto, { puntoMudrasDestinoId: id });
+
+      // 6. Eliminar el punto
+      await queryRunner.manager.remove(punto);
+
+      await queryRunner.commitTransaction();
+      console.log(`✅ Punto eliminado y stock transferido exitosamente`);
+      return true;
+
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      console.error('Error al eliminar punto y transferir stock:', error);
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // Gestión de Stock
   async obtenerArticulosConStockPunto(puntoMudrasId: number): Promise<any[]> {
     console.log(`🔍 Obteniendo artículos con stock para punto ${puntoMudrasId}`);
-    
+
     // Verificar si es un depósito
     const punto = await this.puntosMudrasRepository.findOne({
       where: { id: puntoMudrasId }
@@ -193,9 +257,9 @@ export class PuntosMudrasService {
         stockTotal: parseFloat(record.articulo_Stock || '0'),
         rubro: record.articulo_Rubro || record.rubro_Rubro
           ? {
-              id: record.rubro_Id || 0,
-              nombre: record.articulo_Rubro || record.rubro_Rubro || 'Sin rubro'
-            }
+            id: record.rubro_Id || 0,
+            nombre: record.articulo_Rubro || record.rubro_Rubro || 'Sin rubro'
+          }
           : undefined,
       }));
 
@@ -205,7 +269,7 @@ export class PuntosMudrasService {
 
   async obtenerStockSinAsignar(): Promise<any[]> {
     console.log(`🏪 Obteniendo stock sin asignar para depósito`);
-    
+
     // Obtener todos los artículos con su stock total y calcular stock asignado
     const query = `
       SELECT 
@@ -237,18 +301,88 @@ export class PuntosMudrasService {
       stockTotal: parseFloat(record.stockTotal || '0'),
       rubro: record.Rubro
         ? {
-            id: 0,
-            nombre: record.Rubro || 'Sin rubro'
-          }
+          id: 0,
+          nombre: record.Rubro || 'Sin rubro'
+        }
         : undefined,
     }));
     return this.adjuntarDetallesArticulo(base);
   }
 
+  async obtenerMatrizStock(filtros?: { busqueda?: string, rubro?: string, proveedorId?: number }): Promise<any[]> {
+    console.log(`📊 Generando matriz de stock global`);
+
+    // 1. Obtener todos los puntos activos
+    const puntos = await this.puntosMudrasRepository.find({
+      where: { activo: true },
+      order: { id: 'ASC' }
+    });
+
+    // 2. Construir query dinámica para pivotear los puntos
+    let selectPuntos = '';
+    puntos.forEach(punto => {
+      selectPuntos += `, COALESCE(SUM(CASE WHEN spm.punto_mudras_id = ${punto.id} THEN spm.cantidad END), 0) as 'stock_punto_${punto.id}'`;
+    });
+
+    let whereClause = 'WHERE 1=1';
+    const params: any[] = [];
+
+    if (filtros?.busqueda) {
+      whereClause += ` AND (a.Descripcion LIKE ? OR a.Codigo LIKE ?)`;
+      params.push(`%${filtros.busqueda}%`, `%${filtros.busqueda}%`);
+    }
+
+    if (filtros?.rubro) {
+      whereClause += ` AND a.Rubro COLLATE utf8mb4_unicode_ci = ?`;
+      params.push(filtros.rubro);
+    }
+
+    if (filtros?.proveedorId) {
+      whereClause += ` AND a.idProveedor = ?`;
+      params.push(filtros.proveedorId);
+    }
+
+    const query = `
+      SELECT 
+        a.id,
+        a.Codigo,
+        a.Descripcion,
+        a.Rubro,
+        a.Stock as stockTotal
+        ${selectPuntos}
+      FROM tbarticulos a
+      LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
+      ${whereClause}
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.Rubro, a.Stock
+      ORDER BY a.Descripcion
+      LIMIT 100
+    `;
+
+    const resultados = await this.stockRepository.query(query, params);
+
+    // 3. Formatear resultados
+    return resultados.map(row => {
+      const stockPorPunto = puntos.map(punto => ({
+        puntoId: punto.id,
+        puntoNombre: punto.nombre,
+        cantidad: parseFloat(row[`stock_punto_${punto.id}`] || '0')
+      }));
+
+      return {
+        id: row.id,
+        codigo: row.Codigo,
+        nombre: row.Descripcion,
+        rubro: row.Rubro,
+        stockTotal: parseFloat(row.stockTotal || '0'),
+        stockPorPunto
+      };
+    });
+  }
+
   // Nuevos métodos para filtros optimizados
   async obtenerProveedores(): Promise<any[]> {
     console.log(`🏭 Obteniendo lista de proveedores`);
-    
+
     const query = `
       SELECT DISTINCT 
         p.IdProveedor as id,
@@ -262,13 +396,13 @@ export class PuntosMudrasService {
 
     const proveedores = await this.stockRepository.query(query);
     console.log(`🏭 Encontrados ${proveedores.length} proveedores con stock`);
-    
+
     return proveedores;
   }
 
   async obtenerRubrosPorProveedor(proveedorId: number): Promise<any[]> {
     console.log(`📋 Obteniendo rubros para proveedor ${proveedorId} desde tb_proveedor_rubro`);
-    
+
     const query = `
       SELECT DISTINCT 
         pr.rubro_nombre as rubro
@@ -279,7 +413,7 @@ export class PuntosMudrasService {
 
     const rubros = await this.stockRepository.query(query, [proveedorId]);
     console.log(`📋 Encontrados ${rubros.length} rubros para proveedor ${proveedorId} desde tabla relacional`);
-    
+
     return rubros.map(r => ({ rubro: r.rubro }));
   }
 
@@ -290,7 +424,7 @@ export class PuntosMudrasService {
     destinoId?: number
   ): Promise<any[]> {
     console.log(`🔍 Buscando artículos con filtros: proveedor=${proveedorId}, rubro=${rubro}, busqueda=${busqueda}, destino=${destinoId}`);
-    
+
     let query = `
       SELECT 
         a.id,
@@ -355,7 +489,7 @@ export class PuntosMudrasService {
     nuevaCantidad: number
   ): Promise<boolean> {
     console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}`);
-    
+
     let stockRecord = await this.stockRepository.findOne({
       where: {
         puntoMudrasId: puntoMudrasId,
@@ -377,7 +511,7 @@ export class PuntosMudrasService {
     }
 
     await this.stockRepository.save(stockRecord);
-    
+
     console.log(`✅ Stock actualizado exitosamente`);
     return true;
   }
@@ -395,7 +529,7 @@ export class PuntosMudrasService {
       GROUP BY pr.id, pr.proveedor_id, pr.proveedor_nombre, pr.rubro_nombre
       ORDER BY pr.proveedor_nombre, pr.rubro_nombre
     `;
-    
+
     return await this.stockRepository.query(query);
   }
 
@@ -411,13 +545,13 @@ export class PuntosMudrasService {
         ), 0) as totalArticulos
       FROM tb_proveedor_rubro pr
     `;
-    
+
     const result = await this.stockRepository.query(query);
     return result[0];
   }
 
   async obtenerStockPunto(
-    puntoMudrasId: number, 
+    puntoMudrasId: number,
     filtros?: FiltrosStockInput
   ): Promise<{ stock: StockPuntoMudras[]; total: number }> {
     const query = this.stockRepository.createQueryBuilder('stock')
@@ -456,9 +590,9 @@ export class PuntosMudrasService {
     try {
       // Buscar o crear registro de stock
       let stock = await queryRunner.manager.findOne(StockPuntoMudras, {
-        where: { 
-          puntoMudrasId: input.puntoMudrasId, 
-          articuloId: input.articuloId 
+        where: {
+          puntoMudrasId: input.puntoMudrasId,
+          articuloId: input.articuloId
         }
       });
 
@@ -512,9 +646,9 @@ export class PuntosMudrasService {
     try {
       // Verificar stock disponible en origen
       const stockOrigen = await queryRunner.manager.findOne(StockPuntoMudras, {
-        where: { 
-          puntoMudrasId: input.puntoOrigenId, 
-          articuloId: input.articuloId 
+        where: {
+          puntoMudrasId: input.puntoOrigenId,
+          articuloId: input.articuloId
         }
       });
 
@@ -528,9 +662,9 @@ export class PuntosMudrasService {
 
       // Buscar o crear stock destino
       let stockDestino = await queryRunner.manager.findOne(StockPuntoMudras, {
-        where: { 
-          puntoMudrasId: input.puntoDestinoId, 
-          articuloId: input.articuloId 
+        where: {
+          puntoMudrasId: input.puntoDestinoId,
+          articuloId: input.articuloId
         }
       });
 
@@ -640,7 +774,7 @@ export class PuntosMudrasService {
     hoy.setHours(0, 0, 0, 0);
     const mañana = new Date(hoy);
     mañana.setDate(mañana.getDate() + 1);
-    
+
     const movimientosHoy = await this.movimientosRepository
       .createQueryBuilder('movimiento')
       .where('movimiento.fechaMovimiento >= :hoy', { hoy })
@@ -661,7 +795,7 @@ export class PuntosMudrasService {
   // Métodos auxiliares
   private async inicializarStockPunto(puntoMudrasId: number): Promise<void> {
     console.log(`🔄 Inicializando stock para punto ${puntoMudrasId}`);
-    
+
     // Obtener todos los artículos (no hay campo Estado en la entidad actual)
     const articulos = await this.articulosRepository.find();
 
