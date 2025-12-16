@@ -21,7 +21,7 @@ jobs:
       #       mudras_api:latest npm run migration:run
 
       - name: Up API with compose
-        run: docker compose -f /home/mudras/deploy/mudras/docker-compose.yml up -d api
+        run: docker compose -f /home/mudras/deploy/docker-compose.yml up -d back
 
       - name: Prune old images
         run: docker image prune -f
