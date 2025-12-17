@@ -261,7 +261,7 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         const articulo = await this.articuloRepository.findOne({
             where: { id: articuloId },
         });
-        return Number(articulo?.Stock || 0);
+        return 0;
     }
     async crearMovimientoInventario(queryRunner, articuloId, puntoMudrasId, cantidad, tipoMovimiento, usuarioAuthId, ventaCajaId, precioVenta, numeroComprobante) {
         const movimiento = queryRunner.manager.create(movimiento_inventario_entity_1.MovimientoInventario, {
@@ -287,15 +287,16 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         return clienteExistente.id;
     }
     async verificarStockDisponible(queryRunner, articuloId, cantidad, puntoMudrasId) {
-        const stockGlobal = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_read');
-        if (stockGlobal < cantidad) {
-            throw new common_1.BadRequestException(`Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockGlobal}, requiere: ${cantidad})`);
-        }
         if (puntoMudrasId) {
             const stockPunto = await this.obtenerStockPunto(queryRunner, puntoMudrasId, articuloId, 'pessimistic_read');
             if (stockPunto < cantidad) {
                 throw new common_1.BadRequestException(`Stock insuficiente en el punto seleccionado para el artículo ${articuloId} (disponible: ${stockPunto}, requiere: ${cantidad})`);
             }
+            return;
+        }
+        const stockGlobal = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_read');
+        if (stockGlobal < cantidad) {
+            throw new common_1.BadRequestException(`Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockGlobal}, requiere: ${cantidad})`);
         }
     }
     async obtenerStockGlobal(queryRunner, articuloId, lock = 'pessimistic_read') {
@@ -306,7 +307,19 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         if (!articulo) {
             throw new common_1.NotFoundException(`Artículo con ID ${articuloId} no encontrado`);
         }
-        return Number(articulo.Stock || 0);
+        return 0;
+    }
+    async obtenerStockTotalPuntos(queryRunner, articuloId) {
+        const qb = queryRunner.manager
+            .createQueryBuilder(stock_punto_mudras_entity_1.StockPuntoMudras, 'stock')
+            .select('COALESCE(SUM(stock.cantidad), 0)', 'total')
+            .where('stock.articuloId = :articuloId', { articuloId });
+        try {
+            qb.setLock('pessimistic_read');
+        }
+        catch { }
+        const resultado = await qb.getRawOne();
+        return Number(resultado?.total || 0);
     }
     async obtenerStockPunto(queryRunner, puntoMudrasId, articuloId, lock = 'pessimistic_read') {
         const registro = await queryRunner.manager.findOne(stock_punto_mudras_entity_1.StockPuntoMudras, {
@@ -316,12 +329,16 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         return Number(registro?.cantidad || 0);
     }
     async ajustarStockArticulo(queryRunner, articuloId, delta) {
-        const stockAnterior = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_write');
-        const stockNuevo = stockAnterior + delta;
+        let stockAnterior = await this.obtenerStockGlobal(queryRunner, articuloId, 'pessimistic_write');
+        let stockNuevo = stockAnterior + delta;
         if (stockNuevo < 0) {
-            throw new common_1.BadRequestException(`Stock global insuficiente para el artículo ${articuloId} (resultado: ${stockNuevo})`);
+            const stockPuntos = await this.obtenerStockTotalPuntos(queryRunner, articuloId);
+            if (stockPuntos + delta < 0) {
+                throw new common_1.BadRequestException(`Stock global insuficiente para el artículo ${articuloId} (disponible: ${stockPuntos}, requiere: ${Math.abs(delta)})`);
+            }
+            stockAnterior = Math.max(stockAnterior, stockPuntos);
+            stockNuevo = stockAnterior + delta;
         }
-        await queryRunner.manager.update(articulo_entity_1.Articulo, { id: articuloId }, { Stock: stockNuevo });
         return { stockAnterior, stockNuevo };
     }
     async ajustarStockPunto(queryRunner, puntoMudrasId, articuloId, delta, usuarioId, referencia, tipoMovimiento, motivo) {

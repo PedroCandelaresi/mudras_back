@@ -24,9 +24,14 @@ export declare class PuntosMudrasService {
     eliminar(id: number): Promise<boolean>;
     obtenerArticulosConStockPunto(puntoMudrasId: number): Promise<any[]>;
     obtenerStockSinAsignar(): Promise<any[]>;
+    obtenerMatrizStock(filtros?: {
+        busqueda?: string;
+        rubro?: string;
+        proveedorId?: number;
+    }): Promise<any[]>;
     obtenerProveedores(): Promise<any[]>;
     obtenerRubrosPorProveedor(proveedorId: number): Promise<any[]>;
-    buscarArticulosConFiltros(proveedorId?: number, rubro?: string, busqueda?: string): Promise<any[]>;
+    buscarArticulosConFiltros(proveedorId?: number, rubro?: string, busqueda?: string, destinoId?: number): Promise<any[]>;
     modificarStockPunto(puntoMudrasId: number, articuloId: number, nuevaCantidad: number): Promise<boolean>;
     obtenerRelacionesProveedorRubro(): Promise<any[]>;
     obtenerEstadisticasProveedorRubro(): Promise<any>;

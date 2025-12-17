@@ -27,6 +27,7 @@ export declare class CajaRegistradoraService {
     private obtenerClienteParaVenta;
     private verificarStockDisponible;
     private obtenerStockGlobal;
+    private obtenerStockTotalPuntos;
     private obtenerStockPunto;
     private ajustarStockArticulo;
     private ajustarStockPunto;

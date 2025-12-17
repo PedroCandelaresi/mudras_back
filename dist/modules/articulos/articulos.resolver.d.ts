@@ -32,7 +32,7 @@ export declare class ArticulosResolver {
         articulosEnPromocion: number;
         articulosPublicadosEnTienda: number;
         valorTotalStock: number;
+        totalUnidades: number;
     }>;
     articuloPorCodigoBarras(codigoBarras: string): Promise<Articulo>;
-    actualizarStockArticulo(id: number, nuevoStock: number): Promise<Articulo>;
 }

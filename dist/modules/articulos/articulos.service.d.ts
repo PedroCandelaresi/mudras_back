@@ -11,6 +11,7 @@ export declare class ArticulosService {
     private stockPuntosRepository;
     constructor(articulosRepository: Repository<Articulo>, rubrosRepository: Repository<Rubro>, stockPuntosRepository: Repository<StockPuntoMudras>);
     private readonly logger;
+    private readonly stockSumSubquery;
     private parseNullableDate;
     private hydrateTotalStock;
     findAll(): Promise<Articulo[]>;
@@ -39,7 +40,7 @@ export declare class ArticulosService {
         articulosEnPromocion: number;
         articulosPublicadosEnTienda: number;
         valorTotalStock: number;
+        totalUnidades: number;
     }>;
     buscarPorCodigoBarras(codigoBarras: string): Promise<Articulo>;
-    actualizarStock(id: number, nuevoStock: number): Promise<Articulo>;
 }

@@ -60,11 +60,6 @@ __decorate([
 ], Articulo.prototype, "StockMinimo", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
-    (0, typeorm_1.Column)({ type: 'float', nullable: true }),
-    __metadata("design:type", Number)
-], Articulo.prototype, "Stock", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     __metadata("design:type", Number)
 ], Articulo.prototype, "totalStock", void 0);
 __decorate([
@@ -87,6 +82,11 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'int', nullable: true }),
     __metadata("design:type", Number)
 ], Articulo.prototype, "idProveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
+    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
+    __metadata("design:type", Number)
+], Articulo.prototype, "rubroId", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
@@ -211,7 +211,7 @@ __decorate([
 __decorate([
     (0, graphql_1.Field)(() => rubro_entity_1.Rubro, { nullable: true }),
     (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, rubro => rubro.articulos, { createForeignKeyConstraints: false }),
-    (0, typeorm_1.JoinColumn)({ name: 'Rubro', referencedColumnName: 'Rubro' }),
+    (0, typeorm_1.JoinColumn)({ name: 'rubroId', referencedColumnName: 'Id' }),
     __metadata("design:type", rubro_entity_1.Rubro)
 ], Articulo.prototype, "rubro", void 0);
 __decorate([

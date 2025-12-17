@@ -2,6 +2,7 @@ import { PuntosMudrasService } from './puntos-mudras.service';
 import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
+import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
 export declare class RubroInfo {
     id: number;
@@ -55,6 +56,7 @@ export declare class ArticuloFiltrado {
     stockTotal: number;
     stockAsignado: number;
     stockDisponible: number;
+    stockEnDestino: number;
     rubro: string;
     proveedor: string;
 }
@@ -67,11 +69,27 @@ export declare class PuntosMudrasResolver {
     obtenerStockPuntoMudras(puntoMudrasId: number): Promise<ArticuloConStockPuntoMudras[]>;
     obtenerProveedoresConStock(): Promise<ProveedorBasico[]>;
     obtenerRubrosPorProveedor(proveedorId: string): Promise<RubroBasico[]>;
-    buscarArticulosParaAsignacion(proveedorId?: number, rubro?: string, busqueda?: string): Promise<ArticuloFiltrado[]>;
+    buscarArticulosParaAsignacion(proveedorId?: number, rubro?: string, busqueda?: string, destinoId?: number): Promise<ArticuloFiltrado[]>;
     crearPuntoMudras(input: CrearPuntoMudrasDto): Promise<PuntoMudras>;
     actualizarPuntoMudras(input: ActualizarPuntoMudrasDto): Promise<PuntoMudras>;
     eliminarPuntoMudras(id: number): Promise<boolean>;
     modificarStockPunto(puntoMudrasId: number, articuloId: number, nuevaCantidad: number): Promise<boolean>;
+    transferirStock(input: TransferirStockInput): Promise<boolean>;
+    ajustarStock(input: AjustarStockInput): Promise<boolean>;
     obtenerRelacionesProveedorRubro(): Promise<RelacionProveedorRubro[]>;
     obtenerEstadisticasProveedorRubro(): Promise<EstadisticasProveedorRubro>;
+    obtenerMatrizStock(busqueda?: string, rubro?: string, proveedorId?: number): Promise<MatrizStockItem[]>;
+}
+export declare class StockPunto {
+    puntoId: number;
+    puntoNombre: string;
+    cantidad: number;
+}
+export declare class MatrizStockItem {
+    id: number;
+    codigo: string;
+    nombre: string;
+    rubro?: string;
+    stockTotal: number;
+    stockPorPunto: StockPunto[];
 }

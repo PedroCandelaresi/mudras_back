@@ -11,7 +11,7 @@ export class ProveedoresService {
   constructor(
     @InjectRepository(Proveedor)
     private proveedoresRepository: Repository<Proveedor>,
-  ) {}
+  ) { }
 
   async findAll(): Promise<Proveedor[]> {
     return this.proveedoresRepository.find({
@@ -24,11 +24,11 @@ export class ProveedoresService {
       where: { IdProveedor: id },
       relations: ['articulos']
     });
-    
+
     if (!proveedor) {
       throw new NotFoundException(`Proveedor con ID ${id} no encontrado`);
     }
-    
+
     return proveedor;
   }
 
@@ -74,9 +74,9 @@ export class ProveedoresService {
 
   async update(updateProveedorInput: UpdateProveedorInput): Promise<Proveedor> {
     const { IdProveedor, ...updateData } = updateProveedorInput;
-    
+
     const proveedor = await this.findOne(IdProveedor);
-    
+
     // Verificar si ya existe otro proveedor con el mismo código
     if (updateData.Codigo && updateData.Codigo !== proveedor.Codigo) {
       const existingByCodigo = await this.findByCodigo(updateData.Codigo);
@@ -104,13 +104,13 @@ export class ProveedoresService {
   }
 
   async findArticulosByProveedor(
-    proveedorId: number, 
-    filtro?: string, 
-    offset: number = 0, 
+    proveedorId: number,
+    filtro?: string,
+    offset: number = 0,
     limit: number = 50
   ): Promise<{ articulos: any[], total: number }> {
     const proveedor = await this.findOne(proveedorId);
-    
+
     let query = this.proveedoresRepository
       .createQueryBuilder('proveedor')
       .leftJoinAndSelect('proveedor.articulos', 'articulo')
@@ -125,7 +125,7 @@ export class ProveedoresService {
 
     const [result] = await query.getManyAndCount();
     const articulos = result.length > 0 ? result[0].articulos : [];
-    
+
     // Aplicar paginación manualmente ya que TypeORM no maneja bien la paginación con relaciones
     const total = articulos.length;
     const articulosPaginados = articulos.slice(offset, offset + limit);
@@ -135,12 +135,12 @@ export class ProveedoresService {
         Id: articulo.id,
         Codigo: articulo.Codigo,
         Descripcion: articulo.Descripcion,
-        Stock: articulo.Stock,
+        Stock: 0,
         PrecioVenta: articulo.PrecioVenta,
         Rubro: articulo.Rubro,
         StockMinimo: articulo.StockMinimo,
         EnPromocion: articulo.EnPromocion,
-        stock: articulo.Stock || 0,
+        stock: 0,
         precio: articulo.PrecioVenta || 0,
         rubro: articulo.Rubro
       })),
@@ -150,7 +150,7 @@ export class ProveedoresService {
 
   async remove(id: number): Promise<boolean> {
     const proveedor = await this.findOne(id);
-    
+
     // Verificar si el proveedor tiene artículos asociados
     const articulosCount = await this.proveedoresRepository
       .createQueryBuilder('proveedor')

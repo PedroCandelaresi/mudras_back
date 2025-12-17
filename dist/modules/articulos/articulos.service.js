@@ -26,6 +26,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         this.rubrosRepository = rubrosRepository;
         this.stockPuntosRepository = stockPuntosRepository;
         this.logger = new common_1.Logger(ArticulosService_1.name);
+        this.stockSumSubquery = '(SELECT COALESCE(SUM(spm.cantidad), 0) FROM stock_puntos_mudras spm WHERE spm.articulo_id = articulo.id)';
     }
     parseNullableDate(value) {
         if (!value) {
@@ -54,9 +55,8 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             map.set(Number(row.articuloId), Number(row.total));
         }
         articulos.forEach(art => {
-            const puntos = map.get(art.id) ?? 0;
-            const deposito = Number(art.Deposito ?? art.Stock ?? 0) || 0;
-            art.totalStock = Number((deposito + puntos).toFixed(2));
+            const puntosYDepositos = map.get(art.id) ?? 0;
+            art.totalStock = Number(puntosYDepositos.toFixed(2));
         });
     }
     async findAll() {
@@ -115,7 +115,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         const articulos = await this.articulosRepository
             .createQueryBuilder('articulo')
             .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-            .where('articulo.Stock > 0')
+            .where(`${this.stockSumSubquery} > 0`)
             .orderBy('articulo.Descripcion', 'ASC')
             .getMany();
         await this.hydrateTotalStock(articulos);
@@ -125,7 +125,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         const articulos = await this.articulosRepository
             .createQueryBuilder('articulo')
             .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-            .where('articulo.Stock <= 0 OR articulo.Stock IS NULL')
+            .where(`${this.stockSumSubquery} = 0`)
             .orderBy('articulo.Descripcion', 'ASC')
             .getMany();
         await this.hydrateTotalStock(articulos);
@@ -135,7 +135,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         const articulos = await this.articulosRepository
             .createQueryBuilder('articulo')
             .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-            .where('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0')
+            .where(`${this.stockSumSubquery} > 0 AND ${this.stockSumSubquery} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
             .orderBy('articulo.Descripcion', 'ASC')
             .getMany();
         await this.hydrateTotalStock(articulos);
@@ -165,7 +165,6 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             PrecioVenta: crearArticuloDto.precioVenta,
             PrecioCompra: crearArticuloDto.PrecioCompra ?? null,
             StockMinimo: crearArticuloDto.stockMinimo,
-            Stock: crearArticuloDto.stock,
             Deposito: crearArticuloDto.deposito ?? null,
             AlicuotaIva: crearArticuloDto.AlicuotaIva ?? null,
             FechaCompra: this.parseNullableDate(crearArticuloDto.FechaCompra),
@@ -225,8 +224,6 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             patch.PrecioVenta = actualizarArticuloDto.precioVenta;
         if (actualizarArticuloDto.PrecioCompra != null)
             patch.PrecioCompra = actualizarArticuloDto.PrecioCompra;
-        if (actualizarArticuloDto.stock != null)
-            patch.Stock = actualizarArticuloDto.stock;
         if (actualizarArticuloDto.stockMinimo != null)
             patch.StockMinimo = actualizarArticuloDto.stockMinimo;
         if (actualizarArticuloDto.deposito != null)
@@ -323,14 +320,15 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         if (filtros.proveedorId) {
             queryBuilder.andWhere('articulo.idProveedor = :proveedorId', { proveedorId: filtros.proveedorId });
         }
+        const totalStockSubquery = this.stockSumSubquery;
         if (filtros.soloConStock) {
-            queryBuilder.andWhere('articulo.Stock > 0');
+            queryBuilder.andWhere(`${totalStockSubquery} > articulo.StockMinimo`);
         }
         if (filtros.soloStockBajo) {
-            queryBuilder.andWhere('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0');
+            queryBuilder.andWhere(`${totalStockSubquery} > 0 AND ${totalStockSubquery} <= articulo.StockMinimo AND articulo.StockMinimo > 0`);
         }
         if (filtros.soloSinStock) {
-            queryBuilder.andWhere('(articulo.Stock <= 0 OR articulo.Stock IS NULL)');
+            queryBuilder.andWhere(`${totalStockSubquery} = 0`);
         }
         if (filtros.soloEnPromocion) {
             queryBuilder.andWhere('articulo.EnPromocion = true');
@@ -352,23 +350,35 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         return { articulos, total };
     }
     async obtenerEstadisticas() {
+        const stockSum = this.stockSumSubquery;
         const [totalArticulos, articulosActivos, articulosConStock, articulosSinStock, articulosStockBajo, articulosEnPromocion, articulosPublicadosEnTienda, valorTotalStock] = await Promise.all([
             this.articulosRepository.count(),
             this.articulosRepository.count(),
-            this.articulosRepository.count({ where: { Stock: (0, typeorm_2.Between)(0.01, 999999) } }),
-            this.articulosRepository.count({ where: { Stock: 0 } }),
             this.articulosRepository
                 .createQueryBuilder('articulo')
-                .where('articulo.Stock <= articulo.StockMinimo AND articulo.StockMinimo > 0')
+                .where(`${stockSum} > 0`)
+                .getCount(),
+            this.articulosRepository
+                .createQueryBuilder('articulo')
+                .where(`${stockSum} = 0`)
+                .getCount(),
+            this.articulosRepository
+                .createQueryBuilder('articulo')
+                .where(`${stockSum} > 0 AND ${stockSum} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
                 .getCount(),
             this.articulosRepository.count({ where: { EnPromocion: true } }),
             this.articulosRepository.count({ where: { EnPromocion: true } }),
             this.articulosRepository
                 .createQueryBuilder('articulo')
-                .select('SUM(articulo.Stock * articulo.PrecioVenta)', 'total')
+                .select(`COALESCE(SUM(${stockSum} * articulo.PrecioVenta), 0)`, 'total')
                 .getRawOne()
                 .then(result => parseFloat(result.total) || 0)
         ]);
+        const totalUnidades = await this.stockPuntosRepository
+            .createQueryBuilder('spm')
+            .select('COALESCE(SUM(spm.cantidad), 0)', 'total')
+            .getRawOne()
+            .then(r => Number(parseFloat(r.total).toFixed(2)) || 0);
         return {
             totalArticulos,
             articulosActivos,
@@ -377,7 +387,8 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             articulosStockBajo,
             articulosEnPromocion,
             articulosPublicadosEnTienda,
-            valorTotalStock
+            valorTotalStock,
+            totalUnidades
         };
     }
     async buscarPorCodigoBarras(codigoBarras) {
@@ -385,14 +396,6 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             where: { Codigo: codigoBarras },
             relations: ['proveedor', 'rubro']
         });
-    }
-    async actualizarStock(id, nuevoStock) {
-        const articulo = await this.articulosRepository.findOne({ where: { id } });
-        if (!articulo) {
-            throw new common_1.NotFoundException(`Artículo con ID ${id} no encontrado`);
-        }
-        await this.articulosRepository.update(id, { Stock: nuevoStock });
-        return this.articulosRepository.findOne({ where: { id }, relations: ['proveedor', 'rubro'] });
     }
 };
 exports.ArticulosService = ArticulosService;

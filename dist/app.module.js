@@ -83,6 +83,8 @@ exports.AppModule = AppModule = __decorate([
                 username: process.env.DB_USERNAME || 'mudras',
                 password: process.env.DB_PASSWORD || 'mudras2025',
                 database: process.env.DB_DATABASE || 'mudras',
+                charset: 'utf8mb4',
+                timezone: process.env.DB_TIMEZONE || '-03:00',
                 entities: [
                     articulo_entity_1.Articulo,
                     proveedor_entity_1.Proveedor,

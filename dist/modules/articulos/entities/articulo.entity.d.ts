@@ -10,12 +10,12 @@ export declare class Articulo {
     PrecioVenta: number;
     PrecioCompra: number;
     StockMinimo: number;
-    Stock: number;
     totalStock?: number;
     AlicuotaIva: number;
     Deposito: number;
     FechaCompra: Date;
     idProveedor: number;
+    rubroId: number;
     Lista2: number;
     Lista3: number;
     Unidad: string;

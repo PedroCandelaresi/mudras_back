@@ -15,7 +15,7 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard';
 @Resolver(() => Articulo)
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class ArticulosResolver {
-  constructor(private readonly articulosService: ArticulosService) {}
+  constructor(private readonly articulosService: ArticulosService) { }
 
   @Query(() => [Articulo], { name: 'articulos' })
   @Permisos('productos.read')
@@ -120,16 +120,7 @@ export class ArticulosResolver {
     return this.articulosService.buscarPorCodigoBarras(codigoBarras);
   }
 
-  @RequireSecretKey()
-  @Roles('administrador')
-  @Permisos('stock.update')
-  @Mutation(() => Articulo)
-  actualizarStockArticulo(
-    @Args('id', { type: () => Int }) id: number,
-    @Args('nuevoStock') nuevoStock: number
-  ) {
-    return this.articulosService.actualizarStock(id, nuevoStock);
-  }
+
 }
 
 @ObjectType()
@@ -166,7 +157,7 @@ class EstadisticasArticulos {
 
   @Field()
   valorTotalStock: number;
-  
+
   @Field()
   totalUnidades: number;
 }

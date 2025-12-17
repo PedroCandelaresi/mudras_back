@@ -89,11 +89,11 @@ let ComprasService = class ComprasService {
                 await this.stockPuntoRepo.save(stockPunto);
             }
             else {
-                const stockActual = Number(art.Stock || 0);
+                const stockActual = 0;
                 const nuevoStock = stockActual + cantidadRec;
                 const costoPromActual = Number(art.CostoPromedio || 0);
                 const costoPromedio = nuevoStock > 0 ? ((costoPromActual * stockActual) + (costoUnit * cantidadRec)) / nuevoStock : costoUnit;
-                await this.articuloRepo.update(art.id, { Stock: nuevoStock, CostoPromedio: costoPromedio, PrecioCompra: costoUnit });
+                await this.articuloRepo.update(art.id, { CostoPromedio: costoPromedio, PrecioCompra: costoUnit });
             }
         }
         orden.estado = orden_compra_entity_1.EstadoOrdenCompra.RECEPCIONADA;

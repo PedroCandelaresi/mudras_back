@@ -34,7 +34,7 @@ export class CajaRegistradoraService {
     @InjectRepository(PuntoMudras)
     private puntoMudrasRepository: Repository<PuntoMudras>,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   async buscarArticulos(input: BuscarArticuloInput): Promise<ArticuloConStock[]> {
     const query = this.articuloRepository.createQueryBuilder('articulo')
@@ -63,7 +63,7 @@ export class CajaRegistradoraService {
 
     // Calcular stock disponible para cada artículo
     const articulosConStock: ArticuloConStock[] = [];
-    
+
     for (const articulo of articulos) {
       const stockDisponible = await this.calcularStockDisponible(
         articulo.id,
@@ -370,7 +370,7 @@ export class CajaRegistradoraService {
       where: { id: articuloId },
     });
 
-    return Number(articulo?.Stock || 0);
+    return 0;
   }
 
   // Ya no se infiere desde puesto de venta; siempre utilizar puntoMudrasId provisto por input
@@ -453,7 +453,7 @@ export class CajaRegistradoraService {
       throw new NotFoundException(`Artículo con ID ${articuloId} no encontrado`);
     }
 
-    return Number(articulo.Stock || 0);
+    return 0;
   }
 
   private async obtenerStockTotalPuntos(
@@ -467,7 +467,7 @@ export class CajaRegistradoraService {
 
     try {
       qb.setLock('pessimistic_read');
-    } catch {}
+    } catch { }
 
     const resultado = await qb.getRawOne<{ total: string }>();
     return Number(resultado?.total || 0);
@@ -506,7 +506,7 @@ export class CajaRegistradoraService {
       stockNuevo = stockAnterior + delta;
     }
 
-    await queryRunner.manager.update(Articulo, { id: articuloId }, { Stock: stockNuevo });
+    // await queryRunner.manager.update(Articulo, { id: articuloId }, { Stock: stockNuevo });
     return { stockAnterior, stockNuevo };
   }
 
@@ -597,7 +597,7 @@ export class CajaRegistradoraService {
             const n = Number(uid);
             usuarioId = Number.isFinite(n) ? n : null;
           }
-        } catch {}
+        } catch { }
       }
       // Fecha DATE en tbStock: usar formato 'YYYY-MM-DD' para evitar problemas de conversión
       const hoy = new Date();
@@ -651,7 +651,7 @@ export class CajaRegistradoraService {
       // Actualizar estado de venta
       venta.estado = EstadoVentaCaja.CANCELADA;
       venta.observaciones = `${venta.observaciones || ''}\nCANCELADA: ${motivo || 'Sin motivo especificado'}`;
-      
+
       await queryRunner.manager.save(VentaCaja, venta);
 
       // Crear movimientos inversos de inventario si el punto maneja stock
@@ -834,7 +834,7 @@ export class CajaRegistradoraService {
       // Actualizar estado de venta original
       const totalDevuelto = Math.abs(subtotalDevolucion);
       const totalOriginal = ventaOriginal.total;
-      
+
       if (totalDevuelto >= totalOriginal * 0.99) { // 99% devuelto = devolución total
         ventaOriginal.estado = EstadoVentaCaja.DEVUELTA;
       } else {
@@ -863,7 +863,7 @@ export class CajaRegistradoraService {
 
     const ultimoNumero = ultimaVenta ? parseInt(ultimaVenta.numeroVenta.split('-')[1]) : 0;
     const nuevoNumero = ultimoNumero + 1;
-    
+
     return `V-${nuevoNumero.toString().padStart(8, '0')}`;
   }
 
@@ -876,7 +876,7 @@ export class CajaRegistradoraService {
 
     const ultimoNumero = ultimaDevolucion ? parseInt(ultimaDevolucion.numeroVenta.split('-')[1]) : 0;
     const nuevoNumero = ultimoNumero + 1;
-    
+
     return `D-${nuevoNumero.toString().padStart(8, '0')}`;
   }
 

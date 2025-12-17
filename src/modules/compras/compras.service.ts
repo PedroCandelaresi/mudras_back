@@ -16,7 +16,7 @@ export class ComprasService {
     @InjectRepository(DetalleOrdenCompra) private detalleRepo: Repository<DetalleOrdenCompra>,
     @InjectRepository(Articulo) private articuloRepo: Repository<Articulo>,
     @InjectRepository(StockPuntoMudras) private stockPuntoRepo: Repository<StockPuntoMudras>,
-  ) {}
+  ) { }
 
   async crearOrden(dto: CrearOrdenCompraDto): Promise<OrdenCompra> {
     const orden = this.ordenRepo.create({ proveedorId: dto.proveedorId, observaciones: dto.observaciones, estado: EstadoOrdenCompra.BORRADOR });
@@ -79,11 +79,11 @@ export class ComprasService {
         await this.stockPuntoRepo.save(stockPunto);
       } else {
         // Stock central (columna Stock en tbarticulos)
-        const stockActual = Number(art.Stock || 0);
+        const stockActual = 0;
         const nuevoStock = stockActual + cantidadRec;
         const costoPromActual = Number(art.CostoPromedio || 0);
         const costoPromedio = nuevoStock > 0 ? ((costoPromActual * stockActual) + (costoUnit * cantidadRec)) / nuevoStock : costoUnit;
-        await this.articuloRepo.update(art.id, { Stock: nuevoStock, CostoPromedio: costoPromedio, PrecioCompra: costoUnit });
+        await this.articuloRepo.update(art.id, { CostoPromedio: costoPromedio, PrecioCompra: costoUnit });
       }
     }
 

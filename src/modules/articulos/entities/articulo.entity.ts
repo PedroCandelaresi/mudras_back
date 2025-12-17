@@ -39,9 +39,7 @@ export class Articulo {
   @Column({ type: 'float', nullable: true })
   StockMinimo: number;
 
-  @Field(() => Float, { nullable: true })
-  @Column({ type: 'float', nullable: true })
-  Stock: number;
+
 
   @Field(() => Float, { nullable: true })
   totalStock?: number;

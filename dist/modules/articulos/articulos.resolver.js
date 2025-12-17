@@ -78,9 +78,6 @@ let ArticulosResolver = class ArticulosResolver {
     articuloPorCodigoBarras(codigoBarras) {
         return this.articulosService.buscarPorCodigoBarras(codigoBarras);
     }
-    actualizarStockArticulo(id, nuevoStock) {
-        return this.articulosService.actualizarStock(id, nuevoStock);
-    }
 };
 exports.ArticulosResolver = ArticulosResolver;
 __decorate([
@@ -211,17 +208,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ArticulosResolver.prototype, "articuloPorCodigoBarras", null);
-__decorate([
-    (0, secret_key_decorator_1.RequireSecretKey)(),
-    (0, roles_decorator_1.Roles)('administrador'),
-    (0, permissions_decorator_1.Permisos)('stock.update'),
-    (0, graphql_1.Mutation)(() => articulo_entity_1.Articulo),
-    __param(0, (0, graphql_1.Args)('id', { type: () => graphql_1.Int })),
-    __param(1, (0, graphql_1.Args)('nuevoStock')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
-    __metadata("design:returntype", void 0)
-], ArticulosResolver.prototype, "actualizarStockArticulo", null);
 exports.ArticulosResolver = ArticulosResolver = __decorate([
     (0, graphql_1.Resolver)(() => articulo_entity_1.Articulo),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
@@ -274,6 +260,10 @@ __decorate([
     (0, graphql_1.Field)(),
     __metadata("design:type", Number)
 ], EstadisticasArticulos.prototype, "valorTotalStock", void 0);
+__decorate([
+    (0, graphql_1.Field)(),
+    __metadata("design:type", Number)
+], EstadisticasArticulos.prototype, "totalUnidades", void 0);
 EstadisticasArticulos = __decorate([
     (0, graphql_1.ObjectType)()
 ], EstadisticasArticulos);

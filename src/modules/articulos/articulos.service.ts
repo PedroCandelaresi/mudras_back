@@ -17,7 +17,7 @@ export class ArticulosService {
     private rubrosRepository: Repository<Rubro>,
     @InjectRepository(StockPuntoMudras)
     private stockPuntosRepository: Repository<StockPuntoMudras>,
-  ) {}
+  ) { }
   private readonly logger = new Logger(ArticulosService.name);
   private readonly stockSumSubquery = '(SELECT COALESCE(SUM(spm.cantidad), 0) FROM stock_puntos_mudras spm WHERE spm.articulo_id = articulo.id)';
 
@@ -173,7 +173,7 @@ export class ArticulosService {
       PrecioVenta: crearArticuloDto.precioVenta,
       PrecioCompra: crearArticuloDto.PrecioCompra ?? null,
       StockMinimo: crearArticuloDto.stockMinimo,
-      Stock: crearArticuloDto.stock,
+
       Deposito: crearArticuloDto.deposito ?? null,
       AlicuotaIva: crearArticuloDto.AlicuotaIva ?? null,
       FechaCompra: this.parseNullableDate(crearArticuloDto.FechaCompra),
@@ -235,7 +235,7 @@ export class ArticulosService {
     if (actualizarArticuloDto.Marca != null) patch.Marca = actualizarArticuloDto.Marca;
     if (actualizarArticuloDto.precioVenta != null) patch.PrecioVenta = actualizarArticuloDto.precioVenta;
     if (actualizarArticuloDto.PrecioCompra != null) patch.PrecioCompra = actualizarArticuloDto.PrecioCompra;
-    if (actualizarArticuloDto.stock != null) patch.Stock = actualizarArticuloDto.stock;
+
     if (actualizarArticuloDto.stockMinimo != null) patch.StockMinimo = actualizarArticuloDto.stockMinimo;
     if (actualizarArticuloDto.deposito != null) patch.Deposito = actualizarArticuloDto.deposito;
     if (actualizarArticuloDto.AlicuotaIva != null) patch.AlicuotaIva = actualizarArticuloDto.AlicuotaIva;
@@ -274,7 +274,7 @@ export class ArticulosService {
 
   async eliminar(id: number): Promise<boolean> {
     const articulo = await this.articulosRepository.findOne({ where: { id } });
-    
+
     if (!articulo) {
       throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
     }
@@ -440,14 +440,5 @@ export class ArticulosService {
     });
   }
 
-  async actualizarStock(id: number, nuevoStock: number): Promise<Articulo> {
-    const articulo = await this.articulosRepository.findOne({ where: { id } });
-    
-    if (!articulo) {
-      throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
-    }
 
-    await this.articulosRepository.update(id, { Stock: nuevoStock });
-    return this.articulosRepository.findOne({ where: { id }, relations: ['proveedor', 'rubro'] });
-  }
 }
