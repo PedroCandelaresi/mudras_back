@@ -163,82 +163,38 @@ let PuntosMudrasService = class PuntosMudrasService {
         if (!punto) {
             throw new Error(`Punto Mudras con ID ${puntoMudrasId} no encontrado`);
         }
-        if (punto.tipo === 'deposito') {
-            const base = await this.obtenerStockSinAsignar();
-            return this.adjuntarDetallesArticulo(base);
-        }
-        else {
-            const stockRecords = await this.stockRepository
-                .createQueryBuilder('stock')
-                .leftJoinAndSelect('stock.puntoMudras', 'punto')
-                .leftJoin('tbarticulos', 'articulo', 'articulo.id = stock.articuloId')
-                .leftJoin('tbrubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
-                .select([
-                'stock.id',
-                'stock.articuloId',
-                'stock.cantidad',
-                'stock.stockMinimo',
-                'articulo.id',
-                'articulo.Codigo',
-                'articulo.Descripcion',
-                'articulo.PrecioVenta',
-                'articulo.Stock',
-                'articulo.Rubro',
-                'rubro.Id',
-                'rubro.Rubro'
-            ])
-                .where('stock.puntoMudrasId = :puntoMudrasId', { puntoMudrasId })
-                .getRawMany();
-            console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
-            const base = stockRecords.map(record => ({
-                id: record.articulo_id,
-                nombre: record.articulo_Descripcion || 'Sin nombre',
-                codigo: record.articulo_Codigo || 'Sin código',
-                precio: parseFloat(record.articulo_PrecioVenta || '0'),
-                stockAsignado: parseFloat(record.stock_cantidad || '0'),
-                stockTotal: parseFloat(record.articulo_Stock || '0'),
-                rubro: record.articulo_Rubro || record.rubro_Rubro
-                    ? {
-                        id: record.rubro_Id || 0,
-                        nombre: record.articulo_Rubro || record.rubro_Rubro || 'Sin rubro'
-                    }
-                    : undefined,
-            }));
-            return this.adjuntarDetallesArticulo(base);
-        }
-    }
-    async obtenerStockSinAsignar() {
-        console.log(`🏪 Obteniendo stock sin asignar para depósito`);
-        const query = `
-      SELECT 
-        a.id,
-        a.Codigo,
-        a.Descripcion,
-        a.PrecioVenta,
-        a.Stock as stockTotal,
-        a.Rubro,
-        COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
-        (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible
-      FROM tbarticulos a
-      LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
-      WHERE 1=1
-      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Stock, a.Rubro
-      HAVING stockDisponible > 0
-      ORDER BY a.Descripcion
-    `;
-        const stockRecords = await this.stockRepository.query(query);
-        console.log(`📦 Encontrados ${stockRecords.length} artículos con stock disponible`);
+        const stockRecords = await this.stockRepository
+            .createQueryBuilder('stock')
+            .leftJoinAndSelect('stock.puntoMudras', 'punto')
+            .leftJoin('tbarticulos', 'articulo', 'articulo.id = stock.articuloId')
+            .leftJoin('tbrubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
+            .select([
+            'stock.id',
+            'stock.articuloId',
+            'stock.cantidad',
+            'stock.stockMinimo',
+            'articulo.id',
+            'articulo.Codigo',
+            'articulo.Descripcion',
+            'articulo.PrecioVenta',
+            'articulo.Rubro',
+            'rubro.Id',
+            'rubro.Rubro'
+        ])
+            .where('stock.puntoMudrasId = :puntoMudrasId', { puntoMudrasId })
+            .getRawMany();
+        console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
         const base = stockRecords.map(record => ({
-            id: record.id,
-            nombre: record.Descripcion || 'Sin nombre',
-            codigo: record.Codigo || 'Sin código',
-            precio: parseFloat(record.PrecioVenta || '0'),
-            stockAsignado: parseFloat(record.stockDisponible || '0'),
-            stockTotal: parseFloat(record.stockTotal || '0'),
-            rubro: record.Rubro
+            id: record.articulo_id,
+            nombre: record.articulo_Descripcion || 'Sin nombre',
+            codigo: record.articulo_Codigo || 'Sin código',
+            precio: parseFloat(record.articulo_PrecioVenta || '0'),
+            stockAsignado: parseFloat(record.stock_cantidad || '0'),
+            stockTotal: 0,
+            rubro: record.articulo_Rubro || record.rubro_Rubro
                 ? {
-                    id: 0,
-                    nombre: record.Rubro || 'Sin rubro'
+                    id: record.rubro_Id || 0,
+                    nombre: record.articulo_Rubro || record.rubro_Rubro || 'Sin rubro'
                 }
                 : undefined,
         }));
@@ -274,12 +230,12 @@ let PuntosMudrasService = class PuntosMudrasService {
         a.Codigo,
         a.Descripcion,
         a.Rubro,
-        a.Stock as stockTotal
+        COALESCE(SUM(spm.cantidad), 0) as stockTotal
         ${selectPuntos}
       FROM tbarticulos a
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
       ${whereClause}
-      GROUP BY a.id, a.Codigo, a.Descripcion, a.Rubro, a.Stock
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.Rubro
       ORDER BY a.Descripcion
       LIMIT 100
     `;
@@ -309,7 +265,9 @@ let PuntosMudrasService = class PuntosMudrasService {
         p.Codigo as codigo
       FROM tbproveedores p
       INNER JOIN tbarticulos a ON a.idProveedor = p.IdProveedor
-      WHERE a.Stock > 0
+      INNER JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
+      GROUP BY p.IdProveedor, p.Nombre, p.Codigo
+      HAVING SUM(spm.cantidad) > 0
       ORDER BY p.Nombre
     `;
         const proveedores = await this.stockRepository.query(query);
@@ -337,16 +295,16 @@ let PuntosMudrasService = class PuntosMudrasService {
         a.Codigo,
         a.Descripcion,
         a.PrecioVenta,
-        a.Stock as stockTotal,
+        COALESCE(SUM(spm.cantidad), 0) as stockTotal,
         a.Rubro,
         p.Nombre as proveedorNombre,
         COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
-        (a.Stock - COALESCE(SUM(spm.cantidad), 0)) as stockDisponible,
+        0 as stockDisponible,
         COALESCE(SUM(CASE WHEN spm.punto_mudras_id = ? THEN spm.cantidad END), 0) as stockEnDestino
       FROM tbarticulos a
       LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
-      WHERE a.Stock > 0
+      WHERE 1=1
     `;
         const params = [destinoId ?? 0];
         if (proveedorId) {
@@ -362,7 +320,8 @@ let PuntosMudrasService = class PuntosMudrasService {
             params.push(`%${busqueda}%`, `%${busqueda}%`);
         }
         query += `
-      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Stock, a.Rubro, p.Nombre
+      GROUP BY a.id, a.Codigo, a.Descripcion, a.PrecioVenta, a.Rubro, p.Nombre
+      HAVING stockTotal > 0
       ORDER BY a.Descripcion
       LIMIT 50
     `;

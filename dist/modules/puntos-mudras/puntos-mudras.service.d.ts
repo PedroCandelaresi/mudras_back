@@ -23,7 +23,6 @@ export declare class PuntosMudrasService {
     actualizar(input: ActualizarPuntoMudrasDto): Promise<PuntoMudras>;
     eliminar(id: number): Promise<boolean>;
     obtenerArticulosConStockPunto(puntoMudrasId: number): Promise<any[]>;
-    obtenerStockSinAsignar(): Promise<any[]>;
     obtenerMatrizStock(filtros?: {
         busqueda?: string;
         rubro?: string;
