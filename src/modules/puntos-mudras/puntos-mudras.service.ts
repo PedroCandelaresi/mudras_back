@@ -11,6 +11,7 @@ import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { FiltrosPuntosMudrasInput, FiltrosStockInput, FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
+import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 
 @Injectable()
 export class PuntosMudrasService {

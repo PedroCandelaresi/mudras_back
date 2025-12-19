@@ -10,6 +10,7 @@ import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
+import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
 
 @ObjectType()
@@ -277,6 +278,15 @@ export class PuntosMudrasResolver {
   ): Promise<boolean> {
     await this.puntosMudrasService.ajustarStock(input);
     return true;
+  }
+
+  @Mutation(() => Boolean)
+  @RequireSecretKey()
+  @Permisos('stock.update')
+  async asignarStockMasivo(
+    @Args('input', new ValidationPipe()) input: AsignarStockMasivoInput,
+  ): Promise<boolean> {
+    return await this.puntosMudrasService.asignarStockMasivo(input);
   }
 
   @Query(() => [RelacionProveedorRubro])
