@@ -592,6 +592,73 @@ export class PuntosMudrasService {
     }
   }
 
+  async asignarStockMasivo(input: AsignarStockMasivoInput): Promise<boolean> {
+    console.log(`📦 Asignando stock masivo para punto ${input.puntoMudrasId}`);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const punto = await this.puntosMudrasRepository.findOne({
+        where: { id: input.puntoMudrasId }
+      });
+
+      if (!punto) {
+        throw new NotFoundException(`Punto Mudras con ID ${input.puntoMudrasId} no encontrado`);
+      }
+
+      for (const asignacion of input.asignaciones) {
+        let stock = await queryRunner.manager.findOne(StockPuntoMudras, {
+          where: {
+            puntoMudrasId: input.puntoMudrasId,
+            articuloId: asignacion.articuloId
+          }
+        });
+
+        const cantidadAnterior = stock ? Number(stock.cantidad) : 0;
+        const diferencia = asignacion.cantidad - cantidadAnterior;
+
+        // Si no hay cambio significativo, saltar (usar una pequeña tolerancia si fuera necesario, pero siendo exactos mejor)
+        if (diferencia === 0) continue;
+
+        if (!stock) {
+          stock = queryRunner.manager.create(StockPuntoMudras, {
+            puntoMudrasId: input.puntoMudrasId,
+            articuloId: asignacion.articuloId,
+            cantidad: asignacion.cantidad,
+            stockMinimo: 0
+          });
+        } else {
+          stock.cantidad = asignacion.cantidad;
+        }
+
+        await queryRunner.manager.save(stock);
+
+        const movimiento = queryRunner.manager.create(MovimientoStockPunto, {
+          puntoMudrasDestinoId: input.puntoMudrasId,
+          articuloId: asignacion.articuloId,
+          tipoMovimiento: TipoMovimientoStockPunto.AJUSTE,
+          cantidad: diferencia,
+          cantidadAnterior: cantidadAnterior,
+          cantidadNueva: asignacion.cantidad,
+          motivo: input.motivo || 'Asignación masiva de stock'
+        });
+        await queryRunner.manager.save(movimiento);
+      }
+
+      await queryRunner.commitTransaction();
+      console.log(`✅ Asignación masiva completada`);
+      return true;
+
+    } catch (error) {
+      console.error('Error en asignación masiva:', error);
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async transferirStock(input: TransferirStockInput): Promise<MovimientoStockPunto> {
     if (input.puntoOrigenId === input.puntoDestinoId) {
       throw new BadRequestException('El punto origen y destino no pueden ser el mismo');

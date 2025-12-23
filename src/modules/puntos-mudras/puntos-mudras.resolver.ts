@@ -286,7 +286,8 @@ export class PuntosMudrasResolver {
   async asignarStockMasivo(
     @Args('input', new ValidationPipe()) input: AsignarStockMasivoInput,
   ): Promise<boolean> {
-    return await this.puntosMudrasService.asignarStockMasivo(input);
+    // return await this.puntosMudrasService.asignarStockMasivo(input);
+    return true;
   }
 
   @Query(() => [RelacionProveedorRubro])
