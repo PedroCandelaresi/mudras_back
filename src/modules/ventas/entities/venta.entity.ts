@@ -32,7 +32,7 @@ registerEnumType(TipoPago, {
 
 @Entity('ventas')
 @ObjectType()
-@Index(['numero'], { unique: true })
+
 @Index(['clienteId'])
 @Index(['usuarioAuthId'])
 @Index(['estado'])

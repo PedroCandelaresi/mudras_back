@@ -162,7 +162,6 @@ __decorate([
 exports.Venta = Venta = __decorate([
     (0, typeorm_1.Entity)('ventas'),
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Index)(['numero'], { unique: true }),
     (0, typeorm_1.Index)(['clienteId']),
     (0, typeorm_1.Index)(['usuarioAuthId']),
     (0, typeorm_1.Index)(['estado']),
