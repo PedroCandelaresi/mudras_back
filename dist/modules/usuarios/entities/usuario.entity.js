@@ -134,8 +134,6 @@ __decorate([
 exports.Usuario = Usuario = __decorate([
     (0, typeorm_1.Entity)('mudras_usuarios'),
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Index)(['email'], { unique: true }),
-    (0, typeorm_1.Index)(['username'], { unique: true }),
     (0, typeorm_1.Index)(['rol']),
     (0, typeorm_1.Index)(['estado'])
 ], Usuario);

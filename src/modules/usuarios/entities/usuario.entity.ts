@@ -29,8 +29,7 @@ registerEnumType(EstadoUsuario, {
 
 @Entity('mudras_usuarios')
 @ObjectType()
-@Index(['email'], { unique: true })
-@Index(['username'], { unique: true })
+
 @Index(['rol'])
 @Index(['estado'])
 export class Usuario {

@@ -27,7 +27,7 @@ registerEnumType(EstadoCuentaContable, {
 
 @Entity('cuentas_contables')
 @ObjectType()
-@Index(['codigo'], { unique: true })
+
 @Index(['tipo'])
 @Index(['estado'])
 @Index(['cuentaPadreId'])
