@@ -52,6 +52,7 @@ let SeedService = SeedService_1 = class SeedService {
         if (!adminRole) {
             this.logger.log('Creando rol admin...');
             adminRole = this.roleRepo.create({
+                id: (0, crypto_1.randomUUID)(),
                 name: 'Administrador',
                 slug: 'admin',
             });

@@ -51,6 +51,7 @@ export class SeedService implements OnModuleInit {
         if (!adminRole) {
             this.logger.log('Creando rol admin...');
             adminRole = this.roleRepo.create({
+                id: randomUUID(),
                 name: 'Administrador',
                 slug: 'admin',
             });
