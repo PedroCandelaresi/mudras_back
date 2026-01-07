@@ -166,8 +166,8 @@ let PuntosMudrasService = class PuntosMudrasService {
         const stockRecords = await this.stockRepository
             .createQueryBuilder('stock')
             .leftJoinAndSelect('stock.puntoMudras', 'punto')
-            .leftJoin('tbarticulos', 'articulo', 'articulo.id = stock.articuloId')
-            .leftJoin('tbrubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
+            .leftJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId')
+            .leftJoin('mudras_rubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
             .select([
             'stock.id',
             'stock.articuloId',
@@ -232,7 +232,7 @@ let PuntosMudrasService = class PuntosMudrasService {
         a.Rubro,
         COALESCE(SUM(spm.cantidad), 0) as stockTotal
         ${selectPuntos}
-      FROM tbarticulos a
+      FROM mudras_articulos a
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
       ${whereClause}
       GROUP BY a.id, a.Codigo, a.Descripcion, a.Rubro
@@ -263,8 +263,8 @@ let PuntosMudrasService = class PuntosMudrasService {
         p.IdProveedor as id,
         p.Nombre as nombre,
         p.Codigo as codigo
-      FROM tbproveedores p
-      INNER JOIN tbarticulos a ON a.idProveedor = p.IdProveedor
+      FROM mudras_proveedores p
+      INNER JOIN mudras_articulos a ON a.idProveedor = p.IdProveedor
       INNER JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
       GROUP BY p.IdProveedor, p.Nombre, p.Codigo
       HAVING SUM(spm.cantidad) > 0
@@ -279,7 +279,7 @@ let PuntosMudrasService = class PuntosMudrasService {
         const query = `
       SELECT DISTINCT 
         pr.rubro_nombre as rubro
-      FROM tb_proveedor_rubro pr
+      FROM mudras_proveedor_rubro pr
       WHERE pr.proveedor_id = ?
       ORDER BY pr.rubro_nombre
     `;
@@ -301,8 +301,8 @@ let PuntosMudrasService = class PuntosMudrasService {
         COALESCE(SUM(spm.cantidad), 0) as stockAsignado,
         0 as stockDisponible,
         COALESCE(SUM(CASE WHEN spm.punto_mudras_id = ? THEN spm.cantidad END), 0) as stockEnDestino
-      FROM tbarticulos a
-      LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+      FROM mudras_articulos a
+      LEFT JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
       WHERE 1=1
     `;
@@ -373,8 +373,8 @@ let PuntosMudrasService = class PuntosMudrasService {
         pr.proveedor_nombre as proveedorNombre,
         pr.rubro_nombre as rubroNombre,
         COUNT(a.id) as cantidadArticulos
-      FROM tb_proveedor_rubro pr
-      LEFT JOIN tbarticulos a ON a.idProveedor = pr.proveedor_id AND a.Rubro COLLATE utf8mb4_unicode_ci = pr.rubro_nombre COLLATE utf8mb4_unicode_ci
+      FROM mudras_proveedor_rubro pr
+      LEFT JOIN mudras_articulos a ON a.idProveedor = pr.proveedor_id AND a.Rubro COLLATE utf8mb4_unicode_ci = pr.rubro_nombre COLLATE utf8mb4_unicode_ci
       GROUP BY pr.id, pr.proveedor_id, pr.proveedor_nombre, pr.rubro_nombre
       ORDER BY pr.proveedor_nombre, pr.rubro_nombre
     `;
@@ -387,10 +387,10 @@ let PuntosMudrasService = class PuntosMudrasService {
         COUNT(DISTINCT pr.proveedor_id) as proveedoresUnicos,
         COUNT(DISTINCT pr.rubro_nombre) as rubrosUnicos,
         COALESCE(SUM(
-          (SELECT COUNT(*) FROM tbarticulos a 
+          (SELECT COUNT(*) FROM mudras_articulos a 
            WHERE a.idProveedor = pr.proveedor_id AND a.Rubro COLLATE utf8mb4_unicode_ci = pr.rubro_nombre COLLATE utf8mb4_unicode_ci)
         ), 0) as totalArticulos
-      FROM tb_proveedor_rubro pr
+      FROM mudras_proveedor_rubro pr
     `;
         const result = await this.stockRepository.query(query);
         return result[0];
@@ -454,6 +454,65 @@ let PuntosMudrasService = class PuntosMudrasService {
             return stockGuardado;
         }
         catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        }
+        finally {
+            await queryRunner.release();
+        }
+    }
+    async asignarStockMasivo(input) {
+        console.log(`📦 Asignando stock masivo para punto ${input.puntoMudrasId}`);
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            const punto = await this.puntosMudrasRepository.findOne({
+                where: { id: input.puntoMudrasId }
+            });
+            if (!punto) {
+                throw new common_1.NotFoundException(`Punto Mudras con ID ${input.puntoMudrasId} no encontrado`);
+            }
+            for (const asignacion of input.asignaciones) {
+                let stock = await queryRunner.manager.findOne(stock_punto_mudras_entity_1.StockPuntoMudras, {
+                    where: {
+                        puntoMudrasId: input.puntoMudrasId,
+                        articuloId: asignacion.articuloId
+                    }
+                });
+                const cantidadAnterior = stock ? Number(stock.cantidad) : 0;
+                const diferencia = asignacion.cantidad - cantidadAnterior;
+                if (diferencia === 0)
+                    continue;
+                if (!stock) {
+                    stock = queryRunner.manager.create(stock_punto_mudras_entity_1.StockPuntoMudras, {
+                        puntoMudrasId: input.puntoMudrasId,
+                        articuloId: asignacion.articuloId,
+                        cantidad: asignacion.cantidad,
+                        stockMinimo: 0
+                    });
+                }
+                else {
+                    stock.cantidad = asignacion.cantidad;
+                }
+                await queryRunner.manager.save(stock);
+                const movimiento = queryRunner.manager.create(movimiento_stock_punto_entity_1.MovimientoStockPunto, {
+                    puntoMudrasDestinoId: input.puntoMudrasId,
+                    articuloId: asignacion.articuloId,
+                    tipoMovimiento: movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.AJUSTE,
+                    cantidad: diferencia,
+                    cantidadAnterior: cantidadAnterior,
+                    cantidadNueva: asignacion.cantidad,
+                    motivo: input.motivo || 'Asignación masiva de stock'
+                });
+                await queryRunner.manager.save(movimiento);
+            }
+            await queryRunner.commitTransaction();
+            console.log(`✅ Asignación masiva completada`);
+            return true;
+        }
+        catch (error) {
+            console.error('Error en asignación masiva:', error);
             await queryRunner.rollbackTransaction();
             throw error;
         }

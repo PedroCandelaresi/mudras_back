@@ -3,6 +3,7 @@ import { PuntoMudras } from './entities/punto-mudras.entity';
 import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
+import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
 export declare class RubroInfo {
     id: number;
@@ -76,6 +77,7 @@ export declare class PuntosMudrasResolver {
     modificarStockPunto(puntoMudrasId: number, articuloId: number, nuevaCantidad: number): Promise<boolean>;
     transferirStock(input: TransferirStockInput): Promise<boolean>;
     ajustarStock(input: AjustarStockInput): Promise<boolean>;
+    asignarStockMasivo(input: AsignarStockMasivoInput): Promise<boolean>;
     obtenerRelacionesProveedorRubro(): Promise<RelacionProveedorRubro[]>;
     obtenerEstadisticasProveedorRubro(): Promise<EstadisticasProveedorRubro>;
     obtenerMatrizStock(busqueda?: string, rubro?: string, proveedorId?: number): Promise<MatrizStockItem[]>;

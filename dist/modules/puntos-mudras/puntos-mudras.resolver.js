@@ -25,6 +25,7 @@ const punto_mudras_entity_1 = require("./entities/punto-mudras.entity");
 const crear_punto_mudras_dto_1 = require("./dto/crear-punto-mudras.dto");
 const actualizar_punto_mudras_dto_1 = require("./dto/actualizar-punto-mudras.dto");
 const transferir_stock_dto_1 = require("./dto/transferir-stock.dto");
+const asignar_stock_masivo_dto_1 = require("./dto/asignar-stock-masivo.dto");
 const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 let RubroInfo = class RubroInfo {
 };
@@ -285,6 +286,9 @@ let PuntosMudrasResolver = class PuntosMudrasResolver {
         await this.puntosMudrasService.ajustarStock(input);
         return true;
     }
+    async asignarStockMasivo(input) {
+        return await this.puntosMudrasService.asignarStockMasivo(input);
+    }
     async obtenerRelacionesProveedorRubro() {
         return await this.puntosMudrasService.obtenerRelacionesProveedorRubro();
     }
@@ -408,6 +412,15 @@ __decorate([
     __metadata("design:paramtypes", [transferir_stock_dto_1.AjustarStockInput]),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "ajustarStock", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => Boolean),
+    (0, secret_key_decorator_1.RequireSecretKey)(),
+    (0, permissions_decorator_1.Permisos)('stock.update'),
+    __param(0, (0, graphql_1.Args)('input', new common_1.ValidationPipe())),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [asignar_stock_masivo_dto_1.AsignarStockMasivoInput]),
+    __metadata("design:returntype", Promise)
+], PuntosMudrasResolver.prototype, "asignarStockMasivo", null);
 __decorate([
     (0, graphql_1.Query)(() => [RelacionProveedorRubro]),
     (0, permissions_decorator_1.Permisos)('stock.read'),

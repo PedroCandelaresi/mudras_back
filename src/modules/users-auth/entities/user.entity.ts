@@ -3,7 +3,7 @@ import { UserProvider } from '../../users-auth/entities/user-provider.entity';
 import { UserRole } from '../../users-auth/entities/user-role.entity';
 import { RefreshToken } from '../../users-auth/entities/refresh-token.entity';
 
-@Entity({ name: 'mudras_auth_users' })
+@Entity({ name: 'mudras_usuarios_auth' })
 export class UserAuth {
   @PrimaryColumn({ type: 'char', length: 36 })
   id!: string;

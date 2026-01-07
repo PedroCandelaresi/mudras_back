@@ -25,7 +25,7 @@ let RubrosService = class RubrosService {
         const offset = pagina * limite;
         let countQuery = `
       SELECT COUNT(DISTINCT r.Id) as total
-      FROM tbrubros r
+      FROM mudras_rubros r
     `;
         let query = `
       SELECT 
@@ -36,15 +36,15 @@ let RubrosService = class RubrosService {
         COALESCE(r.PorcentajeDescuento, 0) as porcentajeDescuento,
         COUNT(DISTINCT a.id) as cantidadArticulos,
         COUNT(DISTINCT p.IdProveedor) as cantidadProveedores
-      FROM tbrubros r
+      FROM mudras_rubros r
       LEFT JOIN (
         SELECT DISTINCT a.Rubro, a.id, a.idProveedor
-        FROM tbarticulos a
-        INNER JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
-        INNER JOIN tb_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
+        FROM mudras_articulos a
+        INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
+        INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
         WHERE pr.rubro_nombre COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
       ) a ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
-      LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+      LEFT JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
     `;
         const params = [];
         if (busqueda && busqueda.trim()) {
@@ -96,7 +96,7 @@ let RubrosService = class RubrosService {
         return this.findOne(id);
     }
     async remove(id) {
-        const articulosCount = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM tbarticulos WHERE Rubro = (SELECT Rubro FROM tbrubros WHERE Id = ?)', [id]);
+        const articulosCount = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM mudras_articulos WHERE Rubro = (SELECT Rubro FROM mudras_rubros WHERE Id = ?)', [id]);
         if (articulosCount[0].count > 0) {
             throw new Error('No se puede eliminar el rubro porque tiene artículos asociados');
         }
@@ -111,9 +111,9 @@ let RubrosService = class RubrosService {
         p.Codigo as codigo,
         p.Mail as email,
         p.Telefono as telefono
-      FROM tbproveedores p
-      INNER JOIN tbarticulos a ON p.IdProveedor = a.idProveedor
-      INNER JOIN tbrubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      FROM mudras_proveedores p
+      INNER JOIN mudras_articulos a ON p.IdProveedor = a.idProveedor
+      INNER JOIN mudras_rubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       WHERE r.Id = ?
       ORDER BY p.Nombre ASC
     `;
@@ -121,10 +121,10 @@ let RubrosService = class RubrosService {
     }
     async getArticulosPorRubro(rubroId, filtro, offset = 0, limit = 50) {
         let baseQuery = `
-      FROM tbarticulos a
-      INNER JOIN tbrubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
-      INNER JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
-      INNER JOIN tb_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      FROM mudras_articulos a
+      INNER JOIN mudras_rubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
+      INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       WHERE r.Id = ?
     `;
         const params = [rubroId];
@@ -171,11 +171,11 @@ let RubrosService = class RubrosService {
     }
     async eliminarProveedorDeRubro(proveedorId, rubroNombre) {
         try {
-            await this.rubrosRepository.query('UPDATE tbarticulos SET idProveedor = NULL WHERE idProveedor = ? AND Rubro = ?', [proveedorId, rubroNombre]);
-            await this.rubrosRepository.query('DELETE FROM tb_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?', [proveedorId, rubroNombre]);
-            const rubrosRestantes = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM tb_proveedor_rubro WHERE proveedor_id = ?', [proveedorId]);
+            await this.rubrosRepository.query('UPDATE mudras_articulos SET idProveedor = NULL WHERE idProveedor = ? AND Rubro = ?', [proveedorId, rubroNombre]);
+            await this.rubrosRepository.query('DELETE FROM mudras_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?', [proveedorId, rubroNombre]);
+            const rubrosRestantes = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM mudras_proveedor_rubro WHERE proveedor_id = ?', [proveedorId]);
             if (rubrosRestantes[0].count === 0) {
-                await this.rubrosRepository.query('UPDATE tbproveedores SET Rubro = NULL WHERE IdProveedor = ?', [proveedorId]);
+                await this.rubrosRepository.query('UPDATE mudras_proveedores SET Rubro = NULL WHERE IdProveedor = ?', [proveedorId]);
             }
             return true;
         }
@@ -186,7 +186,7 @@ let RubrosService = class RubrosService {
     }
     async eliminarArticuloDeRubro(articuloId) {
         try {
-            const resultString = await this.rubrosRepository.query('UPDATE tbarticulos SET Rubro = NULL WHERE id = ?', [articuloId]);
+            const resultString = await this.rubrosRepository.query('UPDATE mudras_articulos SET Rubro = NULL WHERE id = ?', [articuloId]);
             return resultString.affectedRows > 0;
         }
         catch (error) {
@@ -200,7 +200,7 @@ let RubrosService = class RubrosService {
                 return false;
             }
             const placeholders = articuloIds.map(() => '?').join(',');
-            const resultString = await this.rubrosRepository.query(`UPDATE tbarticulos SET Rubro = NULL WHERE id IN (${placeholders})`, articuloIds);
+            const resultString = await this.rubrosRepository.query(`UPDATE mudras_articulos SET Rubro = NULL WHERE id IN (${placeholders})`, articuloIds);
             return resultString.affectedRows > 0;
         }
         catch (error) {

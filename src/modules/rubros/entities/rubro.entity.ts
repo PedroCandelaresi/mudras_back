@@ -4,7 +4,7 @@ import { Articulo } from '../../articulos/entities/articulo.entity';
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
 
 @ObjectType()
-@Entity('tbrubros')
+@Entity('mudras_rubros')
 export class Rubro {
   @Field(() => ID)
   @PrimaryGeneratedColumn()

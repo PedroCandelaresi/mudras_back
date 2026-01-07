@@ -24,6 +24,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersAuthModule } from './modules/users-auth/users-auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { SeedModule } from './modules/seed/seed.module';
 
 // Entidades
 import { Articulo } from './modules/articulos/entities/articulo.entity';
@@ -63,6 +64,8 @@ import { DetalleOrdenCompra } from './modules/compras/entities/detalle-orden-com
 import { GastosModule } from './modules/gastos/gastos.module';
 import { Gasto } from './modules/gastos/entities/gasto.entity';
 import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity';
+import { ProveedorRubro } from './modules/proveedores/entities/proveedor-rubro.entity';
+import { UsuarioAuthMap } from './modules/users-auth/entities/usuario-auth-map.entity';
 
 @Module({
   imports: [
@@ -82,9 +85,9 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
       charset: 'utf8mb4',
       timezone: process.env.DB_TIMEZONE || '-03:00',
       entities: [
-        Articulo, 
-        Proveedor, 
-        Stock, 
+        Articulo,
+        Proveedor,
+        Stock,
         Rubro,
         Usuario,
         Cliente,
@@ -121,11 +124,12 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
         DetalleOrdenCompra,
         Gasto,
         CategoriaGasto,
+        ProveedorRubro,
+        UsuarioAuthMap,
       ],
-      synchronize: false, // No modificar estructura de BD existente
-      logging: true,
+      synchronize: true, // Auto-create tables as requested
     }),
-    
+
     // Configuración GraphQL
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -155,7 +159,8 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
     UsersAuthModule,
     RolesModule,
     PermissionsModule,
+    SeedModule,
   ],
   providers: [DateTimeScalar],
 })
-export class AppModule {}
+export class AppModule { }

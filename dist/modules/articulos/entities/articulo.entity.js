@@ -221,6 +221,6 @@ __decorate([
 ], Articulo.prototype, "movimientosStock", void 0);
 exports.Articulo = Articulo = __decorate([
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Entity)('tbarticulos')
+    (0, typeorm_1.Entity)('mudras_articulos')
 ], Articulo);
 //# sourceMappingURL=articulo.entity.js.map

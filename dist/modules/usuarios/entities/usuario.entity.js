@@ -132,7 +132,7 @@ __decorate([
     __metadata("design:type", Array)
 ], Usuario.prototype, "asientosContables", void 0);
 exports.Usuario = Usuario = __decorate([
-    (0, typeorm_1.Entity)('usuarios'),
+    (0, typeorm_1.Entity)('mudras_usuarios'),
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Index)(['email'], { unique: true }),
     (0, typeorm_1.Index)(['username'], { unique: true }),

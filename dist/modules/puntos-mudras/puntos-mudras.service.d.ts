@@ -7,6 +7,7 @@ import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { FiltrosPuntosMudrasInput, FiltrosStockInput, FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
+import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 export declare class PuntosMudrasService {
     private puntosMudrasRepository;
     private stockRepository;
@@ -39,6 +40,7 @@ export declare class PuntosMudrasService {
         total: number;
     }>;
     ajustarStock(input: AjustarStockInput): Promise<StockPuntoMudras>;
+    asignarStockMasivo(input: AsignarStockMasivoInput): Promise<boolean>;
     transferirStock(input: TransferirStockInput): Promise<MovimientoStockPunto>;
     obtenerMovimientos(puntoMudrasId?: number, filtros?: FiltrosMovimientosInput): Promise<{
         movimientos: MovimientoStockPunto[];

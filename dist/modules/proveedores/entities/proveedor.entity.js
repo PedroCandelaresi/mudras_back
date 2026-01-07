@@ -167,6 +167,6 @@ __decorate([
 ], Proveedor.prototype, "ordenesCompra", void 0);
 exports.Proveedor = Proveedor = __decorate([
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Entity)('tbproveedores')
+    (0, typeorm_1.Entity)('mudras_proveedores')
 ], Proveedor);
 //# sourceMappingURL=proveedor.entity.js.map

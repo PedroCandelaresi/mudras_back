@@ -113,7 +113,7 @@ let AuthService = class AuthService {
     }
     async obtenerUsuarioInternoId(authUserId) {
         try {
-            const rows = await this.usersRepo.query('SELECT usuario_id AS usuarioId FROM usuarios_auth_map WHERE auth_user_id = ? LIMIT 1', [authUserId]);
+            const rows = await this.usersRepo.query('SELECT usuario_id AS usuarioId FROM mudras_usuarios_auth_map WHERE auth_user_id = ? LIMIT 1', [authUserId]);
             const id = rows?.[0]?.usuarioId;
             if (typeof id === 'number' && Number.isFinite(id))
                 return id;

@@ -8,17 +8,17 @@ export class RubrosService {
   constructor(
     @InjectRepository(Rubro)
     private rubrosRepository: Repository<Rubro>,
-  ) {}
+  ) { }
 
   async findAll(pagina: number = 0, limite: number = 50, busqueda?: string): Promise<{ rubros: any[], total: number }> {
     const offset = pagina * limite;
-    
+
     // Query para contar el total
     let countQuery = `
       SELECT COUNT(DISTINCT r.Id) as total
-      FROM tbrubros r
+      FROM mudras_rubros r
     `;
-    
+
     // Query principal con paginación
     let query = `
       SELECT 
@@ -29,19 +29,19 @@ export class RubrosService {
         COALESCE(r.PorcentajeDescuento, 0) as porcentajeDescuento,
         COUNT(DISTINCT a.id) as cantidadArticulos,
         COUNT(DISTINCT p.IdProveedor) as cantidadProveedores
-      FROM tbrubros r
+      FROM mudras_rubros r
       LEFT JOIN (
         SELECT DISTINCT a.Rubro, a.id, a.idProveedor
-        FROM tbarticulos a
-        INNER JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
-        INNER JOIN tb_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
+        FROM mudras_articulos a
+        INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
+        INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
         WHERE pr.rubro_nombre COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
       ) a ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
-      LEFT JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
+      LEFT JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
     `;
-    
+
     const params: any[] = [];
-    
+
     // Agregar filtro de búsqueda si existe
     if (busqueda && busqueda.trim()) {
       const whereClause = ` WHERE (r.Rubro LIKE ? OR r.Codigo LIKE ?)`;
@@ -50,23 +50,23 @@ export class RubrosService {
       const searchParam = `%${busqueda.trim()}%`;
       params.push(searchParam, searchParam);
     }
-    
+
     query += `
       GROUP BY r.Id, r.Rubro, r.Codigo, r.PorcentajeRecargo, r.PorcentajeDescuento
       ORDER BY r.Rubro ASC
       LIMIT ? OFFSET ?
     `;
-    
+
     params.push(limite, offset);
-    
+
     // Ejecutar ambas queries
     const [rubros, totalResult] = await Promise.all([
       this.rubrosRepository.query(query, params),
       this.rubrosRepository.query(countQuery, busqueda && busqueda.trim() ? params.slice(0, -2) : [])
     ]);
-    
+
     const total = totalResult[0]?.total || 0;
-    
+
     return { rubros, total };
   }
 
@@ -89,7 +89,7 @@ export class RubrosService {
       PorcentajeRecargo: porcentajeRecargo ?? 0,
       PorcentajeDescuento: porcentajeDescuento ?? 0
     });
-    
+
     return await this.rubrosRepository.save(nuevoRubro);
   }
 
@@ -100,14 +100,14 @@ export class RubrosService {
       PorcentajeRecargo: porcentajeRecargo ?? 0,
       PorcentajeDescuento: porcentajeDescuento ?? 0
     });
-    
+
     return this.findOne(id);
   }
 
   async remove(id: number): Promise<boolean> {
     // Verificar si hay artículos usando este rubro
     const articulosCount = await this.rubrosRepository.query(
-      'SELECT COUNT(*) as count FROM tbarticulos WHERE Rubro = (SELECT Rubro FROM tbrubros WHERE Id = ?)',
+      'SELECT COUNT(*) as count FROM mudras_articulos WHERE Rubro = (SELECT Rubro FROM mudras_rubros WHERE Id = ?)',
       [id]
     );
 
@@ -127,9 +127,9 @@ export class RubrosService {
         p.Codigo as codigo,
         p.Mail as email,
         p.Telefono as telefono
-      FROM tbproveedores p
-      INNER JOIN tbarticulos a ON p.IdProveedor = a.idProveedor
-      INNER JOIN tbrubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      FROM mudras_proveedores p
+      INNER JOIN mudras_articulos a ON p.IdProveedor = a.idProveedor
+      INNER JOIN mudras_rubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       WHERE r.Id = ?
       ORDER BY p.Nombre ASC
     `;
@@ -138,18 +138,18 @@ export class RubrosService {
   }
 
   async getArticulosPorRubro(
-    rubroId: number, 
-    filtro?: string, 
-    offset: number = 0, 
+    rubroId: number,
+    filtro?: string,
+    offset: number = 0,
     limit: number = 50
   ): Promise<{ articulos: any[], total: number }> {
-    
+
     // Query base - solo artículos que tienen proveedor asociado al rubro
     let baseQuery = `
-      FROM tbarticulos a
-      INNER JOIN tbrubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
-      INNER JOIN tbproveedores p ON a.idProveedor = p.IdProveedor
-      INNER JOIN tb_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      FROM mudras_articulos a
+      INNER JOIN mudras_rubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
+      INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       WHERE r.Id = ?
     `;
 
@@ -203,9 +203,9 @@ export class RubrosService {
       } : null
     }));
 
-    return { 
-      articulos: articulosFormateados, 
-      total 
+    return {
+      articulos: articulosFormateados,
+      total
     };
   }
 
@@ -214,27 +214,27 @@ export class RubrosService {
       // Paso 1: Actualizar artículos que tenían este proveedor en este rubro
       // Los artículos quedan sin proveedor (idProveedor = NULL)
       await this.rubrosRepository.query(
-        'UPDATE tbarticulos SET idProveedor = NULL WHERE idProveedor = ? AND Rubro = ?',
+        'UPDATE mudras_articulos SET idProveedor = NULL WHERE idProveedor = ? AND Rubro = ?',
         [proveedorId, rubroNombre]
       );
 
       // Paso 2: Eliminar de la tabla de relaciones tb_proveedor_rubro
       await this.rubrosRepository.query(
-        'DELETE FROM tb_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?',
+        'DELETE FROM mudras_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?',
         [proveedorId, rubroNombre]
       );
 
       // Paso 3: Actualizar tbproveedores si es necesario
       // Solo si el proveedor no tiene más rubros asociados
       const rubrosRestantes = await this.rubrosRepository.query(
-        'SELECT COUNT(*) as count FROM tb_proveedor_rubro WHERE proveedor_id = ?',
+        'SELECT COUNT(*) as count FROM mudras_proveedor_rubro WHERE proveedor_id = ?',
         [proveedorId]
       );
 
       if (rubrosRestantes[0].count === 0) {
         // Si no tiene más rubros, limpiar el campo Rubro en tbproveedores
         await this.rubrosRepository.query(
-          'UPDATE tbproveedores SET Rubro = NULL WHERE IdProveedor = ?',
+          'UPDATE mudras_proveedores SET Rubro = NULL WHERE IdProveedor = ?',
           [proveedorId]
         );
       }
@@ -249,7 +249,7 @@ export class RubrosService {
   async eliminarArticuloDeRubro(articuloId: number): Promise<boolean> {
     try {
       const resultString = await this.rubrosRepository.query(
-        'UPDATE tbarticulos SET Rubro = NULL WHERE id = ?',
+        'UPDATE mudras_articulos SET Rubro = NULL WHERE id = ?',
         [articuloId]
       );
 
@@ -268,9 +268,9 @@ export class RubrosService {
 
       // Crear placeholders para la query IN
       const placeholders = articuloIds.map(() => '?').join(',');
-      
+
       const resultString = await this.rubrosRepository.query(
-        `UPDATE tbarticulos SET Rubro = NULL WHERE id IN (${placeholders})`,
+        `UPDATE mudras_articulos SET Rubro = NULL WHERE id IN (${placeholders})`,
         articuloIds
       );
 
