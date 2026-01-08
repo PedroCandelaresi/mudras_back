@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In, MoreThan } from 'typeorm';
 import { PuntoMudras, TipoPuntoMudras } from './entities/punto-mudras.entity';
@@ -14,7 +14,7 @@ import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 
 @Injectable()
-export class PuntosMudrasService {
+export class PuntosMudrasService implements OnModuleInit {
   constructor(
     @InjectRepository(PuntoMudras)
     private puntosMudrasRepository: Repository<PuntoMudras>,
@@ -26,6 +26,43 @@ export class PuntosMudrasService {
     private articulosRepository: Repository<Articulo>,
     private dataSource: DataSource,
   ) { }
+
+  async onModuleInit() {
+    console.log('🔄 Inicializando módulo de Puntos Mudras...');
+    await this.asegurarPuntosPorDefecto();
+  }
+
+  private async asegurarPuntosPorDefecto() {
+    // 1. Tienda Principal
+    const tiendaPrincipal = await this.puntosMudrasRepository.findOne({ where: { nombre: 'Tienda Principal' } });
+    if (!tiendaPrincipal) {
+      console.log('🆕 Creando Tienda Principal por defecto...');
+      await this.puntosMudrasRepository.save(this.puntosMudrasRepository.create({
+        nombre: 'Tienda Principal',
+        tipo: TipoPuntoMudras.venta,
+        descripcion: 'Punto de venta principal por defecto',
+        direccion: 'Dirección Principal',
+        activo: true,
+        permiteVentasOnline: true,
+        manejaStockFisico: true,
+      }));
+    }
+
+    // 2. Depósito Primario
+    const depositoPrimario = await this.puntosMudrasRepository.findOne({ where: { nombre: 'Depósito Primario' } });
+    if (!depositoPrimario) {
+      console.log('🆕 Creando Depósito Primario por defecto...');
+      await this.puntosMudrasRepository.save(this.puntosMudrasRepository.create({
+        nombre: 'Depósito Primario',
+        tipo: TipoPuntoMudras.deposito,
+        descripcion: 'Depósito central por defecto',
+        direccion: 'Depósito Central',
+        activo: true,
+        permiteVentasOnline: false,
+        manejaStockFisico: true,
+      }));
+    }
+  }
 
   // CRUD Puntos Mudras
   async crear(input: CrearPuntoMudrasDto): Promise<PuntoMudras> {
@@ -117,21 +154,34 @@ export class PuntosMudrasService {
   async eliminar(id: number): Promise<boolean> {
     const punto = await this.obtenerPorId(id);
 
+    // PROTECCIÓN DE PUNTOS POR DEFECTO
+    if (punto.nombre === 'Tienda Principal' || punto.nombre === 'Depósito Primario') {
+      throw new BadRequestException(`No se puede eliminar el punto Mudras por defecto: ${punto.nombre}`);
+    }
+
     console.log(`🗑️ Eliminando punto ${punto.nombre} (ID: ${id})`);
 
-    // 1. Encontrar el depósito principal (el de menor ID que sea tipo 'deposito')
-    const depositoPrincipal = await this.puntosMudrasRepository.findOne({
-      where: { tipo: TipoPuntoMudras.deposito },
-      order: { id: 'ASC' }
+    // 1. Encontrar el depósito principal (el de menor ID que sea tipo 'deposito' y distinto al actual)
+    // Buscamos primero el depósito protegido, si no, el primer depósito disponible.
+    let depositoPrincipal = await this.puntosMudrasRepository.findOne({
+      where: { tipo: TipoPuntoMudras.deposito, nombre: 'Depósito Primario' },
     });
+
+    if (!depositoPrincipal) {
+      depositoPrincipal = await this.puntosMudrasRepository.findOne({
+        where: { tipo: TipoPuntoMudras.deposito },
+        order: { id: 'ASC' }
+      });
+    }
 
     if (!depositoPrincipal) {
       throw new Error('No se encontró un depósito principal para transferir el stock.');
     }
 
-    // Evitar auto-transferencia si se intenta borrar el depósito principal (aunque debería estar protegido por reglas de negocio)
+    // Evitar auto-transferencia
     if (depositoPrincipal.id === id) {
-      throw new BadRequestException('No se puede eliminar el depósito principal.');
+      // Esto solo pasaría si el único depósito que queda es el que estamos borrando (y no es uno protegido porque ya pasamos ese check)
+      throw new BadRequestException('No se puede eliminar el depósito destino de la transferencia.');
     }
 
     console.log(`🔄 Transfiriendo stock al depósito principal: ${depositoPrincipal.nombre} (ID: ${depositoPrincipal.id})`);
