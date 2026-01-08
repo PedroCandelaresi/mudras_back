@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In, MoreThan } from 'typeorm';
 import { PuntoMudras, TipoPuntoMudras } from './entities/punto-mudras.entity';
@@ -14,7 +14,7 @@ import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 
 @Injectable()
-export class PuntosMudrasService implements OnModuleInit {
+export class PuntosMudrasService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(PuntoMudras)
     private puntosMudrasRepository: Repository<PuntoMudras>,
@@ -27,9 +27,14 @@ export class PuntosMudrasService implements OnModuleInit {
     private dataSource: DataSource,
   ) { }
 
-  async onModuleInit() {
-    console.log('🔄 Inicializando módulo de Puntos Mudras...');
-    await this.asegurarPuntosPorDefecto();
+  async onApplicationBootstrap() {
+    console.log('🚀 PuntosMudrasService: Verificando puntos por defecto (onApplicationBootstrap)...');
+    try {
+      await this.asegurarPuntosPorDefecto();
+      console.log('✅ PuntosMudrasService: Verificación completada.');
+    } catch (error) {
+      console.error('❌ PuntosMudrasService: Error al verificar puntos por defecto:', error);
+    }
   }
 
   private async asegurarPuntosPorDefecto() {
