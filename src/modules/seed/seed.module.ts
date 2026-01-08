@@ -9,6 +9,7 @@ import { UsuarioAuthMap } from '../users-auth/entities/usuario-auth-map.entity';
 import { Articulo } from '../articulos/entities/articulo.entity';
 import { Rubro } from '../rubros/entities/rubro.entity';
 import { Proveedor } from '../proveedores/entities/proveedor.entity';
+import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { Proveedor } from '../proveedores/entities/proveedor.entity';
             Articulo,
             Rubro,
             Proveedor,
+            PuntoMudras,
         ]),
     ],
     providers: [SeedService],

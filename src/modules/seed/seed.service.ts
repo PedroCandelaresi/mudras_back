@@ -11,6 +11,7 @@ import { UsuarioAuthMap } from '../users-auth/entities/usuario-auth-map.entity';
 import { Articulo } from '../articulos/entities/articulo.entity';
 import { Rubro } from '../rubros/entities/rubro.entity';
 import { Proveedor } from '../proveedores/entities/proveedor.entity';
+import { PuntoMudras, TipoPuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
 
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -33,12 +34,49 @@ export class SeedService implements OnModuleInit {
         private readonly rubroRepo: Repository<Rubro>,
         @InjectRepository(Proveedor)
         private readonly proveedorRepo: Repository<Proveedor>,
+        @InjectRepository(PuntoMudras)
+        private readonly puntosMudrasRepo: Repository<PuntoMudras>,
     ) { }
 
     async onModuleInit() {
         this.logger.log('🌱 Iniciando verificación de semillas...');
+        await this.seedPuntosMudras();
         await this.seedAdmin();
         await this.seedProducoDemo();
+    }
+
+    private async seedPuntosMudras() {
+        // 1. Tienda Principal
+        const tiendaPrincipal = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Tienda Principal' } });
+        if (!tiendaPrincipal) {
+            this.logger.log('🆕 Creando Tienda Principal por defecto...');
+            await this.puntosMudrasRepo.save(this.puntosMudrasRepo.create({
+                nombre: 'Tienda Principal',
+                tipo: TipoPuntoMudras.venta,
+                descripcion: 'Punto de venta principal por defecto',
+                direccion: 'Dirección Principal',
+                activo: true,
+                permiteVentasOnline: true,
+                manejaStockFisico: true,
+            }));
+            this.logger.log('✅ Tienda Principal creada.');
+        }
+
+        // 2. Depósito Primario
+        const depositoPrimario = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Depósito Primario' } });
+        if (!depositoPrimario) {
+            this.logger.log('🆕 Creando Depósito Primario por defecto...');
+            await this.puntosMudrasRepo.save(this.puntosMudrasRepo.create({
+                nombre: 'Depósito Primario',
+                tipo: TipoPuntoMudras.deposito,
+                descripcion: 'Depósito central por defecto',
+                direccion: 'Depósito Central',
+                activo: true,
+                permiteVentasOnline: false,
+                manejaStockFisico: true,
+            }));
+            this.logger.log('✅ Depósito Primario creado.');
+        }
     }
 
     private async seedAdmin() {

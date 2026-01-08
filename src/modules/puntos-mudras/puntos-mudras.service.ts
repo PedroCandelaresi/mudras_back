@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In, MoreThan } from 'typeorm';
 import { PuntoMudras, TipoPuntoMudras } from './entities/punto-mudras.entity';
@@ -14,7 +14,7 @@ import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 
 @Injectable()
-export class PuntosMudrasService implements OnApplicationBootstrap {
+export class PuntosMudrasService {
   constructor(
     @InjectRepository(PuntoMudras)
     private puntosMudrasRepository: Repository<PuntoMudras>,
@@ -26,48 +26,6 @@ export class PuntosMudrasService implements OnApplicationBootstrap {
     private articulosRepository: Repository<Articulo>,
     private dataSource: DataSource,
   ) { }
-
-  async onApplicationBootstrap() {
-    console.log('🚀 PuntosMudrasService: Verificando puntos por defecto (onApplicationBootstrap)...');
-    try {
-      await this.asegurarPuntosPorDefecto();
-      console.log('✅ PuntosMudrasService: Verificación completada.');
-    } catch (error) {
-      console.error('❌ PuntosMudrasService: Error al verificar puntos por defecto:', error);
-    }
-  }
-
-  private async asegurarPuntosPorDefecto() {
-    // 1. Tienda Principal
-    const tiendaPrincipal = await this.puntosMudrasRepository.findOne({ where: { nombre: 'Tienda Principal' } });
-    if (!tiendaPrincipal) {
-      console.log('🆕 Creando Tienda Principal por defecto...');
-      await this.puntosMudrasRepository.save(this.puntosMudrasRepository.create({
-        nombre: 'Tienda Principal',
-        tipo: TipoPuntoMudras.venta,
-        descripcion: 'Punto de venta principal por defecto',
-        direccion: 'Dirección Principal',
-        activo: true,
-        permiteVentasOnline: true,
-        manejaStockFisico: true,
-      }));
-    }
-
-    // 2. Depósito Primario
-    const depositoPrimario = await this.puntosMudrasRepository.findOne({ where: { nombre: 'Depósito Primario' } });
-    if (!depositoPrimario) {
-      console.log('🆕 Creando Depósito Primario por defecto...');
-      await this.puntosMudrasRepository.save(this.puntosMudrasRepository.create({
-        nombre: 'Depósito Primario',
-        tipo: TipoPuntoMudras.deposito,
-        descripcion: 'Depósito central por defecto',
-        direccion: 'Depósito Central',
-        activo: true,
-        permiteVentasOnline: false,
-        manejaStockFisico: true,
-      }));
-    }
-  }
 
   // CRUD Puntos Mudras
   async crear(input: CrearPuntoMudrasDto): Promise<PuntoMudras> {
