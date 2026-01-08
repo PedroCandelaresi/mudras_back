@@ -39,6 +39,14 @@ export class UploadController {
         if (!file) {
             throw new BadRequestException('File is required');
         }
+
+        // Ensure file is readable by others (Nginx)
+        try {
+            fs.chmodSync(file.path, 0o644);
+        } catch (e) {
+            console.error('Error setting file permissions:', e);
+        }
+
         // Return the URL that Nginx will serve
         // Filename is stored in file.filename
         const baseUrl = process.env.APP_URL || 'https://mudras.nqn.net.ar';
