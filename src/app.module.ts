@@ -4,9 +4,11 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { DateTimeScalar } from './common/scalars/date.scalar';
 
 // Módulos
+import { UploadModule } from './modules/upload/upload.module';
 import { ArticulosModule } from './modules/articulos/articulos.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -82,9 +84,9 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
       charset: 'utf8mb4',
       timezone: process.env.DB_TIMEZONE || '-03:00',
       entities: [
-        Articulo, 
-        Proveedor, 
-        Stock, 
+        Articulo,
+        Proveedor,
+        Stock,
         Rubro,
         Usuario,
         Cliente,
@@ -125,7 +127,7 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
       synchronize: false, // No modificar estructura de BD existente
       logging: true,
     }),
-    
+
     // Configuración GraphQL
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -135,7 +137,14 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
       introspection: true,
     }),
 
+    // Servir archivos estáticos (imágenes subidas)
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
+
     // Módulos de dominio
+    UploadModule,
     ArticulosModule,
     ProveedoresModule,
     StockModule,
@@ -158,4 +167,4 @@ import { CategoriaGasto } from './modules/gastos/entities/categoria-gasto.entity
   ],
   providers: [DateTimeScalar],
 })
-export class AppModule {}
+export class AppModule { }

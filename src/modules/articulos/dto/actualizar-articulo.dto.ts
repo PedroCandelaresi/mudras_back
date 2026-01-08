@@ -22,6 +22,11 @@ export class ActualizarArticuloDto {
   @Field({ nullable: true })
   @IsOptional()
   @IsString()
+  ImagenUrl?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   Descripcion?: string;
 
   @Field({ nullable: true })

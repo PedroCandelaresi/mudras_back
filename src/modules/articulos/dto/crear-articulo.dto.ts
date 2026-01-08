@@ -12,6 +12,11 @@ export class CrearArticuloDto {
   @IsString()
   Rubro?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  ImagenUrl?: string;
+
   @Field()
   @IsString()
   Descripcion: string;

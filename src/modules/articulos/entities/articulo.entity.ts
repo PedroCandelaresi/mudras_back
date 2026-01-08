@@ -16,6 +16,10 @@ export class Articulo {
   Codigo: string;
 
   @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  ImagenUrl: string;
+
+  @Field({ nullable: true })
   @Column({ type: 'varchar', length: 25, nullable: true })
   Rubro: string;
 
