@@ -28,7 +28,7 @@ registerEnumType(EstadoCliente, {
 @Entity('clientes')
 @ObjectType()
 @Index(['email'], { unique: true })
-@Index(['cuit'], { unique: true })
+
 @Index(['tipo'])
 @Index(['estado'])
 @Index(['nombre'])

@@ -159,7 +159,6 @@ exports.Cliente = Cliente = __decorate([
     (0, typeorm_1.Entity)('clientes'),
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Index)(['email'], { unique: true }),
-    (0, typeorm_1.Index)(['cuit'], { unique: true }),
     (0, typeorm_1.Index)(['tipo']),
     (0, typeorm_1.Index)(['estado']),
     (0, typeorm_1.Index)(['nombre'])

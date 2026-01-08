@@ -54,6 +54,6 @@ __decorate([
 ], Rubro.prototype, "proveedores", void 0);
 exports.Rubro = Rubro = __decorate([
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Entity)('tbrubros')
+    (0, typeorm_1.Entity)('mudras_rubros')
 ], Rubro);
 //# sourceMappingURL=rubro.entity.js.map

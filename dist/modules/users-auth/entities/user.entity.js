@@ -70,6 +70,6 @@ __decorate([
     __metadata("design:type", Array)
 ], UserAuth.prototype, "refreshTokens", void 0);
 exports.UserAuth = UserAuth = __decorate([
-    (0, typeorm_1.Entity)({ name: 'mudras_auth_users' })
+    (0, typeorm_1.Entity)({ name: 'mudras_usuarios_auth' })
 ], UserAuth);
 //# sourceMappingURL=user.entity.js.map

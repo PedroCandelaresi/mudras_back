@@ -49,7 +49,7 @@ export class AuthService {
     @InjectRepository(RolePermission) private readonly rolePermRepo: Repository<RolePermission>,
     @InjectRepository(Permission) private readonly permsRepo: Repository<Permission>,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async validateUser(username: string, plainPassword: string): Promise<UserAuth> {
     // Para login de EMPRESA debe ser usuario estilo nombre.apellido (no email)
@@ -118,7 +118,7 @@ export class AuthService {
     // Busca el id numérico en la tabla de mapeo si existe
     try {
       const rows = await this.usersRepo.query(
-        'SELECT usuario_id AS usuarioId FROM usuarios_auth_map WHERE auth_user_id = ? LIMIT 1',
+        'SELECT usuario_id AS usuarioId FROM mudras_usuarios_auth_map WHERE auth_user_id = ? LIMIT 1',
         [authUserId],
       );
       const id = rows?.[0]?.usuarioId;

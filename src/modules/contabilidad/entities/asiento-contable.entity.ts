@@ -31,7 +31,7 @@ registerEnumType(EstadoAsientoContable, {
 
 @Entity('asientos_contables')
 @ObjectType()
-@Index(['numero'], { unique: true })
+
 @Index(['tipo'])
 @Index(['estado'])
 @Index(['fecha'])

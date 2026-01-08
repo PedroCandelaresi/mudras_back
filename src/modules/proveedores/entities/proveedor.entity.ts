@@ -17,7 +17,7 @@ registerEnumType(EstadoProveedor, {
 });
 
 @ObjectType()
-@Entity('tbproveedores')
+@Entity('mudras_proveedores')
 export class Proveedor {
   @Field(() => ID)
   @PrimaryGeneratedColumn()

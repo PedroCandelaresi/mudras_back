@@ -144,7 +144,7 @@ let ProveedoresService = class ProveedoresService {
         pr.rubro_nombre AS rubroNombre,
         pr.rubro_id AS rubroId,
         pr.cantidad_articulos AS cantidadArticulos
-      FROM tb_proveedor_rubro pr
+      FROM mudras_proveedor_rubro pr
       WHERE pr.proveedor_id = ?
       ORDER BY pr.rubro_nombre
     `;

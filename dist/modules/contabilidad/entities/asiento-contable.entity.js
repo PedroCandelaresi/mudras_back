@@ -130,7 +130,6 @@ __decorate([
 exports.AsientoContable = AsientoContable = __decorate([
     (0, typeorm_1.Entity)('asientos_contables'),
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Index)(['numero'], { unique: true }),
     (0, typeorm_1.Index)(['tipo']),
     (0, typeorm_1.Index)(['estado']),
     (0, typeorm_1.Index)(['fecha']),

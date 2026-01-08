@@ -5,7 +5,7 @@ import { Rubro } from '../../rubros/entities/rubro.entity';
 import { MovimientoStock } from '../../stock/entities/movimiento-stock.entity';
 
 @ObjectType()
-@Entity('tbarticulos')
+@Entity('mudras_articulos')
 export class Articulo {
   @Field(() => ID)
   @PrimaryGeneratedColumn()

@@ -35,7 +35,7 @@ registerEnumType(EstadoVentaCaja, {
 
 @Entity('ventas_caja')
 @ObjectType()
-@Index(['numeroVenta'], { unique: true })
+
 @Index(['clienteId'])
 @Index(['usuarioAuthId'])
 @Index(['estado'])

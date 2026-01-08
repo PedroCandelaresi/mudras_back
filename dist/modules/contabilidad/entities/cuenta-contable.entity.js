@@ -112,7 +112,6 @@ __decorate([
 exports.CuentaContable = CuentaContable = __decorate([
     (0, typeorm_1.Entity)('cuentas_contables'),
     (0, graphql_1.ObjectType)(),
-    (0, typeorm_1.Index)(['codigo'], { unique: true }),
     (0, typeorm_1.Index)(['tipo']),
     (0, typeorm_1.Index)(['estado']),
     (0, typeorm_1.Index)(['cuentaPadreId'])

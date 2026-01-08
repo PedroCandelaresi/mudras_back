@@ -30,6 +30,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const users_auth_module_1 = require("./modules/users-auth/users-auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
 const permissions_module_1 = require("./modules/permissions/permissions.module");
+const seed_module_1 = require("./modules/seed/seed.module");
 const articulo_entity_1 = require("./modules/articulos/entities/articulo.entity");
 const proveedor_entity_1 = require("./modules/proveedores/entities/proveedor.entity");
 const stock_entity_1 = require("./modules/stock/entities/stock.entity");
@@ -67,6 +68,8 @@ const detalle_orden_compra_entity_1 = require("./modules/compras/entities/detall
 const gastos_module_1 = require("./modules/gastos/gastos.module");
 const gasto_entity_1 = require("./modules/gastos/entities/gasto.entity");
 const categoria_gasto_entity_1 = require("./modules/gastos/entities/categoria-gasto.entity");
+const proveedor_rubro_entity_1 = require("./modules/proveedores/entities/proveedor-rubro.entity");
+const usuario_auth_map_entity_1 = require("./modules/users-auth/entities/usuario-auth-map.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -121,9 +124,10 @@ exports.AppModule = AppModule = __decorate([
                     detalle_orden_compra_entity_1.DetalleOrdenCompra,
                     gasto_entity_1.Gasto,
                     categoria_gasto_entity_1.CategoriaGasto,
+                    proveedor_rubro_entity_1.ProveedorRubro,
+                    usuario_auth_map_entity_1.UsuarioAuthMap,
                 ],
-                synchronize: false,
-                logging: true,
+                synchronize: true,
             }),
             graphql_1.GraphQLModule.forRoot({
                 driver: apollo_1.ApolloDriver,
@@ -150,6 +154,7 @@ exports.AppModule = AppModule = __decorate([
             users_auth_module_1.UsersAuthModule,
             roles_module_1.RolesModule,
             permissions_module_1.PermissionsModule,
+            seed_module_1.SeedModule,
         ],
         providers: [date_scalar_1.DateTimeScalar],
     })

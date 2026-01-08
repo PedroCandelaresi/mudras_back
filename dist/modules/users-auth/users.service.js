@@ -130,17 +130,17 @@ let UsersService = class UsersService {
                 }
             }
             const passwordHash = await bcrypt.hash(dto.passwordTemporal, 10);
-            await this.usersRepo.query(`INSERT INTO usuarios (nombre, apellido, username, email, password, rol, estado, salario)
+            await this.usersRepo.query(`INSERT INTO mudras_usuarios (nombre, apellido, username, email, password, rol, estado, salario)
          SELECT ?, ?, ?, ?, ?, ?, ?, 0.00
          WHERE NOT EXISTS (
-           SELECT 1 FROM usuarios u WHERE u.username = ? OR (u.email IS NOT NULL AND u.email = ?)
+           SELECT 1 FROM mudras_usuarios u WHERE u.username = ? OR (u.email IS NOT NULL AND u.email = ?)
          )`, [nombre || username, apellido || '', username, dto.email ?? null, passwordHash, 'caja', 'activo', username, dto.email ?? null]);
-            const fila = await this.usersRepo.query(`SELECT id FROM usuarios WHERE username = ? LIMIT 1`, [username]);
+            const fila = await this.usersRepo.query(`SELECT id FROM mudras_usuarios WHERE username = ? LIMIT 1`, [username]);
             const usuarioId = fila?.[0]?.id != null ? Number(fila[0].id) : undefined;
             if (usuarioId && Number.isFinite(usuarioId)) {
-                await this.usersRepo.query(`INSERT INTO usuarios_auth_map (usuario_id, auth_user_id)
+                await this.usersRepo.query(`INSERT INTO mudras_usuarios_auth_map (usuario_id, auth_user_id)
            SELECT ?, ?
-           WHERE NOT EXISTS (SELECT 1 FROM usuarios_auth_map WHERE usuario_id = ? OR auth_user_id = ?)`, [usuarioId, user.id, usuarioId, user.id]);
+           WHERE NOT EXISTS (SELECT 1 FROM mudras_usuarios_auth_map WHERE usuario_id = ? OR auth_user_id = ?)`, [usuarioId, user.id, usuarioId, user.id]);
             }
         }
         catch (e) {
@@ -178,7 +178,7 @@ let UsersService = class UsersService {
     }
     async eliminar(id) {
         try {
-            await this.usersRepo.query(`DELETE FROM usuarios_auth_map WHERE auth_user_id = ?`, [id]);
+            await this.usersRepo.query(`DELETE FROM mudras_usuarios_auth_map WHERE auth_user_id = ?`, [id]);
         }
         catch { }
         const ok = await this.usersRepo.delete({ id });
