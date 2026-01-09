@@ -39,12 +39,13 @@ let PermissionsGuard = class PermissionsGuard {
             console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por permisos explícitos');
             return true;
         }
-        if (roles.includes('administrador')) {
-            console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por rol administrador');
+        if (roles.includes('administrador') || roles.includes('admin')) {
+            console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por rol administrador/admin');
             return true;
         }
         const rolePermsMap = {
             administrador: ['*'],
+            admin: ['*'],
         };
         for (const role of roles) {
             const grants = rolePermsMap[role] || [];

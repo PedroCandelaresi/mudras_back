@@ -5,7 +5,7 @@ import { PERMISOS_KEY } from '../decorators/permissions.decorator';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredPerms = this.reflector.getAllAndOverride<string[]>(PERMISOS_KEY, [
@@ -34,15 +34,16 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    // 2) Política por roles (fallback): 'administrador' todo permitido
-    if (roles.includes('administrador')) {
-      console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por rol administrador');
+    // 2) Política por roles (fallback): 'administrador' o 'admin' todo permitido
+    if (roles.includes('administrador') || roles.includes('admin')) {
+      console.log('🔐 [PERMISSIONS_GUARD] Acceso permitido por rol administrador/admin');
       return true;
     }
 
     // 3) Mapeo básico de roles -> permisos (extensible si hace falta)
     const rolePermsMap: Record<string, string[]> = {
       administrador: ['*'],
+      admin: ['*'],
       // ventas: ['productos.read', 'dashboard.read'],
       // deposito: ['productos.read', 'stock.update'],
     };
