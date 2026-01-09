@@ -1,0 +1,34 @@
+Connecting to DB...
+Error checking DB: AggregateError
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7) {
+  code: 'ECONNREFUSED',
+  fatal: true,
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:3306
+        at createConnectionError (node:net:1678:14)
+        at afterConnectMultiple (node:net:1708:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 3306
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:3306
+        at createConnectionError (node:net:1678:14)
+        at afterConnectMultiple (node:net:1708:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 3306
+    }
+  ]
+}
+/home/candelaresi/Proyectos/Mudras/mudras_back/node_modules/src/data-source/DataSource.ts:307
+            throw new CannotExecuteNotConnectedError(this.name)
+                  ^
+CannotExecuteNotConnectedError: Cannot execute operation on "default" connection because connection is not yet established.
+    at DataSource.destroy (/home/candelaresi/Proyectos/Mudras/mudras_back/node_modules/src/data-source/DataSource.ts:307:19)
+    at check (/home/candelaresi/Proyectos/Mudras/mudras_back/src/check_db.ts:22:29)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)

@@ -54,7 +54,7 @@ let RolesGuard = class RolesGuard {
             }
         }
         if (requiredPermissions) {
-            if (roles.includes('administrador')) {
+            if (roles.includes('administrador') || roles.includes('admin')) {
                 return true;
             }
             if (permisos.includes('*')) {

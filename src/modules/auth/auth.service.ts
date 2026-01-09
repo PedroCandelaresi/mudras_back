@@ -110,7 +110,7 @@ export class AuthService {
       if (rp.permission) set.add(`${rp.permission.resource}.${rp.permission.action}`);
     }
     const roles = await this.getUserRolesSlugs(userId);
-    if (roles.includes('administrador')) set.add('*');
+    if (roles.includes('administrador') || roles.includes('admin')) set.add('*');
     return Array.from(set);
   }
 

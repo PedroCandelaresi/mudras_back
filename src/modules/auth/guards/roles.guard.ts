@@ -6,7 +6,7 @@ import { PERMISOS_KEY } from '../decorators/permissions.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
@@ -50,7 +50,7 @@ export class RolesGuard implements CanActivate {
     }
 
     if (requiredPermissions) {
-      if (roles.includes('administrador')) {
+      if (roles.includes('administrador') || roles.includes('admin')) {
         return true;
       }
 
