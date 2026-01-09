@@ -27,9 +27,7 @@ import { UsersAuthModule } from './modules/users-auth/users-auth.module';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
 import { SeedModule } from './modules/seed/seed.module';
-import { UploadModule } from './modules/upload/upload.module';
 
-// Entidades
 import { Articulo } from './modules/articulos/entities/articulo.entity';
 import { Proveedor } from './modules/proveedores/entities/proveedor.entity';
 import { Stock } from './modules/stock/entities/stock.entity';
@@ -171,7 +169,6 @@ import { UsuarioAuthMap } from './modules/users-auth/entities/usuario-auth-map.e
     RolesModule,
     PermissionsModule,
     SeedModule,
-    UploadModule,
   ],
   providers: [DateTimeScalar],
 })
