@@ -32,7 +32,7 @@ let UploadController = class UploadController {
         }
         const baseUrl = process.env.APP_URL || 'https://mudras.nqn.net.ar';
         return {
-            url: `${baseUrl}/uploads/articulos/${file.filename}`,
+            url: `${baseUrl}/api/uploads/articulos/${file.filename}`,
         };
     }
 };
