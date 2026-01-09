@@ -143,7 +143,7 @@ import { UsuarioAuthMap } from './modules/users-auth/entities/usuario-auth-map.e
 
     // Servir archivos estáticos (imágenes subidas)
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
 

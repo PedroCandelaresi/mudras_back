@@ -139,7 +139,7 @@ exports.AppModule = AppModule = __decorate([
                 introspection: true,
             }),
             serve_static_1.ServeStaticModule.forRoot({
-                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                rootPath: (0, path_1.join)(process.cwd(), 'uploads'),
                 serveRoot: '/uploads',
             }),
             upload_module_1.UploadModule,
