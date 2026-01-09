@@ -18,6 +18,7 @@ const usuario_auth_map_entity_1 = require("../users-auth/entities/usuario-auth-m
 const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const rubro_entity_1 = require("../rubros/entities/rubro.entity");
 const proveedor_entity_1 = require("../proveedores/entities/proveedor.entity");
+const punto_mudras_entity_1 = require("../puntos-mudras/entities/punto-mudras.entity");
 let SeedModule = class SeedModule {
 };
 exports.SeedModule = SeedModule;
@@ -33,6 +34,7 @@ exports.SeedModule = SeedModule = __decorate([
                 articulo_entity_1.Articulo,
                 rubro_entity_1.Rubro,
                 proveedor_entity_1.Proveedor,
+                punto_mudras_entity_1.PuntoMudras,
             ]),
         ],
         providers: [seed_service_1.SeedService],

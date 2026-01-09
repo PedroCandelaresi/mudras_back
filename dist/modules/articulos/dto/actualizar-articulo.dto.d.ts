@@ -2,6 +2,7 @@ export declare class ActualizarArticuloDto {
     id: number;
     Codigo?: string;
     Rubro?: string;
+    ImagenUrl?: string;
     Descripcion?: string;
     Marca?: string;
     precioVenta?: number;

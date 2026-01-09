@@ -30,6 +30,11 @@ __decorate([
 ], Articulo.prototype, "Codigo", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 512, nullable: true }),
+    __metadata("design:type", String)
+], Articulo.prototype, "ImagenUrl", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 25, nullable: true }),
     __metadata("design:type", String)
 ], Articulo.prototype, "Rubro", void 0);

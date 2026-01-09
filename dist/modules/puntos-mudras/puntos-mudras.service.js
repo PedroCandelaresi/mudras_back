@@ -90,16 +90,24 @@ let PuntosMudrasService = class PuntosMudrasService {
     }
     async eliminar(id) {
         const punto = await this.obtenerPorId(id);
+        if (punto.nombre === 'Tienda Principal' || punto.nombre === 'Depósito Primario') {
+            throw new common_1.BadRequestException(`No se puede eliminar el punto Mudras por defecto: ${punto.nombre}`);
+        }
         console.log(`🗑️ Eliminando punto ${punto.nombre} (ID: ${id})`);
-        const depositoPrincipal = await this.puntosMudrasRepository.findOne({
-            where: { tipo: punto_mudras_entity_1.TipoPuntoMudras.deposito },
-            order: { id: 'ASC' }
+        let depositoPrincipal = await this.puntosMudrasRepository.findOne({
+            where: { tipo: punto_mudras_entity_1.TipoPuntoMudras.deposito, nombre: 'Depósito Primario' },
         });
+        if (!depositoPrincipal) {
+            depositoPrincipal = await this.puntosMudrasRepository.findOne({
+                where: { tipo: punto_mudras_entity_1.TipoPuntoMudras.deposito },
+                order: { id: 'ASC' }
+            });
+        }
         if (!depositoPrincipal) {
             throw new Error('No se encontró un depósito principal para transferir el stock.');
         }
         if (depositoPrincipal.id === id) {
-            throw new common_1.BadRequestException('No se puede eliminar el depósito principal.');
+            throw new common_1.BadRequestException('No se puede eliminar el depósito destino de la transferencia.');
         }
         console.log(`🔄 Transfiriendo stock al depósito principal: ${depositoPrincipal.nombre} (ID: ${depositoPrincipal.id})`);
         const stockRecords = await this.stockRepository.find({

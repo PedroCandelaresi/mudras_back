@@ -4,6 +4,7 @@ import { MovimientoStock } from '../../stock/entities/movimiento-stock.entity';
 export declare class Articulo {
     id: number;
     Codigo: string;
+    ImagenUrl: string;
     Rubro: string;
     Descripcion: string;
     Marca: string;

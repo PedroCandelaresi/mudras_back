@@ -13,7 +13,9 @@ const graphql_1 = require("@nestjs/graphql");
 const apollo_1 = require("@nestjs/apollo");
 const config_1 = require("@nestjs/config");
 const path_1 = require("path");
+const serve_static_1 = require("@nestjs/serve-static");
 const date_scalar_1 = require("./common/scalars/date.scalar");
+const upload_module_1 = require("./modules/upload/upload.module");
 const articulos_module_1 = require("./modules/articulos/articulos.module");
 const proveedores_module_1 = require("./modules/proveedores/proveedores.module");
 const stock_module_1 = require("./modules/stock/stock.module");
@@ -136,6 +138,11 @@ exports.AppModule = AppModule = __decorate([
                 playground: true,
                 introspection: true,
             }),
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                serveRoot: '/uploads',
+            }),
+            upload_module_1.UploadModule,
             articulos_module_1.ArticulosModule,
             proveedores_module_1.ProveedoresModule,
             stock_module_1.StockModule,

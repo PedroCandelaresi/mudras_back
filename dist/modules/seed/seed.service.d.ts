@@ -8,6 +8,7 @@ import { UsuarioAuthMap } from '../users-auth/entities/usuario-auth-map.entity';
 import { Articulo } from '../articulos/entities/articulo.entity';
 import { Rubro } from '../rubros/entities/rubro.entity';
 import { Proveedor } from '../proveedores/entities/proveedor.entity';
+import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
 export declare class SeedService implements OnModuleInit {
     private readonly userAuthRepo;
     private readonly roleRepo;
@@ -17,9 +18,11 @@ export declare class SeedService implements OnModuleInit {
     private readonly articuloRepo;
     private readonly rubroRepo;
     private readonly proveedorRepo;
+    private readonly puntosMudrasRepo;
     private readonly logger;
-    constructor(userAuthRepo: Repository<UserAuth>, roleRepo: Repository<Role>, userRoleRepo: Repository<UserRole>, usuarioRepo: Repository<Usuario>, usuarioAuthMapRepo: Repository<UsuarioAuthMap>, articuloRepo: Repository<Articulo>, rubroRepo: Repository<Rubro>, proveedorRepo: Repository<Proveedor>);
+    constructor(userAuthRepo: Repository<UserAuth>, roleRepo: Repository<Role>, userRoleRepo: Repository<UserRole>, usuarioRepo: Repository<Usuario>, usuarioAuthMapRepo: Repository<UsuarioAuthMap>, articuloRepo: Repository<Articulo>, rubroRepo: Repository<Rubro>, proveedorRepo: Repository<Proveedor>, puntosMudrasRepo: Repository<PuntoMudras>);
     onModuleInit(): Promise<void>;
+    private seedPuntosMudras;
     private seedAdmin;
     private seedProducoDemo;
 }

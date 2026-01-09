@@ -27,8 +27,9 @@ const usuario_auth_map_entity_1 = require("../users-auth/entities/usuario-auth-m
 const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const rubro_entity_1 = require("../rubros/entities/rubro.entity");
 const proveedor_entity_1 = require("../proveedores/entities/proveedor.entity");
+const punto_mudras_entity_1 = require("../puntos-mudras/entities/punto-mudras.entity");
 let SeedService = SeedService_1 = class SeedService {
-    constructor(userAuthRepo, roleRepo, userRoleRepo, usuarioRepo, usuarioAuthMapRepo, articuloRepo, rubroRepo, proveedorRepo) {
+    constructor(userAuthRepo, roleRepo, userRoleRepo, usuarioRepo, usuarioAuthMapRepo, articuloRepo, rubroRepo, proveedorRepo, puntosMudrasRepo) {
         this.userAuthRepo = userAuthRepo;
         this.roleRepo = roleRepo;
         this.userRoleRepo = userRoleRepo;
@@ -37,12 +38,44 @@ let SeedService = SeedService_1 = class SeedService {
         this.articuloRepo = articuloRepo;
         this.rubroRepo = rubroRepo;
         this.proveedorRepo = proveedorRepo;
+        this.puntosMudrasRepo = puntosMudrasRepo;
         this.logger = new common_1.Logger(SeedService_1.name);
     }
     async onModuleInit() {
         this.logger.log('🌱 Iniciando verificación de semillas...');
+        await this.seedPuntosMudras();
         await this.seedAdmin();
         await this.seedProducoDemo();
+    }
+    async seedPuntosMudras() {
+        const tiendaPrincipal = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Tienda Principal' } });
+        if (!tiendaPrincipal) {
+            this.logger.log('🆕 Creando Tienda Principal por defecto...');
+            await this.puntosMudrasRepo.save(this.puntosMudrasRepo.create({
+                nombre: 'Tienda Principal',
+                tipo: punto_mudras_entity_1.TipoPuntoMudras.venta,
+                descripcion: 'Punto de venta principal por defecto',
+                direccion: 'Dirección Principal',
+                activo: true,
+                permiteVentasOnline: true,
+                manejaStockFisico: true,
+            }));
+            this.logger.log('✅ Tienda Principal creada.');
+        }
+        const depositoPrimario = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Depósito Primario' } });
+        if (!depositoPrimario) {
+            this.logger.log('🆕 Creando Depósito Primario por defecto...');
+            await this.puntosMudrasRepo.save(this.puntosMudrasRepo.create({
+                nombre: 'Depósito Primario',
+                tipo: punto_mudras_entity_1.TipoPuntoMudras.deposito,
+                descripcion: 'Depósito central por defecto',
+                direccion: 'Depósito Central',
+                activo: true,
+                permiteVentasOnline: false,
+                manejaStockFisico: true,
+            }));
+            this.logger.log('✅ Depósito Primario creado.');
+        }
     }
     async seedAdmin() {
         const adminEmail = 'administrador@mudras.com';
@@ -180,7 +213,9 @@ exports.SeedService = SeedService = SeedService_1 = __decorate([
     __param(5, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
     __param(6, (0, typeorm_1.InjectRepository)(rubro_entity_1.Rubro)),
     __param(7, (0, typeorm_1.InjectRepository)(proveedor_entity_1.Proveedor)),
+    __param(8, (0, typeorm_1.InjectRepository)(punto_mudras_entity_1.PuntoMudras)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
