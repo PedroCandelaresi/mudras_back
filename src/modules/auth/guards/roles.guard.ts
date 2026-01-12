@@ -41,6 +41,11 @@ export class RolesGuard implements CanActivate {
         ? user.permissions.map((perm: string) => String(perm))
         : [];
 
+    // 0. Super-admin check: si tiene rol 'admin' o 'administrador', tiene acceso total
+    if (roles.includes('administrador') || roles.includes('admin')) {
+      return true;
+    }
+
     if (requiredRoles) {
       const rolesNormalizados = requiredRoles.map((role) => role.toLowerCase());
       const tieneRol = roles.some((role) => rolesNormalizados.includes(role));
@@ -50,10 +55,6 @@ export class RolesGuard implements CanActivate {
     }
 
     if (requiredPermissions) {
-      if (roles.includes('administrador') || roles.includes('admin')) {
-        return true;
-      }
-
       if (permisos.includes('*')) {
         return true;
       }

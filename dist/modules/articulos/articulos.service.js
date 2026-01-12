@@ -160,6 +160,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         const nuevo = this.articulosRepository.create({
             Codigo: crearArticuloDto.Codigo,
             Rubro: crearArticuloDto.Rubro ?? null,
+            ImagenUrl: crearArticuloDto.ImagenUrl ?? null,
             Descripcion: crearArticuloDto.Descripcion,
             Marca: crearArticuloDto.Marca ?? null,
             PrecioVenta: crearArticuloDto.precioVenta,
@@ -216,6 +217,8 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             patch.Codigo = actualizarArticuloDto.Codigo;
         if (actualizarArticuloDto.Rubro != null)
             patch.Rubro = actualizarArticuloDto.Rubro;
+        if (actualizarArticuloDto.ImagenUrl != null)
+            patch.ImagenUrl = actualizarArticuloDto.ImagenUrl;
         if (actualizarArticuloDto.Descripcion != null)
             patch.Descripcion = actualizarArticuloDto.Descripcion;
         if (actualizarArticuloDto.Marca != null)

@@ -46,6 +46,9 @@ let RolesGuard = class RolesGuard {
             : Array.isArray(user.permissions)
                 ? user.permissions.map((perm) => String(perm))
                 : [];
+        if (roles.includes('administrador') || roles.includes('admin')) {
+            return true;
+        }
         if (requiredRoles) {
             const rolesNormalizados = requiredRoles.map((role) => role.toLowerCase());
             const tieneRol = roles.some((role) => rolesNormalizados.includes(role));
@@ -54,9 +57,6 @@ let RolesGuard = class RolesGuard {
             }
         }
         if (requiredPermissions) {
-            if (roles.includes('administrador') || roles.includes('admin')) {
-                return true;
-            }
             if (permisos.includes('*')) {
                 return true;
             }
