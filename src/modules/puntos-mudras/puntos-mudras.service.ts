@@ -237,7 +237,7 @@ export class PuntosMudrasService {
     const stockRecords = await this.stockRepository
       .createQueryBuilder('stock')
       .leftJoinAndSelect('stock.puntoMudras', 'punto')
-      .leftJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId')
+      .innerJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId')
       .leftJoin('mudras_rubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
       .select([
         'stock.id',
@@ -256,9 +256,12 @@ export class PuntosMudrasService {
       .getRawMany();
 
     console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
+    if (stockRecords.length > 0) {
+      console.log('🔑 Keys of first record:', Object.keys(stockRecords[0]));
+    }
 
     const base = stockRecords.map(record => ({
-      id: record.articulo_id,
+      id: record.articulo_id || record.stock_articuloId,
       nombre: record.articulo_Descripcion || 'Sin nombre',
       codigo: record.articulo_Codigo || 'Sin código',
       precio: parseFloat(record.articulo_PrecioVenta || '0'),
