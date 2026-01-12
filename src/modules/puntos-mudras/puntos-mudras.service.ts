@@ -642,7 +642,8 @@ export class PuntosMudrasService {
             stockMinimo: 0
           });
         } else {
-          stock.cantidad = asignacion.cantidad;
+          // FIX: Add to existing stock instead of overwriting
+          stock.cantidad = Number(stock.cantidad) + asignacion.cantidad;
         }
 
         await queryRunner.manager.save(stock);
@@ -651,9 +652,9 @@ export class PuntosMudrasService {
           puntoMudrasDestinoId: input.puntoMudrasId,
           articuloId: asignacion.articuloId,
           tipoMovimiento: TipoMovimientoStockPunto.AJUSTE,
-          cantidad: diferencia,
+          cantidad: asignacion.cantidad, // The amount added is exactly what was requested
           cantidadAnterior: cantidadAnterior,
-          cantidadNueva: asignacion.cantidad,
+          cantidadNueva: Number(cantidadAnterior) + asignacion.cantidad,
           motivo: input.motivo || 'Asignación masiva de stock'
         });
         await queryRunner.manager.save(movimiento);
