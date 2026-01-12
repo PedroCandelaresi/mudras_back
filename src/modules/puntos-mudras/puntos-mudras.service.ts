@@ -581,6 +581,7 @@ export class PuntosMudrasService {
       }
 
       const stockGuardado = await queryRunner.manager.save(stock);
+      console.log(`✅ Ajuste: Stock guardado ID ${stockGuardado.id} -> Cantidad: ${stockGuardado.cantidad}`);
 
       // Registrar movimiento
       const movimiento = queryRunner.manager.create(MovimientoStockPunto, {
@@ -638,15 +639,16 @@ export class PuntosMudrasService {
           stock = queryRunner.manager.create(StockPuntoMudras, {
             puntoMudrasId: input.puntoMudrasId,
             articuloId: asignacion.articuloId,
-            cantidad: asignacion.cantidad,
+            cantidad: Number(asignacion.cantidad),
             stockMinimo: 0
           });
         } else {
-          // FIX: Add to existing stock instead of overwriting
-          stock.cantidad = Number(stock.cantidad) + asignacion.cantidad;
+          // FIX: Add to existing stock instead of overwriting, with strict casting
+          stock.cantidad = Number(stock.cantidad) + Number(asignacion.cantidad);
         }
 
-        await queryRunner.manager.save(stock);
+        const stockGuardado = await queryRunner.manager.save(stock);
+        console.log(`✅ Asignación: Stock actualizado ID ${stockGuardado.id} (Punto: ${stockGuardado.puntoMudrasId}, Art: ${asignacion.articuloId}) -> Cantidad: ${stockGuardado.cantidad}`);
 
         const movimiento = queryRunner.manager.create(MovimientoStockPunto, {
           puntoMudrasDestinoId: input.puntoMudrasId,
@@ -696,7 +698,7 @@ export class PuntosMudrasService {
       }
 
       // Actualizar stock origen
-      stockOrigen.cantidad -= input.cantidad;
+      stockOrigen.cantidad = Number(stockOrigen.cantidad) - Number(input.cantidad);
       await queryRunner.manager.save(stockOrigen);
 
       // Buscar o crear stock destino
@@ -711,14 +713,15 @@ export class PuntosMudrasService {
         stockDestino = queryRunner.manager.create(StockPuntoMudras, {
           puntoMudrasId: input.puntoDestinoId,
           articuloId: input.articuloId,
-          cantidad: input.cantidad,
+          cantidad: Number(input.cantidad),
           stockMinimo: 0
         });
       } else {
-        stockDestino.cantidad += input.cantidad;
+        stockDestino.cantidad = Number(stockDestino.cantidad) + Number(input.cantidad);
       }
 
-      await queryRunner.manager.save(stockDestino);
+      const destinoGuardado = await queryRunner.manager.save(stockDestino);
+      console.log(`✅ Transferencia: Guardado stock destino ID ${destinoGuardado.id} (Punto: ${destinoGuardado.puntoMudrasId}, Art: ${destinoGuardado.articuloId}) con cantidad: ${destinoGuardado.cantidad}`);
 
       // Registrar movimiento
       const movimiento = queryRunner.manager.create(MovimientoStockPunto, {
