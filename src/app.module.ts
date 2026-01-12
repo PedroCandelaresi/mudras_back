@@ -135,7 +135,7 @@ import { UsuarioAuthMap } from './modules/users-auth/entities/usuario-auth-map.e
     // Configuración GraphQL
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: join('/tmp', 'schema.gql'),
       sortSchema: true,
       playground: true,
       introspection: true,
