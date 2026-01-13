@@ -5,7 +5,7 @@ import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
 import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
-import { Rubro } from '../../rubros/entities/rubro.entity';
+import { Rubro } from '../rubros/entities/rubro.entity';
 import { In } from 'typeorm';
 
 @Injectable()
