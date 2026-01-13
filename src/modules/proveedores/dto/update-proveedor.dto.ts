@@ -8,4 +8,8 @@ export class UpdateProveedorInput extends PartialType(CreateProveedorInput) {
   @IsInt()
   @IsNotEmpty()
   IdProveedor: number;
+
+  @Field(() => [Int], { nullable: true })
+  @IsInt({ each: true })
+  rubrosIds?: number[];
 }

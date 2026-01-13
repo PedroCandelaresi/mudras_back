@@ -95,6 +95,11 @@ export class CreateProveedorInput {
   @IsInt()
   rubroId?: number;
 
+  @Field(() => [Int], { nullable: true })
+  @IsOptional()
+  @IsInt({ each: true })
+  rubrosIds?: number[];
+
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()

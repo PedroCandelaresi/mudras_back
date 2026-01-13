@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { ObjectType, Field, ID, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
@@ -129,4 +129,13 @@ export class Proveedor {
   @OneToMany(() => OrdenCompra, (oc) => oc.proveedor)
   @Field(() => [OrdenCompra], { nullable: true })
   ordenesCompra?: OrdenCompra[];
+
+  @ManyToMany(() => Rubro, (rubro) => rubro.proveedoresNuevos)
+  @JoinTable({
+    name: 'mudras_proveedores_rubros', // Nombre de la tabla intermedia
+    joinColumn: { name: 'proveedorId', referencedColumnName: 'IdProveedor' },
+    inverseJoinColumn: { name: 'rubroId', referencedColumnName: 'Id' },
+  })
+  @Field(() => [Rubro], { nullable: true })
+  rubros?: Rubro[];
 }

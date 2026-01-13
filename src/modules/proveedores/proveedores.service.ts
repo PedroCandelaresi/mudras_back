@@ -5,12 +5,16 @@ import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
 import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
+import { Rubro } from '../../rubros/entities/rubro.entity';
+import { In } from 'typeorm';
 
 @Injectable()
 export class ProveedoresService {
   constructor(
     @InjectRepository(Proveedor)
     private proveedoresRepository: Repository<Proveedor>,
+    @InjectRepository(Rubro)
+    private rubrosRepository: Repository<Rubro>,
   ) { }
 
   async findAll(): Promise<Proveedor[]> {
@@ -22,7 +26,7 @@ export class ProveedoresService {
   async findOne(id: number): Promise<Proveedor> {
     const proveedor = await this.proveedoresRepository.findOne({
       where: { IdProveedor: id },
-      relations: ['articulos']
+      relations: ['articulos', 'rubros']
     });
 
     if (!proveedor) {
@@ -66,8 +70,15 @@ export class ProveedoresService {
 
     const proveedor = this.proveedoresRepository.create({
       ...createProveedorInput,
-      FechaModif: new Date()
+      FechaModif: new Date(),
     });
+
+    if (createProveedorInput.rubrosIds && createProveedorInput.rubrosIds.length > 0) {
+      const rubros = await this.rubrosRepository.findBy({
+        Id: In(createProveedorInput.rubrosIds),
+      });
+      proveedor.rubros = rubros;
+    }
 
     return this.proveedoresRepository.save(proveedor);
   }
@@ -95,10 +106,28 @@ export class ProveedoresService {
       }
     }
 
+    // Actualizar datos básicos
     await this.proveedoresRepository.update(IdProveedor, {
       ...updateData,
-      FechaModif: new Date()
+      FechaModif: new Date(),
     });
+
+    // Actualizar relaciones (rubros)
+    if (updateData.rubrosIds) {
+      // Obtenemos el proveedor con sus relaciones para actualizar la join table
+      const proveedorToUpdate = await this.proveedoresRepository.findOne({
+        where: { IdProveedor },
+        relations: ['rubros']
+      });
+
+      if (proveedorToUpdate) {
+        const rubros = await this.rubrosRepository.findBy({
+          Id: In(updateData.rubrosIds),
+        });
+        proveedorToUpdate.rubros = rubros;
+        await this.proveedoresRepository.save(proveedorToUpdate);
+      }
+    }
 
     return this.findOne(IdProveedor);
   }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
@@ -34,4 +34,7 @@ export class Rubro {
   @OneToMany(() => Proveedor, proveedor => proveedor.rubro)
   @Field(() => [Proveedor], { nullable: true })
   proveedores?: Proveedor[];
+
+  @ManyToMany(() => Proveedor, (proveedor) => proveedor.rubros)
+  proveedoresNuevos?: Proveedor[];
 }
