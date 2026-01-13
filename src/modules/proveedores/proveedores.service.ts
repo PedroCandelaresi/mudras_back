@@ -50,6 +50,7 @@ export class ProveedoresService {
   }
 
   async create(createProveedorInput: CreateProveedorInput): Promise<Proveedor> {
+    const { rubrosIds, ...createData } = createProveedorInput;
     // Verificar si ya existe un proveedor con el mismo código
     if (createProveedorInput.Codigo) {
       const existingByCodigo = await this.findByCodigo(createProveedorInput.Codigo);
@@ -69,13 +70,13 @@ export class ProveedoresService {
     }
 
     const proveedor = this.proveedoresRepository.create({
-      ...createProveedorInput,
+      ...createData,
       FechaModif: new Date(),
     });
 
-    if (createProveedorInput.rubrosIds && createProveedorInput.rubrosIds.length > 0) {
+    if (rubrosIds && rubrosIds.length > 0) {
       const rubros = await this.rubrosRepository.findBy({
-        Id: In(createProveedorInput.rubrosIds),
+        Id: In(rubrosIds),
       });
       proveedor.rubros = rubros;
     }
@@ -84,7 +85,7 @@ export class ProveedoresService {
   }
 
   async update(updateProveedorInput: UpdateProveedorInput): Promise<Proveedor> {
-    const { IdProveedor, ...updateData } = updateProveedorInput;
+    const { IdProveedor, rubrosIds, ...updateData } = updateProveedorInput;
 
     const proveedor = await this.findOne(IdProveedor);
 
@@ -113,7 +114,7 @@ export class ProveedoresService {
     });
 
     // Actualizar relaciones (rubros)
-    if (updateData.rubrosIds) {
+    if (rubrosIds) {
       // Obtenemos el proveedor con sus relaciones para actualizar la join table
       const proveedorToUpdate = await this.proveedoresRepository.findOne({
         where: { IdProveedor },
@@ -122,7 +123,7 @@ export class ProveedoresService {
 
       if (proveedorToUpdate) {
         const rubros = await this.rubrosRepository.findBy({
-          Id: In(updateData.rubrosIds),
+          Id: In(rubrosIds),
         });
         proveedorToUpdate.rubros = rubros;
         await this.proveedoresRepository.save(proveedorToUpdate);
