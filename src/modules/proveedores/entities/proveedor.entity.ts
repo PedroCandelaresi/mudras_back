@@ -23,9 +23,9 @@ export class Proveedor {
   @PrimaryGeneratedColumn()
   IdProveedor: number;
 
-  @Field(() => Int, { nullable: true })
-  @Column({ type: 'int', nullable: true })
-  Codigo: number;
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  Codigo: string;
 
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 50, nullable: true })
@@ -82,6 +82,8 @@ export class Proveedor {
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 20, nullable: true })
   Rubro: string;
+
+
 
   @Field(() => Int, { nullable: true })
   @Column({ type: 'int', nullable: true })

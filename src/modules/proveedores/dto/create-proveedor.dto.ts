@@ -3,10 +3,10 @@ import { IsOptional, IsString, IsInt, IsNumber, IsEmail, MaxLength } from 'class
 
 @InputType()
 export class CreateProveedorInput {
-  @Field(() => Int, { nullable: true })
+  @Field({ nullable: true })
   @IsOptional()
-  @IsInt()
-  Codigo?: number;
+  @IsString()
+  Codigo?: string;
 
   @Field({ nullable: true })
   @IsOptional()
