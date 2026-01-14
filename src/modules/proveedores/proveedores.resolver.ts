@@ -14,7 +14,7 @@ import { Permisos } from '../auth/decorators/permissions.decorator';
 @Resolver(() => Proveedor)
 @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 export class ProveedoresResolver {
-  constructor(private readonly proveedoresService: ProveedoresService) {}
+  constructor(private readonly proveedoresService: ProveedoresService) { }
 
   @Query(() => [Proveedor], { name: 'proveedores' })
   @Permisos('proveedores.read')
@@ -30,7 +30,7 @@ export class ProveedoresResolver {
 
   @Query(() => Proveedor, { name: 'proveedorPorCodigo' })
   @Permisos('proveedores.read')
-  findByCodigo(@Args('codigo', { type: () => Int }) codigo: number) {
+  findByCodigo(@Args('codigo', { type: () => String }) codigo: string) {
     return this.proveedoresService.findByCodigo(codigo);
   }
 

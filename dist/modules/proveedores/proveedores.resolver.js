@@ -80,9 +80,9 @@ __decorate([
 __decorate([
     (0, graphql_1.Query)(() => proveedor_entity_1.Proveedor, { name: 'proveedorPorCodigo' }),
     (0, permissions_decorator_1.Permisos)('proveedores.read'),
-    __param(0, (0, graphql_1.Args)('codigo', { type: () => graphql_1.Int })),
+    __param(0, (0, graphql_1.Args)('codigo', { type: () => String })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], ProveedoresResolver.prototype, "findByCodigo", null);
 __decorate([

@@ -8,7 +8,7 @@ export declare class ProveedoresResolver {
     constructor(proveedoresService: ProveedoresService);
     findAll(): Promise<Proveedor[]>;
     findOne(id: number): Promise<Proveedor>;
-    findByCodigo(codigo: number): Promise<Proveedor>;
+    findByCodigo(codigo: string): Promise<Proveedor>;
     findByNombre(nombre: string): Promise<Proveedor[]>;
     findArticulosByProveedor(proveedorId: number, filtro?: string, offset?: number, limit?: number): Promise<{
         articulos: any[];
