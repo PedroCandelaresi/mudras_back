@@ -87,7 +87,14 @@ export class ProveedoresService {
   async update(updateProveedorInput: UpdateProveedorInput): Promise<Proveedor> {
     const { IdProveedor, rubrosIds, ...updateData } = updateProveedorInput;
 
-    const proveedor = await this.findOne(IdProveedor);
+    const proveedor = await this.proveedoresRepository.findOne({
+      where: { IdProveedor },
+      relations: ['rubros']
+    });
+
+    if (!proveedor) {
+      throw new NotFoundException(`Proveedor con ID ${IdProveedor} no encontrado`);
+    }
 
     // Verificar si ya existe otro proveedor con el mismo código
     if (updateData.Codigo && updateData.Codigo !== proveedor.Codigo) {
@@ -107,30 +114,26 @@ export class ProveedoresService {
       }
     }
 
-    // Actualizar datos básicos
-    await this.proveedoresRepository.update(IdProveedor, {
+    // Actualizar datos básicos en la instancia
+    Object.assign(proveedor, {
       ...updateData,
       FechaModif: new Date(),
     });
 
     // Actualizar relaciones (rubros)
-    if (rubrosIds) {
-      // Obtenemos el proveedor con sus relaciones para actualizar la join table
-      const proveedorToUpdate = await this.proveedoresRepository.findOne({
-        where: { IdProveedor },
-        relations: ['rubros']
-      });
-
-      if (proveedorToUpdate) {
+    if (rubrosIds !== undefined) {
+      if (rubrosIds.length > 0) {
         const rubros = await this.rubrosRepository.findBy({
           Id: In(rubrosIds),
         });
-        proveedorToUpdate.rubros = rubros;
-        await this.proveedoresRepository.save(proveedorToUpdate);
+        proveedor.rubros = rubros; // Asignar array de entidades Rubro
+      } else {
+        proveedor.rubros = []; // Limpiar relaciones si el array está vacío
       }
     }
 
-    return this.findOne(IdProveedor);
+    // Guardar la entidad completa (TypeORM maneja la actualización y el cascade de la relación ManyToMany)
+    return this.proveedoresRepository.save(proveedor);
   }
 
   async findArticulosByProveedor(
