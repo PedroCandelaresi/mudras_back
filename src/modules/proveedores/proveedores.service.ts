@@ -36,7 +36,7 @@ export class ProveedoresService {
     return proveedor;
   }
 
-  async findByCodigo(codigo: number): Promise<Proveedor> {
+  async findByCodigo(codigo: string): Promise<Proveedor> {
     return this.proveedoresRepository.findOne({
       where: { Codigo: codigo },
     });

@@ -52,6 +52,10 @@ __decorate([
     (0, graphql_1.Field)(() => [proveedor_entity_1.Proveedor], { nullable: true }),
     __metadata("design:type", Array)
 ], Rubro.prototype, "proveedores", void 0);
+__decorate([
+    (0, typeorm_1.ManyToMany)(() => proveedor_entity_1.Proveedor, (proveedor) => proveedor.rubros),
+    __metadata("design:type", Array)
+], Rubro.prototype, "proveedoresNuevos", void 0);
 exports.Rubro = Rubro = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('mudras_rubros')

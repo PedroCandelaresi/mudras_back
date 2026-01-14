@@ -17,9 +17,12 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const proveedor_entity_1 = require("./entities/proveedor.entity");
+const rubro_entity_1 = require("../rubros/entities/rubro.entity");
+const typeorm_3 = require("typeorm");
 let ProveedoresService = class ProveedoresService {
-    constructor(proveedoresRepository) {
+    constructor(proveedoresRepository, rubrosRepository) {
         this.proveedoresRepository = proveedoresRepository;
+        this.rubrosRepository = rubrosRepository;
     }
     async findAll() {
         return this.proveedoresRepository.find({
@@ -29,7 +32,7 @@ let ProveedoresService = class ProveedoresService {
     async findOne(id) {
         const proveedor = await this.proveedoresRepository.findOne({
             where: { IdProveedor: id },
-            relations: ['articulos']
+            relations: ['articulos', 'rubros']
         });
         if (!proveedor) {
             throw new common_1.NotFoundException(`Proveedor con ID ${id} no encontrado`);
@@ -48,6 +51,7 @@ let ProveedoresService = class ProveedoresService {
             .getMany();
     }
     async create(createProveedorInput) {
+        const { rubrosIds, ...createData } = createProveedorInput;
         if (createProveedorInput.Codigo) {
             const existingByCodigo = await this.findByCodigo(createProveedorInput.Codigo);
             if (existingByCodigo) {
@@ -63,14 +67,26 @@ let ProveedoresService = class ProveedoresService {
             }
         }
         const proveedor = this.proveedoresRepository.create({
-            ...createProveedorInput,
-            FechaModif: new Date()
+            ...createData,
+            FechaModif: new Date(),
         });
+        if (rubrosIds && rubrosIds.length > 0) {
+            const rubros = await this.rubrosRepository.findBy({
+                Id: (0, typeorm_3.In)(rubrosIds),
+            });
+            proveedor.rubros = rubros;
+        }
         return this.proveedoresRepository.save(proveedor);
     }
     async update(updateProveedorInput) {
-        const { IdProveedor, ...updateData } = updateProveedorInput;
-        const proveedor = await this.findOne(IdProveedor);
+        const { IdProveedor, rubrosIds, ...updateData } = updateProveedorInput;
+        const proveedor = await this.proveedoresRepository.findOne({
+            where: { IdProveedor },
+            relations: ['rubros']
+        });
+        if (!proveedor) {
+            throw new common_1.NotFoundException(`Proveedor con ID ${IdProveedor} no encontrado`);
+        }
         if (updateData.Codigo && updateData.Codigo !== proveedor.Codigo) {
             const existingByCodigo = await this.findByCodigo(updateData.Codigo);
             if (existingByCodigo && existingByCodigo.IdProveedor !== IdProveedor) {
@@ -85,11 +101,22 @@ let ProveedoresService = class ProveedoresService {
                 throw new common_1.ConflictException(`Ya existe otro proveedor con el nombre "${updateData.Nombre}"`);
             }
         }
-        await this.proveedoresRepository.update(IdProveedor, {
+        Object.assign(proveedor, {
             ...updateData,
-            FechaModif: new Date()
+            FechaModif: new Date(),
         });
-        return this.findOne(IdProveedor);
+        if (rubrosIds !== undefined) {
+            if (rubrosIds.length > 0) {
+                const rubros = await this.rubrosRepository.findBy({
+                    Id: (0, typeorm_3.In)(rubrosIds),
+                });
+                proveedor.rubros = rubros;
+            }
+            else {
+                proveedor.rubros = [];
+            }
+        }
+        return this.proveedoresRepository.save(proveedor);
     }
     async findArticulosByProveedor(proveedorId, filtro, offset = 0, limit = 50) {
         const proveedor = await this.findOne(proveedorId);
@@ -168,6 +195,8 @@ exports.ProveedoresService = ProveedoresService;
 exports.ProveedoresService = ProveedoresService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(proveedor_entity_1.Proveedor)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(rubro_entity_1.Rubro)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository])
 ], ProveedoresService);
 //# sourceMappingURL=proveedores.service.js.map

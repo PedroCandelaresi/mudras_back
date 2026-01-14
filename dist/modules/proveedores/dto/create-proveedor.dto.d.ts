@@ -1,5 +1,5 @@
 export declare class CreateProveedorInput {
-    Codigo?: number;
+    Codigo?: string;
     Nombre?: string;
     Contacto?: string;
     Direccion?: string;
@@ -15,6 +15,7 @@ export declare class CreateProveedorInput {
     Mail?: string;
     Rubro?: string;
     rubroId?: number;
+    rubrosIds?: number[];
     Saldo?: number;
     PorcentajeRecargoProveedor?: number;
     PorcentajeDescuentoProveedor?: number;

@@ -8,4 +8,5 @@ export declare class Rubro {
     PorcentajeDescuento: number;
     articulos?: Articulo[];
     proveedores?: Proveedor[];
+    proveedoresNuevos?: Proveedor[];
 }

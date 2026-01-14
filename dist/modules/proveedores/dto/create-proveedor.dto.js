@@ -16,10 +16,10 @@ let CreateProveedorInput = class CreateProveedorInput {
 };
 exports.CreateProveedorInput = CreateProveedorInput;
 __decorate([
-    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsInt)(),
-    __metadata("design:type", Number)
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
 ], CreateProveedorInput.prototype, "Codigo", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
@@ -123,6 +123,12 @@ __decorate([
     (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)
 ], CreateProveedorInput.prototype, "rubroId", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => [graphql_1.Int], { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)({ each: true }),
+    __metadata("design:type", Array)
+], CreateProveedorInput.prototype, "rubrosIds", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, class_validator_1.IsOptional)(),

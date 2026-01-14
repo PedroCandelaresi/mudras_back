@@ -174,7 +174,7 @@ let PuntosMudrasService = class PuntosMudrasService {
         const stockRecords = await this.stockRepository
             .createQueryBuilder('stock')
             .leftJoinAndSelect('stock.puntoMudras', 'punto')
-            .leftJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId')
+            .innerJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId')
             .leftJoin('mudras_rubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
             .select([
             'stock.id',
@@ -192,8 +192,11 @@ let PuntosMudrasService = class PuntosMudrasService {
             .where('stock.puntoMudrasId = :puntoMudrasId', { puntoMudrasId })
             .getRawMany();
         console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
+        if (stockRecords.length > 0) {
+            console.log('🔑 Keys of first record:', Object.keys(stockRecords[0]));
+        }
         const base = stockRecords.map(record => ({
-            id: record.articulo_id,
+            id: record.articulo_id || record.stock_articuloId,
             nombre: record.articulo_Descripcion || 'Sin nombre',
             codigo: record.articulo_Codigo || 'Sin código',
             precio: parseFloat(record.articulo_PrecioVenta || '0'),
@@ -448,6 +451,7 @@ let PuntosMudrasService = class PuntosMudrasService {
                 stock.cantidad = input.nuevaCantidad;
             }
             const stockGuardado = await queryRunner.manager.save(stock);
+            console.log(`✅ Ajuste: Stock guardado ID ${stockGuardado.id} -> Cantidad: ${stockGuardado.cantidad}`);
             const movimiento = queryRunner.manager.create(movimiento_stock_punto_entity_1.MovimientoStockPunto, {
                 puntoMudrasDestinoId: input.puntoMudrasId,
                 articuloId: input.articuloId,
@@ -496,21 +500,22 @@ let PuntosMudrasService = class PuntosMudrasService {
                     stock = queryRunner.manager.create(stock_punto_mudras_entity_1.StockPuntoMudras, {
                         puntoMudrasId: input.puntoMudrasId,
                         articuloId: asignacion.articuloId,
-                        cantidad: asignacion.cantidad,
+                        cantidad: Number(asignacion.cantidad),
                         stockMinimo: 0
                     });
                 }
                 else {
-                    stock.cantidad = asignacion.cantidad;
+                    stock.cantidad = Number(stock.cantidad) + Number(asignacion.cantidad);
                 }
-                await queryRunner.manager.save(stock);
+                const stockGuardado = await queryRunner.manager.save(stock);
+                console.log(`✅ Asignación: Stock actualizado ID ${stockGuardado.id} (Punto: ${stockGuardado.puntoMudrasId}, Art: ${asignacion.articuloId}) -> Cantidad: ${stockGuardado.cantidad}`);
                 const movimiento = queryRunner.manager.create(movimiento_stock_punto_entity_1.MovimientoStockPunto, {
                     puntoMudrasDestinoId: input.puntoMudrasId,
                     articuloId: asignacion.articuloId,
                     tipoMovimiento: movimiento_stock_punto_entity_1.TipoMovimientoStockPunto.AJUSTE,
-                    cantidad: diferencia,
+                    cantidad: asignacion.cantidad,
                     cantidadAnterior: cantidadAnterior,
-                    cantidadNueva: asignacion.cantidad,
+                    cantidadNueva: Number(cantidadAnterior) + asignacion.cantidad,
                     motivo: input.motivo || 'Asignación masiva de stock'
                 });
                 await queryRunner.manager.save(movimiento);
@@ -545,7 +550,7 @@ let PuntosMudrasService = class PuntosMudrasService {
             if (!stockOrigen || stockOrigen.cantidad < input.cantidad) {
                 throw new common_1.BadRequestException('Stock insuficiente en el punto origen');
             }
-            stockOrigen.cantidad -= input.cantidad;
+            stockOrigen.cantidad = Number(stockOrigen.cantidad) - Number(input.cantidad);
             await queryRunner.manager.save(stockOrigen);
             let stockDestino = await queryRunner.manager.findOne(stock_punto_mudras_entity_1.StockPuntoMudras, {
                 where: {
@@ -557,14 +562,15 @@ let PuntosMudrasService = class PuntosMudrasService {
                 stockDestino = queryRunner.manager.create(stock_punto_mudras_entity_1.StockPuntoMudras, {
                     puntoMudrasId: input.puntoDestinoId,
                     articuloId: input.articuloId,
-                    cantidad: input.cantidad,
+                    cantidad: Number(input.cantidad),
                     stockMinimo: 0
                 });
             }
             else {
-                stockDestino.cantidad += input.cantidad;
+                stockDestino.cantidad = Number(stockDestino.cantidad) + Number(input.cantidad);
             }
-            await queryRunner.manager.save(stockDestino);
+            const destinoGuardado = await queryRunner.manager.save(stockDestino);
+            console.log(`✅ Transferencia: Guardado stock destino ID ${destinoGuardado.id} (Punto: ${destinoGuardado.puntoMudrasId}, Art: ${destinoGuardado.articuloId}) con cantidad: ${destinoGuardado.cantidad}`);
             const movimiento = queryRunner.manager.create(movimiento_stock_punto_entity_1.MovimientoStockPunto, {
                 puntoMudrasOrigenId: input.puntoOrigenId,
                 puntoMudrasDestinoId: input.puntoDestinoId,

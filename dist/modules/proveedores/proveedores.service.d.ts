@@ -3,12 +3,14 @@ import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
 import { UpdateProveedorInput } from './dto/update-proveedor.dto';
 import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
+import { Rubro } from '../rubros/entities/rubro.entity';
 export declare class ProveedoresService {
     private proveedoresRepository;
-    constructor(proveedoresRepository: Repository<Proveedor>);
+    private rubrosRepository;
+    constructor(proveedoresRepository: Repository<Proveedor>, rubrosRepository: Repository<Rubro>);
     findAll(): Promise<Proveedor[]>;
     findOne(id: number): Promise<Proveedor>;
-    findByCodigo(codigo: number): Promise<Proveedor>;
+    findByCodigo(codigo: string): Promise<Proveedor>;
     findByNombre(nombre: string): Promise<Proveedor[]>;
     create(createProveedorInput: CreateProveedorInput): Promise<Proveedor>;
     update(updateProveedorInput: UpdateProveedorInput): Promise<Proveedor>;

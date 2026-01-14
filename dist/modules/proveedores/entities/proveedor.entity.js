@@ -35,9 +35,9 @@ __decorate([
     __metadata("design:type", Number)
 ], Proveedor.prototype, "IdProveedor", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
-    (0, typeorm_1.Column)({ type: 'int', nullable: true }),
-    __metadata("design:type", Number)
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true }),
+    __metadata("design:type", String)
 ], Proveedor.prototype, "Codigo", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
@@ -165,6 +165,16 @@ __decorate([
     (0, graphql_1.Field)(() => [orden_compra_entity_1.OrdenCompra], { nullable: true }),
     __metadata("design:type", Array)
 ], Proveedor.prototype, "ordenesCompra", void 0);
+__decorate([
+    (0, typeorm_1.ManyToMany)(() => rubro_entity_1.Rubro, (rubro) => rubro.proveedoresNuevos),
+    (0, typeorm_1.JoinTable)({
+        name: 'mudras_proveedores_rubros',
+        joinColumn: { name: 'proveedorId', referencedColumnName: 'IdProveedor' },
+        inverseJoinColumn: { name: 'rubroId', referencedColumnName: 'Id' },
+    }),
+    (0, graphql_1.Field)(() => [rubro_entity_1.Rubro], { nullable: true }),
+    __metadata("design:type", Array)
+], Proveedor.prototype, "rubros", void 0);
 exports.Proveedor = Proveedor = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('mudras_proveedores')

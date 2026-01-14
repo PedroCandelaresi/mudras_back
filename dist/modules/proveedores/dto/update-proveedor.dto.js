@@ -22,6 +22,11 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], UpdateProveedorInput.prototype, "IdProveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => [graphql_1.Int], { nullable: true }),
+    (0, class_validator_1.IsInt)({ each: true }),
+    __metadata("design:type", Array)
+], UpdateProveedorInput.prototype, "rubrosIds", void 0);
 exports.UpdateProveedorInput = UpdateProveedorInput = __decorate([
     (0, graphql_1.InputType)()
 ], UpdateProveedorInput);

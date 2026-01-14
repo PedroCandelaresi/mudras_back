@@ -176,9 +176,9 @@ export class SeedService implements OnModuleInit {
                 await this.rubroRepo.save(rubro);
             }
 
-            let proveedor = await this.proveedorRepo.findOne({ where: { Codigo: 999 } });
+            let proveedor = await this.proveedorRepo.findOne({ where: { Codigo: '999' } });
             if (!proveedor) {
-                proveedor = this.proveedorRepo.create({ Nombre: 'Proveedor Demo', Codigo: 999 });
+                proveedor = this.proveedorRepo.create({ Nombre: 'Proveedor Demo', Codigo: '999' });
                 await this.proveedorRepo.save(proveedor);
             }
 

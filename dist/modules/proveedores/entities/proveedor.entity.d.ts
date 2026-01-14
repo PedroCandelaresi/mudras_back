@@ -9,7 +9,7 @@ export declare enum EstadoProveedor {
 }
 export declare class Proveedor {
     IdProveedor: number;
-    Codigo: number;
+    Codigo: string;
     Nombre: string;
     Contacto: string;
     Direccion: string;
@@ -35,4 +35,5 @@ export declare class Proveedor {
     rubro?: Rubro;
     cuentasCorrientes?: CuentaCorriente[];
     ordenesCompra?: OrdenCompra[];
+    rubros?: Rubro[];
 }
