@@ -132,7 +132,7 @@ export class Proveedor {
   @Field(() => [OrdenCompra], { nullable: true })
   ordenesCompra?: OrdenCompra[];
 
-  @ManyToMany(() => Rubro, (rubro) => rubro.proveedoresNuevos, { cascade: true })
+  @ManyToMany(() => Rubro, (rubro) => rubro.proveedoresNuevos)
   @JoinTable({
     name: 'mudras_proveedores_rubros', // Nombre de la tabla intermedia
     joinColumn: { name: 'proveedorId', referencedColumnName: 'IdProveedor' },
