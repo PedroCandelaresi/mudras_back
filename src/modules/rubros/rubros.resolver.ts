@@ -19,6 +19,9 @@ export class RubroConEstadisticas {
   @Field(() => Float, { nullable: true })
   porcentajeDescuento?: number;
 
+  @Field({ nullable: true })
+  unidadMedida?: string;
+
   @Field(() => Int)
   cantidadArticulos: number;
 
@@ -37,7 +40,7 @@ export class RubrosResponse {
 
 @Resolver(() => Rubro)
 export class RubrosResolver {
-  constructor(private readonly rubrosService: RubrosService) {}
+  constructor(private readonly rubrosService: RubrosService) { }
 
   @Query(() => RubrosResponse, { name: 'buscarRubros' })
   findAll(
@@ -70,8 +73,9 @@ export class RubrosResolver {
     @Args('codigo', { nullable: true }) codigo?: string,
     @Args('porcentajeRecargo', { type: () => Float, nullable: true }) porcentajeRecargo?: number,
     @Args('porcentajeDescuento', { type: () => Float, nullable: true }) porcentajeDescuento?: number,
+    @Args('unidadMedida', { nullable: true }) unidadMedida?: string,
   ): Promise<Rubro> {
-    return this.rubrosService.create(nombre, codigo, porcentajeRecargo, porcentajeDescuento);
+    return this.rubrosService.create(nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida);
   }
 
   @Mutation(() => Rubro)
@@ -81,8 +85,9 @@ export class RubrosResolver {
     @Args('codigo', { nullable: true }) codigo?: string,
     @Args('porcentajeRecargo', { type: () => Float, nullable: true }) porcentajeRecargo?: number,
     @Args('porcentajeDescuento', { type: () => Float, nullable: true }) porcentajeDescuento?: number,
+    @Args('unidadMedida', { nullable: true }) unidadMedida?: string,
   ): Promise<Rubro> {
-    return this.rubrosService.update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento);
+    return this.rubrosService.update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida);
   }
 
   @Mutation(() => Boolean)

@@ -26,6 +26,10 @@ export class Rubro {
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, default: 0 })
   PorcentajeDescuento: number;
 
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, default: 'Unidad' })
+  unidadMedida?: string;
+
   // Relaciones FK
   @OneToMany(() => Articulo, articulo => articulo.rubro)
   @Field(() => [Articulo], { nullable: true })

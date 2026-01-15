@@ -82,23 +82,25 @@ export class RubrosService {
     });
   }
 
-  async create(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro> {
+  async create(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number, unidadMedida?: string): Promise<Rubro> {
     const nuevoRubro = this.rubrosRepository.create({
       Rubro: nombre,
       Codigo: codigo || null,
       PorcentajeRecargo: porcentajeRecargo ?? 0,
-      PorcentajeDescuento: porcentajeDescuento ?? 0
+      PorcentajeDescuento: porcentajeDescuento ?? 0,
+      unidadMedida: unidadMedida || 'Unidad'
     });
 
     return await this.rubrosRepository.save(nuevoRubro);
   }
 
-  async update(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro> {
+  async update(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number, unidadMedida?: string): Promise<Rubro> {
     await this.rubrosRepository.update(id, {
       Rubro: nombre,
       Codigo: codigo || null,
       PorcentajeRecargo: porcentajeRecargo ?? 0,
-      PorcentajeDescuento: porcentajeDescuento ?? 0
+      PorcentajeDescuento: porcentajeDescuento ?? 0,
+      unidadMedida: unidadMedida
     });
 
     return this.findOne(id);
