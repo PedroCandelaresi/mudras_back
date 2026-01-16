@@ -7,6 +7,7 @@ import { UpdateProveedorInput } from './dto/update-proveedor.dto';
 import { RubroPorProveedor } from './dto/rubros-por-proveedor.dto';
 import { Rubro } from '../rubros/entities/rubro.entity';
 import { In } from 'typeorm';
+import { Articulo } from '../articulos/entities/articulo.entity';
 
 @Injectable()
 export class ProveedoresService {
@@ -184,16 +185,8 @@ export class ProveedoresService {
   async remove(id: number): Promise<boolean> {
     const proveedor = await this.findOne(id);
 
-    // Verificar si el proveedor tiene artículos asociados
-    const articulosCount = await this.proveedoresRepository
-      .createQueryBuilder('proveedor')
-      .leftJoin('proveedor.articulos', 'articulo')
-      .where('proveedor.IdProveedor = :id', { id })
-      .getCount();
-
-    if (articulosCount > 0) {
-      throw new ConflictException(`No se puede eliminar el proveedor porque tiene ${articulosCount} artículos asociados`);
-    }
+    // Desvincular artículos asociados (setear idProveedor a NULL)
+    await this.proveedoresRepository.manager.update(Articulo, { idProveedor: id }, { idProveedor: null });
 
     await this.proveedoresRepository.remove(proveedor);
     return true;
