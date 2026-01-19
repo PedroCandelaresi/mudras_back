@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, ID, Float } from '@nestjs/graphql';
 import { ProveedoresService } from './proveedores.service';
 import { Proveedor } from './entities/proveedor.entity';
 import { CreateProveedorInput } from './dto/create-proveedor.dto';
@@ -77,5 +77,17 @@ export class ProveedoresResolver {
   @Permisos('proveedores.delete')
   remove(@Args('id', { type: () => Int }) id: number) {
     return this.proveedoresService.remove(id);
+  }
+
+  @Mutation(() => Boolean, { name: 'configurarRubroProveedor' })
+  @Permisos('proveedores.update')
+  async configurarRubroProveedor(
+    @Args('proveedorId', { type: () => Int }) proveedorId: number,
+    @Args('rubroId', { type: () => Int }) rubroId: number,
+    @Args('recargo', { type: () => Float }) recargo: number,
+    @Args('descuento', { type: () => Float }) descuento: number,
+  ) {
+    await this.proveedoresService.configurarRubroProveedor(proveedorId, rubroId, recargo, descuento);
+    return true;
   }
 }

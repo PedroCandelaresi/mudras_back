@@ -4,6 +4,7 @@ import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
 import { Rubro } from '../../rubros/entities/rubro.entity';
 import { OrdenCompra } from '../../compras/entities/orden-compra.entity';
+import { ProveedorRubro } from './proveedor-rubro.entity';
 
 export enum EstadoProveedor {
   ACTIVO = 'activo',
@@ -132,12 +133,7 @@ export class Proveedor {
   @Field(() => [OrdenCompra], { nullable: true })
   ordenesCompra?: OrdenCompra[];
 
-  @ManyToMany(() => Rubro, (rubro) => rubro.proveedoresNuevos)
-  @JoinTable({
-    name: 'mudras_proveedores_rubros', // Nombre de la tabla intermedia
-    joinColumn: { name: 'proveedorId', referencedColumnName: 'IdProveedor' },
-    inverseJoinColumn: { name: 'rubroId', referencedColumnName: 'Id' },
-  })
-  @Field(() => [Rubro], { nullable: true })
-  rubros?: Rubro[];
+  @OneToMany(() => ProveedorRubro, (pr) => pr.proveedor, { cascade: true })
+  @Field(() => [ProveedorRubro], { nullable: true })
+  proveedorRubros?: ProveedorRubro[];
 }

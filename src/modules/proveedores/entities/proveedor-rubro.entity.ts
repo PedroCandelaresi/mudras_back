@@ -1,13 +1,37 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
+import { Proveedor } from './proveedor.entity';
+import { Rubro } from '../../rubros/entities/rubro.entity';
 
-@Entity('mudras_proveedor_rubro')
+@ObjectType()
+@Entity('mudras_proveedores_rubros')
 export class ProveedorRubro {
+    @Field(() => Int)
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ name: 'proveedor_id', type: 'int' })
+    @Field(() => Int)
+    @Column({ name: 'proveedorId', type: 'int' })
     proveedorId: number;
 
-    @Column({ name: 'rubro_nombre', type: 'varchar', length: 50 })
-    rubroNombre: string;
+    @Field(() => Int)
+    @Column({ name: 'rubroId', type: 'int' })
+    rubroId: number;
+
+    @Field(() => Float, { nullable: true })
+    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0, nullable: true })
+    porcentajeRecargo: number;
+
+    @Field(() => Float, { nullable: true })
+    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0, nullable: true })
+    porcentajeDescuento: number;
+
+    @ManyToOne(() => Proveedor, (proveedor) => proveedor.proveedorRubros, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'proveedorId' })
+    proveedor: Proveedor;
+
+    @Field(() => Rubro)
+    @ManyToOne(() => Rubro, (rubro) => rubro.proveedorRubros, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'rubroId' })
+    rubro: Rubro;
 }

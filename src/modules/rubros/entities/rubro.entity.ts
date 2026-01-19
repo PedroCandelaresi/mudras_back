@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 't
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Articulo } from '../../articulos/entities/articulo.entity';
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
+import { ProveedorRubro } from '../../proveedores/entities/proveedor-rubro.entity';
 
 @ObjectType()
 @Entity('mudras_rubros')
@@ -39,6 +40,6 @@ export class Rubro {
   @Field(() => [Proveedor], { nullable: true })
   proveedores?: Proveedor[];
 
-  @ManyToMany(() => Proveedor, (proveedor) => proveedor.rubros)
-  proveedoresNuevos?: Proveedor[];
+  @OneToMany(() => ProveedorRubro, (pr) => pr.rubro)
+  proveedorRubros?: ProveedorRubro[];
 }
