@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 
 @ObjectType()
 export class RubroPorProveedor {
@@ -19,4 +19,10 @@ export class RubroPorProveedor {
 
   @Field(() => Int, { nullable: true })
   cantidadArticulos?: number;
+
+  @Field(() => Float, { nullable: true })
+  porcentajeRecargo?: number;
+
+  @Field(() => Float, { nullable: true })
+  porcentajeDescuento?: number;
 }
