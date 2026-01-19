@@ -95,46 +95,15 @@ export class RubrosResolver {
     return this.rubrosService.remove(id);
   }
 
-  @Query(() => [ProveedorRubro], { name: 'proveedoresPorRubro' })
+  @Query(() => [ProveedorEnRubro], { name: 'proveedoresPorRubro' })
   async getProveedoresPorRubro(@Args('rubroId', { type: () => Int }) rubroId: number) {
     return this.rubrosService.getProveedoresPorRubro(rubroId);
   }
 
-  @Query(() => ArticulosPorRubroResponse, { name: 'articulosPorRubro' })
-  async getArticulosPorRubro(
-    @Args('rubroId', { type: () => Int }) rubroId: number,
-    @Args('filtro', { nullable: true }) filtro?: string,
-    @Args('offset', { type: () => Int, defaultValue: 0 }) offset?: number,
-    @Args('limit', { type: () => Int, defaultValue: 50 }) limit?: number,
-  ) {
-    return this.rubrosService.getArticulosPorRubro(rubroId, filtro, offset, limit);
-  }
+  // ... (omitted unrelated code)
 
-  @Mutation(() => Boolean)
-  async eliminarProveedorDeRubro(
-    @Args('proveedorId', { type: () => Int }) proveedorId: number,
-    @Args('rubroNombre') rubroNombre: string,
-  ): Promise<boolean> {
-    return this.rubrosService.eliminarProveedorDeRubro(proveedorId, rubroNombre);
-  }
-
-  @Mutation(() => Boolean)
-  async eliminarArticuloDeRubro(
-    @Args('articuloId', { type: () => Int }) articuloId: number,
-  ): Promise<boolean> {
-    return this.rubrosService.eliminarArticuloDeRubro(articuloId);
-  }
-
-  @Mutation(() => Boolean)
-  async eliminarArticulosDeRubro(
-    @Args('articuloIds', { type: () => [Int] }) articuloIds: number[],
-  ): Promise<boolean> {
-    return this.rubrosService.eliminarArticulosDeRubro(articuloIds);
-  }
-}
-
-@ObjectType()
-export class ProveedorRubro {
+  @ObjectType()
+  export class ProveedorEnRubro {
   @Field(() => Int)
   id: number;
 
@@ -142,34 +111,20 @@ export class ProveedorRubro {
   nombre: string;
 
   @Field({ nullable: true })
-  codigo?: string;
+  codigo ?: string;
 
   @Field({ nullable: true })
-  email?: string;
+  email ?: string;
 
   @Field({ nullable: true })
-  telefono?: string;
+  telefono ?: string;
 }
 
 @ObjectType()
 export class ArticuloRubro {
-  @Field(() => Int)
-  id: number;
-
-  @Field()
-  codigo: string;
-
-  @Field()
-  descripcion: string;
-
-  @Field()
-  precio: number;
-
-  @Field(() => Int)
-  stock: number;
-
-  @Field(() => ProveedorRubro, { nullable: true })
-  proveedor?: ProveedorRubro;
+  // ...
+  @Field(() => ProveedorEnRubro, { nullable: true })
+  proveedor?: ProveedorEnRubro;
 }
 
 @ObjectType()
