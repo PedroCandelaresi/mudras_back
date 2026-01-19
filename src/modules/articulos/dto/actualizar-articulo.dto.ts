@@ -19,6 +19,11 @@ export class ActualizarArticuloDto {
   @IsString()
   Rubro?: string;
 
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  @IsNumber()
+  rubroId?: number;
+
   @Field({ nullable: true })
   @IsOptional()
   @IsString()

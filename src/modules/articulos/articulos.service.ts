@@ -204,6 +204,21 @@ export class ArticulosService {
       Combustible: crearArticuloDto.Combustible ?? false,
     } as Partial<Articulo>);
 
+    // Lógica de sincronización Rubro <-> rubroId
+    if (crearArticuloDto.rubroId) {
+      const rubro = await this.rubrosRepository.findOne({ where: { Id: crearArticuloDto.rubroId } });
+      if (rubro) {
+        nuevo.rubroId = rubro.Id;
+        nuevo.Rubro = rubro.Rubro;
+      }
+    } else if (crearArticuloDto.Rubro) {
+      const rubro = await this.rubrosRepository.findOne({ where: { Rubro: crearArticuloDto.Rubro } });
+      if (rubro) {
+        nuevo.rubroId = rubro.Id;
+        nuevo.Rubro = rubro.Rubro;
+      }
+    }
+
     const saved = await this.articulosRepository.save(nuevo as Articulo);
     return this.articulosRepository.findOne({ where: { id: saved.id }, relations: ['proveedor', 'rubro'] });
   }
@@ -231,7 +246,37 @@ export class ArticulosService {
     // Mapear solo campos presentes del DTO a columnas reales
     const patch: any = {};
     if (actualizarArticuloDto.Codigo != null) patch.Codigo = actualizarArticuloDto.Codigo;
-    if (actualizarArticuloDto.Rubro != null) patch.Rubro = actualizarArticuloDto.Rubro;
+    if (actualizarArticuloDto.Codigo != null) patch.Codigo = actualizarArticuloDto.Codigo;
+
+    // Sync Rubro <-> rubroId
+    if (actualizarArticuloDto.rubroId !== undefined) {
+      // Prioridad al ID
+      if (actualizarArticuloDto.rubroId === null) {
+        patch.rubroId = null;
+        patch.Rubro = null;
+      } else {
+        const rubro = await this.rubrosRepository.findOne({ where: { Id: actualizarArticuloDto.rubroId } });
+        if (rubro) {
+          patch.rubroId = rubro.Id;
+          patch.Rubro = rubro.Rubro;
+        }
+      }
+    } else if (actualizarArticuloDto.Rubro !== undefined) {
+      // Si solo viene string
+      if (actualizarArticuloDto.Rubro === null) {
+        patch.rubroId = null;
+        patch.Rubro = null;
+      } else {
+        const rubro = await this.rubrosRepository.findOne({ where: { Rubro: actualizarArticuloDto.Rubro } });
+        if (rubro) {
+          patch.rubroId = rubro.Id;
+          patch.Rubro = rubro.Rubro;
+        } else {
+          // Caso legacy: se guarda el string aunque no exista rubroId (opcional, o forzar null)
+          patch.Rubro = actualizarArticuloDto.Rubro;
+        }
+      }
+    }
     if (actualizarArticuloDto.ImagenUrl != null) patch.ImagenUrl = actualizarArticuloDto.ImagenUrl;
     if (actualizarArticuloDto.Descripcion != null) patch.Descripcion = actualizarArticuloDto.Descripcion;
     if (actualizarArticuloDto.Marca != null) patch.Marca = actualizarArticuloDto.Marca;

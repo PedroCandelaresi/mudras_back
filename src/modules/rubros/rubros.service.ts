@@ -108,15 +108,11 @@ export class RubrosService {
   }
 
   async remove(id: number): Promise<boolean> {
-    // Verificar si hay artículos usando este rubro
-    const articulosCount = await this.rubrosRepository.query(
-      'SELECT COUNT(*) as count FROM mudras_articulos WHERE Rubro = (SELECT Rubro FROM mudras_rubros WHERE Id = ?)',
-      [id]
+    // Desvincular artículos (quedan sin rubro)
+    await this.rubrosRepository.query(
+      'UPDATE mudras_articulos SET Rubro = NULL, rubroId = NULL WHERE rubroId = ? OR Rubro = (SELECT Rubro FROM mudras_rubros WHERE Id = ?)',
+      [id, id]
     );
-
-    if (articulosCount[0].count > 0) {
-      throw new Error('No se puede eliminar el rubro porque tiene artículos asociados');
-    }
 
     const result = await this.rubrosRepository.delete(id);
     return result.affected > 0;
