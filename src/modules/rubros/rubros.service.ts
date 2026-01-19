@@ -34,8 +34,9 @@ export class RubrosService {
         SELECT DISTINCT a.Rubro, a.id, a.idProveedor
         FROM mudras_articulos a
         INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
-        INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
-        WHERE pr.rubro_nombre COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
+        INNER JOIN mudras_proveedores_rubros pr ON pr.proveedorId = p.IdProveedor 
+        INNER JOIN mudras_rubros r_link ON pr.rubroId = r_link.Id
+        WHERE r_link.Rubro COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
       ) a ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       LEFT JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
     `;
@@ -151,7 +152,7 @@ export class RubrosService {
       FROM mudras_articulos a
       INNER JOIN mudras_rubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
-      INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      INNER JOIN mudras_proveedores_rubros pr ON pr.proveedorId = p.IdProveedor AND pr.rubroId = r.Id
       WHERE r.Id = ?
     `;
 
@@ -220,16 +221,19 @@ export class RubrosService {
         [proveedorId, rubroNombre]
       );
 
-      // Paso 2: Eliminar de la tabla de relaciones tb_proveedor_rubro
-      await this.rubrosRepository.query(
-        'DELETE FROM mudras_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?',
-        [proveedorId, rubroNombre]
-      );
+      // Paso 2: Eliminar de la tabla de relaciones mudras_proveedores_rubros
+      const rubro = await this.rubrosRepository.findOne({ where: { Rubro: rubroNombre } });
+      if (rubro) {
+        await this.rubrosRepository.query(
+          'DELETE FROM mudras_proveedores_rubros WHERE proveedorId = ? AND rubroId = ?',
+          [proveedorId, rubro.Id]
+        );
+      }
 
       // Paso 3: Actualizar tbproveedores si es necesario
       // Solo si el proveedor no tiene más rubros asociados
       const rubrosRestantes = await this.rubrosRepository.query(
-        'SELECT COUNT(*) as count FROM mudras_proveedor_rubro WHERE proveedor_id = ?',
+        'SELECT COUNT(*) as count FROM mudras_proveedores_rubros WHERE proveedorId = ?',
         [proveedorId]
       );
 
