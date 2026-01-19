@@ -4,9 +4,10 @@ import { ProveedoresService } from './proveedores.service';
 import { ProveedoresResolver } from './proveedores.resolver';
 import { Proveedor } from './entities/proveedor.entity';
 import { Rubro } from '../rubros/entities/rubro.entity';
+import { ProveedorRubro } from './entities/proveedor-rubro.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Proveedor, Rubro])],
+  imports: [TypeOrmModule.forFeature([Proveedor, Rubro, ProveedorRubro])],
   providers: [ProveedoresResolver, ProveedoresService],
   exports: [ProveedoresService],
 })
