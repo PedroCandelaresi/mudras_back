@@ -12,6 +12,8 @@ import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
+import { MovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
+import { FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
 
 @ObjectType()
 export class RubroInfo {
@@ -309,6 +311,15 @@ export class PuntosMudrasResolver {
   ): Promise<MatrizStockItem[]> {
     return await this.puntosMudrasService.obtenerMatrizStock({ busqueda, rubro, proveedorId });
   }
+
+  @Query(() => MovimientosPaginados)
+  @Permisos('stock.read')
+  async movimientosStockFull(
+    @Args('input', { nullable: true }) input?: FiltrosMovimientosInput,
+    @Args('puntoMudrasId', { type: () => Int, nullable: true }) puntoMudrasId?: number,
+  ): Promise<MovimientosPaginados> {
+    return await this.puntosMudrasService.obtenerMovimientos(puntoMudrasId, input);
+  }
 }
 
 @ObjectType()
@@ -342,4 +353,13 @@ export class MatrizStockItem {
 
   @Field(() => [StockPunto])
   stockPorPunto: StockPunto[];
+}
+
+@ObjectType()
+export class MovimientosPaginados {
+  @Field(() => [MovimientoStockPunto])
+  movimientos: MovimientoStockPunto[];
+
+  @Field(() => Int)
+  total: number;
 }

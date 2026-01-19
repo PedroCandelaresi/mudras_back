@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
 import { ObjectType, Field, Int, Float, registerEnumType } from '@nestjs/graphql';
 import { PuntoMudras } from './punto-mudras.entity';
+import { Articulo } from '../../articulos/entities/articulo.entity';
+import { Usuario } from '../../usuarios/entities/usuario.entity';
 
 export enum TipoMovimientoStockPunto {
   ENTRADA = 'entrada',
@@ -82,9 +84,15 @@ export class MovimientoStockPunto {
   @JoinColumn({ name: 'punto_mudras_destino_id' })
   puntoDestino?: PuntoMudras;
 
-  // Campo virtual para artículo (se resuelve en el resolver)
-  articulo?: any;
+  @Field(() => Articulo, { nullable: true })
+  @ManyToOne(() => Articulo)
+  @JoinColumn({ name: 'articulo_id' })
+  articulo?: Articulo;
 
-  // Campo virtual para usuario (se resuelve en el resolver)
-  usuario?: any;
+  @Field(() => Usuario, { nullable: true })
+  @ManyToOne(() => Usuario)
+  @JoinColumn({ name: 'usuario_id' })
+  usuario?: Usuario;
+
+
 }
