@@ -261,7 +261,6 @@ export class ProveedoresService {
     // Use raw query to join and get counts if needed.
 
     return relaciones.map(pr => ({
-      id: pr.id,
       proveedorId: pr.proveedorId,
       proveedorNombre: pr.proveedor?.Nombre || '', // Relations not fully loaded unless requested
       proveedorCodigo: null,
