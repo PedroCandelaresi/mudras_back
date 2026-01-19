@@ -2,11 +2,8 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 
 @ObjectType()
 export class RubroPorProveedor {
-  @Field(() => Int)
-  id: number;
-
-  @Field(() => Int)
-  proveedorId: number;
+  @Field(() => Int, { nullable: true })
+  proveedorId: number | null;
 
   @Field({ nullable: true })
   proveedorNombre?: string;

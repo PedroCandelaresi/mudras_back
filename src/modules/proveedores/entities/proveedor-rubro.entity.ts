@@ -7,15 +7,11 @@ import { Rubro } from '../../rubros/entities/rubro.entity';
 @Entity('mudras_proveedores_rubros')
 export class ProveedorRubro {
     @Field(() => Int)
-    @PrimaryGeneratedColumn()
-    id: number;
-
-    @Field(() => Int)
-    @Column({ name: 'proveedorId', type: 'int' })
+    @PrimaryColumn({ name: 'proveedorId', type: 'int' })
     proveedorId: number;
 
     @Field(() => Int)
-    @Column({ name: 'rubroId', type: 'int' })
+    @PrimaryColumn({ name: 'rubroId', type: 'int' })
     rubroId: number;
 
     @Field(() => Float, { nullable: true })
