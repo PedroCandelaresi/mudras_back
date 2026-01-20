@@ -488,4 +488,94 @@ export class ArticulosService {
   }
 
 
+  async recalcularePreciosPorProveedorRubro(
+    proveedorId: number,
+    rubroId: number,
+    recargo: number,
+    descuento: number
+  ): Promise<void> {
+    const articulos = await this.articulosRepository.find({
+      where: { idProveedor: proveedorId, rubroId: rubroId },
+      relations: ['rubro', 'proveedor'] // Traemos relaciones por si se necesitan para otros cálculos
+    });
+
+    if (!articulos.length) return;
+
+    for (const art of articulos) {
+      // 1. Calcular Nuevo Costo (PrecioCompra)
+      // Base: PrecioListaProveedor > CostoPromedio > PrecioCompra
+      let baseCosto = art.PrecioListaProveedor;
+      if (!baseCosto || baseCosto === 0) {
+        baseCosto = art.CostoPromedio;
+      }
+      if (!baseCosto || baseCosto === 0) {
+        // Fallback: Si no hay lista ni promedio, usamos el precio compra actual como base (cuidado con efecto acumulativo en iteraciones repetidas si no hay base fija)
+        // Idealmente debería haber PrecioListaProveedor. Si no, esto es lo mejor que podemos hacer.
+        baseCosto = art.PrecioCompra;
+      }
+
+      if (baseCosto !== undefined && baseCosto !== null) {
+        // Aplicar Recargo y Descuento del Proveedor-Rubro
+        // Fórmula: Base * (1 + Recargo) * (1 - Descuento)
+        let nuevoCosto = baseCosto;
+
+        if (recargo) {
+          nuevoCosto = nuevoCosto * (1 + recargo / 100);
+        }
+        if (descuento) {
+          nuevoCosto = nuevoCosto * (1 - descuento / 100);
+        }
+
+        art.PrecioCompra = parseFloat(nuevoCosto.toFixed(2));
+      }
+
+      // 2. Recalcular Precio Venta
+      // PrecioVenta = Costo * (1 + Ganancia) * (1 + IVA) ... + otros recargos
+      // Usaremos una lógica simplificada pero robusta basada en los campos del artículo.
+      // Nota: Si existe lógica compleja en frontend (precioVenta.ts), replicarla 100% en backend puede ser duplicación,
+      // pero el guardado requiere el valor final.
+
+      let precioBaseParaVenta = art.PrecioCompra; // Usamos el nuevo costo
+
+      // Aplicar Ganancia
+      if (art.PorcentajeGanancia) {
+        precioBaseParaVenta = precioBaseParaVenta * (1 + art.PorcentajeGanancia / 100);
+      }
+
+      // Aplicar Recargos/Descuentos de Rubro (Globales) si existen
+      if (art.rubro) {
+        if (art.rubro.PorcentajeRecargo) {
+          precioBaseParaVenta = precioBaseParaVenta * (1 + art.rubro.PorcentajeRecargo / 100);
+        }
+        if (art.rubro.PorcentajeDescuento) {
+          precioBaseParaVenta = precioBaseParaVenta * (1 - art.rubro.PorcentajeDescuento / 100);
+        }
+      }
+
+      // Aplicar Recargo Proveedor (Global) - OJO: ¿Se suma al del Rubro-Proveedor?
+      // El frontend `precioVenta.ts` usa `proveedorRecargo`.
+      // Asumiremos que si configuramos por Rubro, es Específico.
+      // Pero si el Proveedor tiene un recargo GLOBAL en su entidad, ¿se aplica también?
+      // Por seguridad, aplicamos lo que esté en la entidad Proveedor si existe.
+      if (art.proveedor) {
+        if (art.proveedor.PorcentajeRecargoProveedor) {
+          precioBaseParaVenta = precioBaseParaVenta * (1 + art.proveedor.PorcentajeRecargoProveedor / 100);
+        }
+        if (art.proveedor.PorcentajeDescuentoProveedor) {
+          precioBaseParaVenta = precioBaseParaVenta * (1 - art.proveedor.PorcentajeDescuentoProveedor / 100);
+        }
+      }
+
+      // Aplicar IVA
+      if (art.AlicuotaIva) {
+        precioBaseParaVenta = precioBaseParaVenta * (1 + art.AlicuotaIva / 100);
+      }
+
+      art.PrecioVenta = parseFloat(precioBaseParaVenta.toFixed(2));
+      art.Calculado = true; // Flag de que fue calculado aut.
+      art.FechaModif = new Date();
+    }
+
+    await this.articulosRepository.save(articulos);
+  }
 }

@@ -9,6 +9,7 @@ import { Rubro } from '../rubros/entities/rubro.entity';
 import { ProveedorRubro } from './entities/proveedor-rubro.entity';
 import { In } from 'typeorm';
 import { Articulo } from '../articulos/entities/articulo.entity';
+import { ArticulosService } from '../articulos/articulos.service';
 
 @Injectable()
 export class ProveedoresService {
@@ -19,6 +20,7 @@ export class ProveedoresService {
     private rubrosRepository: Repository<Rubro>,
     @InjectRepository(ProveedorRubro)
     private proveedorRubrosRepository: Repository<ProveedorRubro>,
+    private articulosService: ArticulosService,
   ) { }
 
   async findAll(): Promise<Proveedor[]> {
@@ -184,7 +186,12 @@ export class ProveedoresService {
       relacion.porcentajeDescuento = descuento;
     }
 
-    return this.proveedorRubrosRepository.save(relacion);
+    const saved = await this.proveedorRubrosRepository.save(relacion);
+
+    // Recalcular precios de los artículos afectados
+    await this.articulosService.recalcularePreciosPorProveedorRubro(proveedorId, rubroId, recargo, descuento);
+
+    return saved;
   }
 
   async findArticulosByProveedor(
