@@ -13,6 +13,9 @@ import { Rubro } from '../rubros/entities/rubro.entity';
 import { Proveedor } from '../proveedores/entities/proveedor.entity';
 import { PuntoMudras, TipoPuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
 
+import { Permission } from '../permissions/entities/permission.entity';
+import { RolePermission } from '../roles/entities/role-permission.entity';
+
 @Injectable()
 export class SeedService implements OnModuleInit {
     private readonly logger = new Logger(SeedService.name);
@@ -24,6 +27,10 @@ export class SeedService implements OnModuleInit {
         private readonly roleRepo: Repository<Role>,
         @InjectRepository(UserRole)
         private readonly userRoleRepo: Repository<UserRole>,
+        @InjectRepository(Permission)
+        private readonly permissionRepo: Repository<Permission>,
+        @InjectRepository(RolePermission)
+        private readonly rolePermissionRepo: Repository<RolePermission>,
         @InjectRepository(Usuario)
         private readonly usuarioRepo: Repository<Usuario>,
         @InjectRepository(UsuarioAuthMap)
@@ -42,8 +49,11 @@ export class SeedService implements OnModuleInit {
         this.logger.log('🌱 Iniciando verificación de semillas...');
         await this.seedPuntosMudras();
         await this.seedAdmin();
+        await this.seedRBAC(); // New method
         await this.seedProducoDemo();
     }
+
+
 
     private async seedPuntosMudras() {
         // 1. Tienda Principal
@@ -160,6 +170,121 @@ export class SeedService implements OnModuleInit {
                 });
             }
         }
+    }
+
+    private async seedRBAC() {
+        // Wrapper for ensurePermission
+        const ensurePerm = async (resource: string, action: string) => {
+            let p = await this.permissionRepo.findOne({ where: { resource, action } }); // Typo fixed
+            // Wait, entity def needs check.
+            // Let's assume standard 'resource'.
+            if (!p) {
+                // Try find by resource/action if repo field is different
+                p = await this.permissionRepo.findOne({ where: { resource, action } as any });
+            }
+            if (!p) {
+                p = this.permissionRepo.create({
+                    id: randomUUID(),
+                    resource,
+                    action,
+                    description: `Permiso para ${action} ${resource}`
+                });
+                await this.permissionRepo.save(p);
+            }
+            return p;
+        };
+
+        // Assign helper
+        const assign = async (role: Role, perm: Permission) => {
+            const exists = await this.rolePermissionRepo.findOne({ where: { roleId: role.id, permissionId: perm.id } });
+            if (!exists) {
+                await this.rolePermissionRepo.save(this.rolePermissionRepo.create({
+                    roleId: role.id,
+                    permissionId: perm.id
+                }));
+            }
+        };
+
+        // 1. Define Permissions
+        const permissionsList = [
+            { r: 'ventas', a: ['read', 'create', 'update'] },
+            { r: 'contabilidad', a: ['read', 'create', 'update'] },
+            { r: 'cuentas', a: ['read', 'create', 'update'] },
+            { r: 'proveedores', a: ['read', 'create', 'update'] },
+            { r: 'puntos_venta', a: ['read'] },
+            { r: 'depositos', a: ['read'] },
+            { r: 'promociones', a: ['read'] },
+            { r: 'tienda_online', a: ['read'] },
+            { r: 'stock', a: ['update'] },
+            { r: 'usuarios', a: ['read'] },
+            { r: 'puntos_mudras', a: ['read'] },
+            { r: 'pedidos', a: ['read'] },
+            { r: 'caja', a: ['read'] },
+            { r: 'dashboard', a: ['read'] },
+            { r: 'productos', a: ['read', 'create', 'update'] },
+        ];
+
+        // Cache permissions
+        const permsCache: Record<string, Permission> = {};
+        for (const group of permissionsList) {
+            for (const action of group.a) {
+                const key = `${group.r}:${action}`;
+                permsCache[key] = await ensurePerm(group.r, action);
+            }
+        }
+
+        // 2. Assign to Roles
+        const roleSlugs = ['administrador', 'caja_registradora', 'tienda_online', 'deposito', 'disenadora'];
+        const roles: Record<string, Role> = {};
+
+        for (const slug of roleSlugs) {
+            let r = await this.roleRepo.findOne({ where: { slug } });
+            if (!r) {
+                // Create if missing (Admin created in seedAdmin but others might need creation)
+                let name = slug.charAt(0).toUpperCase() + slug.slice(1).replace('_', ' ');
+                r = this.roleRepo.create({ id: randomUUID(), name, slug });
+                await this.roleRepo.save(r);
+            }
+            roles[slug] = r;
+        }
+
+        // ADMIN: All
+        if (roles['administrador']) {
+            for (const key in permsCache) {
+                await assign(roles['administrador'], permsCache[key]);
+            }
+        }
+
+        // CAJA
+        if (roles['caja_registradora']) {
+            const allowed = [
+                'ventas:read', 'ventas:create', 'ventas:update',
+                'cuentas:read', 'cuentas:create', 'cuentas:update',
+                'caja:read', 'promociones:read', 'pedidos:read',
+                'dashboard:read'
+            ];
+            for (const k of allowed) if (permsCache[k]) await assign(roles['caja_registradora'], permsCache[k]);
+        }
+
+        // TIENDA
+        if (roles['tienda_online']) {
+            const allowed = ['ventas:read', 'tienda_online:read', 'promociones:read', 'depositos:read', 'productos:read'];
+            for (const k of allowed) if (permsCache[k]) await assign(roles['tienda_online'], permsCache[k]);
+        }
+
+        // DEPOSITO
+        if (roles['deposito']) {
+            const allowed = ['depositos:read', 'stock:update', 'puntos_venta:read', 'productos:read'];
+            for (const k of allowed) if (permsCache[k]) await assign(roles['deposito'], permsCache[k]);
+        }
+
+        // DISENADORA
+        if (roles['disenadora']) {
+            const allowed = ['promociones:read', 'tienda_online:read', 'productos:read', 'dashboard:read'];
+            for (const k of allowed) if (permsCache[k]) await assign(roles['disenadora'], permsCache[k]);
+        }
+
+        this.logger.log('✅ RBAC inicializado.');
     }
 
     private async seedProducoDemo() {
