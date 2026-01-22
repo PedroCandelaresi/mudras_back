@@ -7,11 +7,12 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { Role } from '../roles/entities/role.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
+import { UsersResolver } from './users.resolver';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserAuth, UserProvider, UserRole, RefreshToken, Role])],
-  providers: [UsersService],
+  providers: [UsersService, UsersResolver],
   controllers: [UsersController],
   exports: [TypeOrmModule, UsersService],
 })
-export class UsersAuthModule {}
+export class UsersAuthModule { }
