@@ -10,6 +10,8 @@ import { Articulo } from '../articulos/entities/articulo.entity';
 import { Rubro } from '../rubros/entities/rubro.entity';
 import { Proveedor } from '../proveedores/entities/proveedor.entity';
 import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
+import { Permission } from '../permissions/entities/permission.entity';
+import { RolePermission } from '../roles/entities/role-permission.entity';
 
 @Module({
     imports: [
@@ -23,6 +25,8 @@ import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
             Rubro,
             Proveedor,
             PuntoMudras,
+            Permission,
+            RolePermission,
         ]),
     ],
     providers: [SeedService],
