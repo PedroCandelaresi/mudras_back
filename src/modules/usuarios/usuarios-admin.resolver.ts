@@ -23,7 +23,7 @@ export class UsuariosAdminResolver {
   constructor(
     private readonly usersService: UsersService,
     private readonly usuariosGestionService: UsuariosService,
-  ) {}
+  ) { }
 
   @Roles('administrador')
   @Query(() => UsuariosAuthPaginadosModel, { name: 'usuariosAdmin' })
@@ -49,6 +49,7 @@ export class UsuariosAdminResolver {
       passwordTemporal: input.passwordTemporal,
       isActive: input.isActive,
       roles: input.roles,
+      userType: input.userType,
     });
   }
 

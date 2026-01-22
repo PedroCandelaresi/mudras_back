@@ -18,11 +18,16 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const proveedor_entity_1 = require("./entities/proveedor.entity");
 const rubro_entity_1 = require("../rubros/entities/rubro.entity");
+const proveedor_rubro_entity_1 = require("./entities/proveedor-rubro.entity");
 const typeorm_3 = require("typeorm");
+const articulo_entity_1 = require("../articulos/entities/articulo.entity");
+const articulos_service_1 = require("../articulos/articulos.service");
 let ProveedoresService = class ProveedoresService {
-    constructor(proveedoresRepository, rubrosRepository) {
+    constructor(proveedoresRepository, rubrosRepository, proveedorRubrosRepository, articulosService) {
         this.proveedoresRepository = proveedoresRepository;
         this.rubrosRepository = rubrosRepository;
+        this.proveedorRubrosRepository = proveedorRubrosRepository;
+        this.articulosService = articulosService;
     }
     async findAll() {
         return this.proveedoresRepository.find({
@@ -32,7 +37,7 @@ let ProveedoresService = class ProveedoresService {
     async findOne(id) {
         const proveedor = await this.proveedoresRepository.findOne({
             where: { IdProveedor: id },
-            relations: ['articulos', 'rubros']
+            relations: ['articulos', 'proveedorRubros', 'proveedorRubros.rubro']
         });
         if (!proveedor) {
             throw new common_1.NotFoundException(`Proveedor con ID ${id} no encontrado`);
@@ -70,19 +75,23 @@ let ProveedoresService = class ProveedoresService {
             ...createData,
             FechaModif: new Date(),
         });
+        const savedProveedor = await this.proveedoresRepository.save(proveedor);
         if (rubrosIds && rubrosIds.length > 0) {
-            const rubros = await this.rubrosRepository.findBy({
-                Id: (0, typeorm_3.In)(rubrosIds),
-            });
-            proveedor.rubros = rubros;
+            const newRelations = rubrosIds.map(rubroId => this.proveedorRubrosRepository.create({
+                proveedorId: savedProveedor.IdProveedor,
+                rubroId: rubroId,
+                porcentajeRecargo: 0,
+                porcentajeDescuento: 0
+            }));
+            await this.proveedorRubrosRepository.save(newRelations);
         }
-        return this.proveedoresRepository.save(proveedor);
+        return this.findOne(savedProveedor.IdProveedor);
     }
     async update(updateProveedorInput) {
         const { IdProveedor, rubrosIds, ...updateData } = updateProveedorInput;
         const proveedor = await this.proveedoresRepository.findOne({
             where: { IdProveedor },
-            relations: ['rubros']
+            relations: ['proveedorRubros']
         });
         if (!proveedor) {
             throw new common_1.NotFoundException(`Proveedor con ID ${IdProveedor} no encontrado`);
@@ -105,18 +114,48 @@ let ProveedoresService = class ProveedoresService {
             ...updateData,
             FechaModif: new Date(),
         });
+        await this.proveedoresRepository.save(proveedor);
         if (rubrosIds !== undefined) {
-            if (rubrosIds.length > 0) {
-                const rubros = await this.rubrosRepository.findBy({
-                    Id: (0, typeorm_3.In)(rubrosIds),
+            const currentRubrosIds = proveedor.proveedorRubros?.map(pr => pr.rubroId) || [];
+            const toAdd = rubrosIds.filter(id => !currentRubrosIds.includes(id));
+            const toRemove = currentRubrosIds.filter(id => !rubrosIds.includes(id));
+            if (toRemove.length > 0) {
+                await this.proveedorRubrosRepository.delete({
+                    proveedorId: IdProveedor,
+                    rubroId: (0, typeorm_3.In)(toRemove)
                 });
-                proveedor.rubros = rubros;
             }
-            else {
-                proveedor.rubros = [];
+            if (toAdd.length > 0) {
+                const newRelations = toAdd.map(rubroId => this.proveedorRubrosRepository.create({
+                    proveedorId: IdProveedor,
+                    rubroId: rubroId,
+                    porcentajeRecargo: 0,
+                    porcentajeDescuento: 0
+                }));
+                await this.proveedorRubrosRepository.save(newRelations);
             }
         }
-        return this.proveedoresRepository.save(proveedor);
+        return this.findOne(IdProveedor);
+    }
+    async configurarRubroProveedor(proveedorId, rubroId, recargo, descuento) {
+        let relacion = await this.proveedorRubrosRepository.findOne({
+            where: { proveedorId, rubroId }
+        });
+        if (!relacion) {
+            relacion = this.proveedorRubrosRepository.create({
+                proveedorId,
+                rubroId,
+                porcentajeRecargo: recargo,
+                porcentajeDescuento: descuento
+            });
+        }
+        else {
+            relacion.porcentajeRecargo = recargo;
+            relacion.porcentajeDescuento = descuento;
+        }
+        const saved = await this.proveedorRubrosRepository.save(relacion);
+        await this.articulosService.recalcularePreciosPorProveedorRubro(proveedorId, rubroId, recargo, descuento);
+        return saved;
     }
     async findArticulosByProveedor(proveedorId, filtro, offset = 0, limit = 50) {
         const proveedor = await this.findOne(proveedorId);
@@ -150,44 +189,24 @@ let ProveedoresService = class ProveedoresService {
     }
     async remove(id) {
         const proveedor = await this.findOne(id);
-        const articulosCount = await this.proveedoresRepository
-            .createQueryBuilder('proveedor')
-            .leftJoin('proveedor.articulos', 'articulo')
-            .where('proveedor.IdProveedor = :id', { id })
-            .getCount();
-        if (articulosCount > 0) {
-            throw new common_1.ConflictException(`No se puede eliminar el proveedor porque tiene ${articulosCount} artículos asociados`);
-        }
+        await this.proveedoresRepository.manager.update(articulo_entity_1.Articulo, { idProveedor: id }, { idProveedor: null });
         await this.proveedoresRepository.remove(proveedor);
         return true;
     }
     async findRubrosByProveedor(proveedorId) {
-        const query = `
-      SELECT
-        pr.id,
-        pr.proveedor_id AS proveedorId,
-        pr.proveedor_nombre AS proveedorNombre,
-        pr.proveedor_codigo AS proveedorCodigo,
-        pr.rubro_nombre AS rubroNombre,
-        pr.rubro_id AS rubroId,
-        pr.cantidad_articulos AS cantidadArticulos
-      FROM mudras_proveedor_rubro pr
-      WHERE pr.proveedor_id = ?
-      ORDER BY pr.rubro_nombre
-    `;
-        const rows = await this.proveedoresRepository.query(query, [proveedorId]);
-        return rows.map((row) => ({
-            id: Number(row.id),
-            proveedorId: Number(row.proveedorId ?? row.proveedor_id ?? proveedorId),
-            proveedorNombre: row.proveedorNombre ?? row.proveedor_nombre ?? null,
-            proveedorCodigo: row.proveedorCodigo != null ? Number(row.proveedorCodigo) : row.proveedor_codigo != null ? Number(row.proveedor_codigo) : null,
-            rubroNombre: row.rubroNombre ?? row.rubro_nombre ?? null,
-            rubroId: row.rubroId != null ? Number(row.rubroId) : row.rubro_id != null ? Number(row.rubro_id) : null,
-            cantidadArticulos: row.cantidadArticulos != null
-                ? Number(row.cantidadArticulos)
-                : row.cantidad_articulos != null
-                    ? Number(row.cantidad_articulos)
-                    : null,
+        const relaciones = await this.proveedorRubrosRepository.find({
+            where: { proveedorId },
+            relations: ['rubro']
+        });
+        return relaciones.map(pr => ({
+            proveedorId: pr.proveedorId,
+            proveedorNombre: pr.proveedor?.Nombre || '',
+            proveedorCodigo: null,
+            rubroNombre: pr.rubro?.Rubro || '',
+            rubroId: pr.rubroId,
+            cantidadArticulos: 0,
+            porcentajeRecargo: pr.porcentajeRecargo,
+            porcentajeDescuento: pr.porcentajeDescuento
         }));
     }
 };
@@ -196,7 +215,10 @@ exports.ProveedoresService = ProveedoresService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(proveedor_entity_1.Proveedor)),
     __param(1, (0, typeorm_1.InjectRepository)(rubro_entity_1.Rubro)),
+    __param(2, (0, typeorm_1.InjectRepository)(proveedor_rubro_entity_1.ProveedorRubro)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        typeorm_2.Repository,
+        articulos_service_1.ArticulosService])
 ], ProveedoresService);
 //# sourceMappingURL=proveedores.service.js.map

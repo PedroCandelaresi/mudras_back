@@ -41,8 +41,9 @@ let RubrosService = class RubrosService {
         SELECT DISTINCT a.Rubro, a.id, a.idProveedor
         FROM mudras_articulos a
         INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
-        INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor 
-        WHERE pr.rubro_nombre COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
+        INNER JOIN mudras_proveedores_rubros pr ON pr.proveedorId = p.IdProveedor 
+        INNER JOIN mudras_rubros r_link ON pr.rubroId = r_link.Id
+        WHERE r_link.Rubro COLLATE utf8mb4_unicode_ci = a.Rubro COLLATE utf8mb4_unicode_ci
       ) a ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       LEFT JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
     `;
@@ -77,29 +78,28 @@ let RubrosService = class RubrosService {
             where: { Rubro: rubro },
         });
     }
-    async create(nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
+    async create(nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida) {
         const nuevoRubro = this.rubrosRepository.create({
             Rubro: nombre,
             Codigo: codigo || null,
             PorcentajeRecargo: porcentajeRecargo ?? 0,
-            PorcentajeDescuento: porcentajeDescuento ?? 0
+            PorcentajeDescuento: porcentajeDescuento ?? 0,
+            unidadMedida: unidadMedida || 'Unidad'
         });
         return await this.rubrosRepository.save(nuevoRubro);
     }
-    async update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
+    async update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida) {
         await this.rubrosRepository.update(id, {
             Rubro: nombre,
             Codigo: codigo || null,
             PorcentajeRecargo: porcentajeRecargo ?? 0,
-            PorcentajeDescuento: porcentajeDescuento ?? 0
+            PorcentajeDescuento: porcentajeDescuento ?? 0,
+            unidadMedida: unidadMedida
         });
         return this.findOne(id);
     }
     async remove(id) {
-        const articulosCount = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM mudras_articulos WHERE Rubro = (SELECT Rubro FROM mudras_rubros WHERE Id = ?)', [id]);
-        if (articulosCount[0].count > 0) {
-            throw new Error('No se puede eliminar el rubro porque tiene artículos asociados');
-        }
+        await this.rubrosRepository.query('UPDATE mudras_articulos SET Rubro = NULL, rubroId = NULL WHERE rubroId = ? OR Rubro = (SELECT Rubro FROM mudras_rubros WHERE Id = ?)', [id, id]);
         const result = await this.rubrosRepository.delete(id);
         return result.affected > 0;
     }
@@ -124,7 +124,7 @@ let RubrosService = class RubrosService {
       FROM mudras_articulos a
       INNER JOIN mudras_rubros r ON a.Rubro COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
       INNER JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
-      INNER JOIN mudras_proveedor_rubro pr ON pr.proveedor_id = p.IdProveedor AND pr.rubro_nombre COLLATE utf8mb4_unicode_ci = r.Rubro COLLATE utf8mb4_unicode_ci
+      INNER JOIN mudras_proveedores_rubros pr ON pr.proveedorId = p.IdProveedor AND pr.rubroId = r.Id
       WHERE r.Id = ?
     `;
         const params = [rubroId];
@@ -172,8 +172,11 @@ let RubrosService = class RubrosService {
     async eliminarProveedorDeRubro(proveedorId, rubroNombre) {
         try {
             await this.rubrosRepository.query('UPDATE mudras_articulos SET idProveedor = NULL WHERE idProveedor = ? AND Rubro = ?', [proveedorId, rubroNombre]);
-            await this.rubrosRepository.query('DELETE FROM mudras_proveedor_rubro WHERE proveedor_id = ? AND rubro_nombre = ?', [proveedorId, rubroNombre]);
-            const rubrosRestantes = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM mudras_proveedor_rubro WHERE proveedor_id = ?', [proveedorId]);
+            const rubro = await this.rubrosRepository.findOne({ where: { Rubro: rubroNombre } });
+            if (rubro) {
+                await this.rubrosRepository.query('DELETE FROM mudras_proveedores_rubros WHERE proveedorId = ? AND rubroId = ?', [proveedorId, rubro.Id]);
+            }
+            const rubrosRestantes = await this.rubrosRepository.query('SELECT COUNT(*) as count FROM mudras_proveedores_rubros WHERE proveedorId = ?', [proveedorId]);
             if (rubrosRestantes[0].count === 0) {
                 await this.rubrosRepository.query('UPDATE mudras_proveedores SET Rubro = NULL WHERE IdProveedor = ?', [proveedorId]);
             }

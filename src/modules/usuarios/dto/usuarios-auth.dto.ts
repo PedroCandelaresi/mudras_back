@@ -118,6 +118,9 @@ export class CrearUsuarioAuthInput {
 
   @Field(() => [String], { nullable: true })
   roles?: string[];
+
+  @Field({ nullable: true })
+  userType?: 'EMPRESA' | 'CLIENTE';
 }
 
 @InputType()

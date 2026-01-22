@@ -28,11 +28,15 @@ const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const rubro_entity_1 = require("../rubros/entities/rubro.entity");
 const proveedor_entity_1 = require("../proveedores/entities/proveedor.entity");
 const punto_mudras_entity_1 = require("../puntos-mudras/entities/punto-mudras.entity");
+const permission_entity_1 = require("../permissions/entities/permission.entity");
+const role_permission_entity_1 = require("../roles/entities/role-permission.entity");
 let SeedService = SeedService_1 = class SeedService {
-    constructor(userAuthRepo, roleRepo, userRoleRepo, usuarioRepo, usuarioAuthMapRepo, articuloRepo, rubroRepo, proveedorRepo, puntosMudrasRepo) {
+    constructor(userAuthRepo, roleRepo, userRoleRepo, permissionRepo, rolePermissionRepo, usuarioRepo, usuarioAuthMapRepo, articuloRepo, rubroRepo, proveedorRepo, puntosMudrasRepo) {
         this.userAuthRepo = userAuthRepo;
         this.roleRepo = roleRepo;
         this.userRoleRepo = userRoleRepo;
+        this.permissionRepo = permissionRepo;
+        this.rolePermissionRepo = rolePermissionRepo;
         this.usuarioRepo = usuarioRepo;
         this.usuarioAuthMapRepo = usuarioAuthMapRepo;
         this.articuloRepo = articuloRepo;
@@ -45,6 +49,7 @@ let SeedService = SeedService_1 = class SeedService {
         this.logger.log('🌱 Iniciando verificación de semillas...');
         await this.seedPuntosMudras();
         await this.seedAdmin();
+        await this.seedRBAC();
         await this.seedProducoDemo();
     }
     async seedPuntosMudras() {
@@ -146,6 +151,164 @@ let SeedService = SeedService_1 = class SeedService {
             }
         }
     }
+    async seedRBAC() {
+        const ensurePerm = async (resource, action, description) => {
+            let p = await this.permissionRepo.findOne({ where: { resource, action } });
+            if (!p) {
+                p = this.permissionRepo.create({
+                    id: (0, crypto_1.randomUUID)(),
+                    resource,
+                    action,
+                    description: description || `Permiso para ${action} ${resource}`
+                });
+                await this.permissionRepo.save(p);
+            }
+            return p;
+        };
+        const assign = async (role, perm) => {
+            const exists = await this.rolePermissionRepo.findOne({ where: { roleId: role.id, permissionId: perm.id } });
+            if (!exists) {
+                await this.rolePermissionRepo.save(this.rolePermissionRepo.create({
+                    roleId: role.id,
+                    permissionId: perm.id
+                }));
+            }
+        };
+        const definitions = [
+            { r: 'dashboard', a: ['read'] },
+            { r: 'usuarios', a: ['read', 'create', 'update', 'delete'] },
+            { r: 'roles', a: ['read', 'create', 'update', 'delete'] },
+            { r: 'productos', a: ['read', 'create', 'update', 'delete'] },
+            { r: 'stock', a: ['read', 'update'] },
+            { r: 'depositos', a: ['read', 'create', 'update'] },
+            { r: 'puntos_venta', a: ['read', 'create', 'update'] },
+            { r: 'rubros', a: ['read', 'create', 'update'] },
+            { r: 'proveedores', a: ['read', 'create', 'update', 'delete'] },
+            { r: 'compras', a: ['read', 'create', 'update'] },
+            { r: 'gastos', a: ['read', 'create', 'update'] },
+            { r: 'ventas', a: ['read', 'create', 'update', 'delete'] },
+            { r: 'caja', a: ['read', 'create', 'update'] },
+            { r: 'clientes', a: ['read', 'create', 'update'] },
+            { r: 'pedidos', a: ['read', 'create', 'update'] },
+            { r: 'promociones', a: ['read', 'create', 'update'] },
+            { r: 'tienda_online', a: ['read', 'update'] },
+            { r: 'puntos_mudras', a: ['read', 'update'] },
+            { r: 'contabilidad', a: ['read', 'create', 'update'] },
+            { r: 'cuentas', a: ['read', 'create', 'update'] },
+        ];
+        const permsCache = {};
+        for (const def of definitions) {
+            for (const action of def.a) {
+                const key = `${def.r}:${action}`;
+                permsCache[key] = await ensurePerm(def.r, action);
+            }
+        }
+        const requiredRoles = [
+            { slug: 'administrador', name: 'Administrador' },
+            { slug: 'cajero', name: 'Cajero / Vendedor' },
+            { slug: 'deposito', name: 'Encargado Depósito' },
+            { slug: 'compras', name: 'Administrativo Compras' },
+            { slug: 'finanzas', name: 'Contador / Finanzas' },
+            { slug: 'tienda_online', name: 'Encargada Tienda Online' },
+            { slug: 'disenadora', name: 'Diseñadora' },
+        ];
+        const roles = {};
+        for (const req of requiredRoles) {
+            let r = await this.roleRepo.findOne({ where: { slug: req.slug } });
+            if (!r) {
+                r = this.roleRepo.create({
+                    id: (0, crypto_1.randomUUID)(),
+                    name: req.name,
+                    slug: req.slug,
+                });
+                await this.roleRepo.save(r);
+            }
+            roles[req.slug] = r;
+        }
+        if (roles['administrador']) {
+            for (const key in permsCache) {
+                await assign(roles['administrador'], permsCache[key]);
+            }
+        }
+        if (roles['cajero']) {
+            const targets = [
+                'caja:read', 'caja:create',
+                'ventas:read', 'ventas:create',
+                'clientes:read', 'clientes:create', 'clientes:update',
+                'productos:read',
+                'promociones:read',
+                'pedidos:read',
+                'dashboard:read'
+            ];
+            for (const t of targets)
+                if (permsCache[t])
+                    await assign(roles['cajero'], permsCache[t]);
+        }
+        if (roles['deposito']) {
+            const targets = [
+                'depositos:read', 'depositos:update',
+                'stock:read', 'stock:update',
+                'productos:read',
+                'proveedores:read',
+                'puntos_venta:read',
+                'dashboard:read'
+            ];
+            for (const t of targets)
+                if (permsCache[t])
+                    await assign(roles['deposito'], permsCache[t]);
+        }
+        if (roles['compras']) {
+            const targets = [
+                'proveedores:read', 'proveedores:create', 'proveedores:update',
+                'productos:read', 'productos:create', 'productos:update', 'rubros:read',
+                'compras:read', 'compras:create', 'compras:update',
+                'gastos:read', 'gastos:create',
+                'stock:read',
+                'dashboard:read'
+            ];
+            for (const t of targets)
+                if (permsCache[t])
+                    await assign(roles['compras'], permsCache[t]);
+        }
+        if (roles['finanzas']) {
+            const targets = [
+                'contabilidad:read', 'contabilidad:create', 'contabilidad:update',
+                'cuentas:read', 'cuentas:create', 'cuentas:update',
+                'ventas:read',
+                'caja:read',
+                'gastos:read', 'gastos:update',
+                'dashboard:read'
+            ];
+            for (const t of targets)
+                if (permsCache[t])
+                    await assign(roles['finanzas'], permsCache[t]);
+        }
+        if (roles['tienda_online']) {
+            const targets = [
+                'tienda_online:read', 'tienda_online:update',
+                'pedidos:read', 'pedidos:create', 'pedidos:update',
+                'productos:read',
+                'clientes:read',
+                'promociones:read',
+                'dashboard:read'
+            ];
+            for (const t of targets)
+                if (permsCache[t])
+                    await assign(roles['tienda_online'], permsCache[t]);
+        }
+        if (roles['disenadora']) {
+            const targets = [
+                'promociones:read', 'promociones:create', 'promociones:update',
+                'tienda_online:read',
+                'productos:read',
+                'dashboard:read'
+            ];
+            for (const t of targets)
+                if (permsCache[t])
+                    await assign(roles['disenadora'], permsCache[t]);
+        }
+        this.logger.log('✅ RBAC Full Inicializado.');
+    }
     async seedProducoDemo() {
         const demoCodigo = 'DEMO001';
         let articulo = await this.articuloRepo.findOne({ where: { Codigo: demoCodigo } });
@@ -208,13 +371,17 @@ exports.SeedService = SeedService = SeedService_1 = __decorate([
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.UserAuth)),
     __param(1, (0, typeorm_1.InjectRepository)(role_entity_1.Role)),
     __param(2, (0, typeorm_1.InjectRepository)(user_role_entity_1.UserRole)),
-    __param(3, (0, typeorm_1.InjectRepository)(usuario_entity_1.Usuario)),
-    __param(4, (0, typeorm_1.InjectRepository)(usuario_auth_map_entity_1.UsuarioAuthMap)),
-    __param(5, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
-    __param(6, (0, typeorm_1.InjectRepository)(rubro_entity_1.Rubro)),
-    __param(7, (0, typeorm_1.InjectRepository)(proveedor_entity_1.Proveedor)),
-    __param(8, (0, typeorm_1.InjectRepository)(punto_mudras_entity_1.PuntoMudras)),
+    __param(3, (0, typeorm_1.InjectRepository)(permission_entity_1.Permission)),
+    __param(4, (0, typeorm_1.InjectRepository)(role_permission_entity_1.RolePermission)),
+    __param(5, (0, typeorm_1.InjectRepository)(usuario_entity_1.Usuario)),
+    __param(6, (0, typeorm_1.InjectRepository)(usuario_auth_map_entity_1.UsuarioAuthMap)),
+    __param(7, (0, typeorm_1.InjectRepository)(articulo_entity_1.Articulo)),
+    __param(8, (0, typeorm_1.InjectRepository)(rubro_entity_1.Rubro)),
+    __param(9, (0, typeorm_1.InjectRepository)(proveedor_entity_1.Proveedor)),
+    __param(10, (0, typeorm_1.InjectRepository)(punto_mudras_entity_1.PuntoMudras)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,

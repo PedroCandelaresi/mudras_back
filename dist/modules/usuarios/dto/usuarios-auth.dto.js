@@ -172,6 +172,10 @@ __decorate([
     (0, graphql_1.Field)(() => [String], { nullable: true }),
     __metadata("design:type", Array)
 ], CrearUsuarioAuthInput.prototype, "roles", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], CrearUsuarioAuthInput.prototype, "userType", void 0);
 exports.CrearUsuarioAuthInput = CrearUsuarioAuthInput = __decorate([
     (0, graphql_1.InputType)()
 ], CrearUsuarioAuthInput);

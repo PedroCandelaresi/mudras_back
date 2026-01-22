@@ -14,6 +14,7 @@ const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
 const proveedor_entity_1 = require("../../proveedores/entities/proveedor.entity");
+const proveedor_rubro_entity_1 = require("../../proveedores/entities/proveedor-rubro.entity");
 let Rubro = class Rubro {
 };
 exports.Rubro = Rubro;
@@ -43,6 +44,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Rubro.prototype, "PorcentajeDescuento", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 20, nullable: true, default: 'Unidad' }),
+    __metadata("design:type", String)
+], Rubro.prototype, "unidadMedida", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => articulo_entity_1.Articulo, articulo => articulo.rubro),
     (0, graphql_1.Field)(() => [articulo_entity_1.Articulo], { nullable: true }),
     __metadata("design:type", Array)
@@ -53,9 +59,9 @@ __decorate([
     __metadata("design:type", Array)
 ], Rubro.prototype, "proveedores", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => proveedor_entity_1.Proveedor, (proveedor) => proveedor.rubros),
+    (0, typeorm_1.OneToMany)(() => proveedor_rubro_entity_1.ProveedorRubro, (pr) => pr.rubro),
     __metadata("design:type", Array)
-], Rubro.prototype, "proveedoresNuevos", void 0);
+], Rubro.prototype, "proveedorRubros", void 0);
 exports.Rubro = Rubro = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('mudras_rubros')

@@ -43,4 +43,5 @@ export declare class ArticulosService {
         totalUnidades: number;
     }>;
     buscarPorCodigoBarras(codigoBarras: string): Promise<Articulo>;
+    recalcularePreciosPorProveedorRubro(proveedorId: number, rubroId: number, recargo: number, descuento: number): Promise<void>;
 }

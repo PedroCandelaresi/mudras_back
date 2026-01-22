@@ -60,6 +60,10 @@ let ProveedoresResolver = class ProveedoresResolver {
     remove(id) {
         return this.proveedoresService.remove(id);
     }
+    async configurarRubroProveedor(proveedorId, rubroId, recargo, descuento) {
+        await this.proveedoresService.configurarRubroProveedor(proveedorId, rubroId, recargo, descuento);
+        return true;
+    }
 };
 exports.ProveedoresResolver = ProveedoresResolver;
 __decorate([
@@ -136,6 +140,17 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", void 0)
 ], ProveedoresResolver.prototype, "remove", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => Boolean, { name: 'configurarRubroProveedor' }),
+    (0, permissions_decorator_1.Permisos)('proveedores.update'),
+    __param(0, (0, graphql_1.Args)('proveedorId', { type: () => graphql_1.Int })),
+    __param(1, (0, graphql_1.Args)('rubroId', { type: () => graphql_1.Int })),
+    __param(2, (0, graphql_1.Args)('recargo', { type: () => graphql_1.Float })),
+    __param(3, (0, graphql_1.Args)('descuento', { type: () => graphql_1.Float })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Number, Number]),
+    __metadata("design:returntype", Promise)
+], ProveedoresResolver.prototype, "configurarRubroProveedor", null);
 exports.ProveedoresResolver = ProveedoresResolver = __decorate([
     (0, graphql_1.Resolver)(() => proveedor_entity_1.Proveedor),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),

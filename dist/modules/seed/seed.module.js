@@ -19,6 +19,8 @@ const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const rubro_entity_1 = require("../rubros/entities/rubro.entity");
 const proveedor_entity_1 = require("../proveedores/entities/proveedor.entity");
 const punto_mudras_entity_1 = require("../puntos-mudras/entities/punto-mudras.entity");
+const permission_entity_1 = require("../permissions/entities/permission.entity");
+const role_permission_entity_1 = require("../roles/entities/role-permission.entity");
 let SeedModule = class SeedModule {
 };
 exports.SeedModule = SeedModule;
@@ -35,6 +37,8 @@ exports.SeedModule = SeedModule = __decorate([
                 rubro_entity_1.Rubro,
                 proveedor_entity_1.Proveedor,
                 punto_mudras_entity_1.PuntoMudras,
+                permission_entity_1.Permission,
+                role_permission_entity_1.RolePermission,
             ]),
         ],
         providers: [seed_service_1.SeedService],

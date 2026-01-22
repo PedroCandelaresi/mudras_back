@@ -6,6 +6,7 @@ export declare class RubroConEstadisticas {
     codigo?: string;
     porcentajeRecargo?: number;
     porcentajeDescuento?: number;
+    unidadMedida?: string;
     cantidadArticulos: number;
     cantidadProveedores: number;
 }
@@ -23,8 +24,8 @@ export declare class RubrosResolver {
     obtenerTodosRubros(): Promise<any[]>;
     findOne(id: number): Promise<Rubro>;
     findByNombre(rubro: string): Promise<Rubro>;
-    crearRubro(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro>;
-    actualizarRubro(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number): Promise<Rubro>;
+    crearRubro(nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number, unidadMedida?: string): Promise<Rubro>;
+    actualizarRubro(id: number, nombre: string, codigo?: string, porcentajeRecargo?: number, porcentajeDescuento?: number, unidadMedida?: string): Promise<Rubro>;
     eliminarRubro(id: number): Promise<boolean>;
     getProveedoresPorRubro(rubroId: number): Promise<any[]>;
     getArticulosPorRubro(rubroId: number, filtro?: string, offset?: number, limit?: number): Promise<{
@@ -35,7 +36,7 @@ export declare class RubrosResolver {
     eliminarArticuloDeRubro(articuloId: number): Promise<boolean>;
     eliminarArticulosDeRubro(articuloIds: number[]): Promise<boolean>;
 }
-export declare class ProveedorRubro {
+export declare class ProveedorEnRubro {
     id: number;
     nombre: string;
     codigo?: string;
@@ -48,7 +49,7 @@ export declare class ArticuloRubro {
     descripcion: string;
     precio: number;
     stock: number;
-    proveedor?: ProveedorRubro;
+    proveedor?: ProveedorEnRubro;
 }
 export declare class ArticulosPorRubroResponse {
     articulos: ArticuloRubro[];

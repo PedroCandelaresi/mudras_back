@@ -5,6 +5,8 @@ import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
+import { MovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
+import { FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
 export declare class RubroInfo {
     id: number;
     nombre: string;
@@ -81,6 +83,7 @@ export declare class PuntosMudrasResolver {
     obtenerRelacionesProveedorRubro(): Promise<RelacionProveedorRubro[]>;
     obtenerEstadisticasProveedorRubro(): Promise<EstadisticasProveedorRubro>;
     obtenerMatrizStock(busqueda?: string, rubro?: string, proveedorId?: number): Promise<MatrizStockItem[]>;
+    movimientosStockFull(input?: FiltrosMovimientosInput, puntoMudrasId?: number): Promise<MovimientosPaginados>;
 }
 export declare class StockPunto {
     puntoId: number;
@@ -94,4 +97,8 @@ export declare class MatrizStockItem {
     rubro?: string;
     stockTotal: number;
     stockPorPunto: StockPunto[];
+}
+export declare class MovimientosPaginados {
+    movimientos: MovimientoStockPunto[];
+    total: number;
 }

@@ -1,9 +1,10 @@
 export declare class RubroPorProveedor {
-    id: number;
-    proveedorId: number;
+    proveedorId: number | null;
     proveedorNombre?: string;
     proveedorCodigo?: number;
     rubroNombre?: string;
     rubroId?: number;
     cantidadArticulos?: number;
+    porcentajeRecargo?: number;
+    porcentajeDescuento?: number;
 }

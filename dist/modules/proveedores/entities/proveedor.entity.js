@@ -16,6 +16,7 @@ const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
 const cuenta_corriente_entity_1 = require("../../cuentas-corrientes/entities/cuenta-corriente.entity");
 const rubro_entity_1 = require("../../rubros/entities/rubro.entity");
 const orden_compra_entity_1 = require("../../compras/entities/orden-compra.entity");
+const proveedor_rubro_entity_1 = require("./proveedor-rubro.entity");
 var EstadoProveedor;
 (function (EstadoProveedor) {
     EstadoProveedor["ACTIVO"] = "activo";
@@ -166,15 +167,10 @@ __decorate([
     __metadata("design:type", Array)
 ], Proveedor.prototype, "ordenesCompra", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => rubro_entity_1.Rubro, (rubro) => rubro.proveedoresNuevos),
-    (0, typeorm_1.JoinTable)({
-        name: 'mudras_proveedores_rubros',
-        joinColumn: { name: 'proveedorId', referencedColumnName: 'IdProveedor' },
-        inverseJoinColumn: { name: 'rubroId', referencedColumnName: 'Id' },
-    }),
-    (0, graphql_1.Field)(() => [rubro_entity_1.Rubro], { nullable: true }),
+    (0, typeorm_1.OneToMany)(() => proveedor_rubro_entity_1.ProveedorRubro, (pr) => pr.proveedor, { cascade: true }),
+    (0, graphql_1.Field)(() => [proveedor_rubro_entity_1.ProveedorRubro], { nullable: true }),
     __metadata("design:type", Array)
-], Proveedor.prototype, "rubros", void 0);
+], Proveedor.prototype, "proveedorRubros", void 0);
 exports.Proveedor = Proveedor = __decorate([
     (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)('mudras_proveedores')

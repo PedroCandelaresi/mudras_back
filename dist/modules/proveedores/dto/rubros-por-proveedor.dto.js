@@ -15,11 +15,7 @@ let RubroPorProveedor = class RubroPorProveedor {
 };
 exports.RubroPorProveedor = RubroPorProveedor;
 __decorate([
-    (0, graphql_1.Field)(() => graphql_1.Int),
-    __metadata("design:type", Number)
-], RubroPorProveedor.prototype, "id", void 0);
-__decorate([
-    (0, graphql_1.Field)(() => graphql_1.Int),
+    (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
     __metadata("design:type", Number)
 ], RubroPorProveedor.prototype, "proveedorId", void 0);
 __decorate([
@@ -42,6 +38,14 @@ __decorate([
     (0, graphql_1.Field)(() => graphql_1.Int, { nullable: true }),
     __metadata("design:type", Number)
 ], RubroPorProveedor.prototype, "cantidadArticulos", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], RubroPorProveedor.prototype, "porcentajeRecargo", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    __metadata("design:type", Number)
+], RubroPorProveedor.prototype, "porcentajeDescuento", void 0);
 exports.RubroPorProveedor = RubroPorProveedor = __decorate([
     (0, graphql_1.ObjectType)()
 ], RubroPorProveedor);

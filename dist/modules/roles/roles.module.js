@@ -14,13 +14,14 @@ const role_permission_entity_1 = require("./entities/role-permission.entity");
 const permission_entity_1 = require("../permissions/entities/permission.entity");
 const roles_service_1 = require("./roles.service");
 const roles_controller_1 = require("./roles.controller");
+const roles_resolver_1 = require("./roles.resolver");
 let RolesModule = class RolesModule {
 };
 exports.RolesModule = RolesModule;
 exports.RolesModule = RolesModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([role_entity_1.Role, role_permission_entity_1.RolePermission, permission_entity_1.Permission])],
-        providers: [roles_service_1.RolesService],
+        providers: [roles_service_1.RolesService, roles_resolver_1.RolesResolver],
         controllers: [roles_controller_1.RolesController],
         exports: [typeorm_1.TypeOrmModule, roles_service_1.RolesService],
     })

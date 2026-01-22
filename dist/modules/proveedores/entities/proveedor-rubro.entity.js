@@ -11,22 +11,45 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProveedorRubro = void 0;
 const typeorm_1 = require("typeorm");
+const graphql_1 = require("@nestjs/graphql");
+const proveedor_entity_1 = require("./proveedor.entity");
+const rubro_entity_1 = require("../../rubros/entities/rubro.entity");
 let ProveedorRubro = class ProveedorRubro {
 };
 exports.ProveedorRubro = ProveedorRubro;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
-    __metadata("design:type", Number)
-], ProveedorRubro.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ name: 'proveedor_id', type: 'int' }),
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    (0, typeorm_1.PrimaryColumn)({ name: 'proveedorId', type: 'int' }),
     __metadata("design:type", Number)
 ], ProveedorRubro.prototype, "proveedorId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'rubro_nombre', type: 'varchar', length: 50 }),
-    __metadata("design:type", String)
-], ProveedorRubro.prototype, "rubroNombre", void 0);
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    (0, typeorm_1.PrimaryColumn)({ name: 'rubroId', type: 'int' }),
+    __metadata("design:type", Number)
+], ProveedorRubro.prototype, "rubroId", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, default: 0, nullable: true }),
+    __metadata("design:type", Number)
+], ProveedorRubro.prototype, "porcentajeRecargo", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 5, scale: 2, default: 0, nullable: true }),
+    __metadata("design:type", Number)
+], ProveedorRubro.prototype, "porcentajeDescuento", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => proveedor_entity_1.Proveedor, (proveedor) => proveedor.proveedorRubros, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'proveedorId' }),
+    __metadata("design:type", proveedor_entity_1.Proveedor)
+], ProveedorRubro.prototype, "proveedor", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => rubro_entity_1.Rubro),
+    (0, typeorm_1.ManyToOne)(() => rubro_entity_1.Rubro, (rubro) => rubro.proveedorRubros, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.JoinColumn)({ name: 'rubroId' }),
+    __metadata("design:type", rubro_entity_1.Rubro)
+], ProveedorRubro.prototype, "rubro", void 0);
 exports.ProveedorRubro = ProveedorRubro = __decorate([
-    (0, typeorm_1.Entity)('mudras_proveedor_rubro')
+    (0, graphql_1.ObjectType)(),
+    (0, typeorm_1.Entity)('mudras_proveedores_rubros')
 ], ProveedorRubro);
 //# sourceMappingURL=proveedor-rubro.entity.js.map

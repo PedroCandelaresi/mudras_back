@@ -36,6 +36,7 @@ export declare class CrearUsuarioAuthInput {
     passwordTemporal: string;
     isActive?: boolean;
     roles?: string[];
+    userType?: 'EMPRESA' | 'CLIENTE';
 }
 export declare class ActualizarUsuarioAuthInput {
     email?: string | null;

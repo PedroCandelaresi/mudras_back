@@ -13,6 +13,8 @@ exports.MovimientoStockPunto = exports.TipoMovimientoStockPunto = void 0;
 const typeorm_1 = require("typeorm");
 const graphql_1 = require("@nestjs/graphql");
 const punto_mudras_entity_1 = require("./punto-mudras.entity");
+const articulo_entity_1 = require("../../articulos/entities/articulo.entity");
+const usuario_entity_1 = require("../../usuarios/entities/usuario.entity");
 var TipoMovimientoStockPunto;
 (function (TipoMovimientoStockPunto) {
     TipoMovimientoStockPunto["ENTRADA"] = "entrada";
@@ -105,6 +107,18 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'punto_mudras_destino_id' }),
     __metadata("design:type", punto_mudras_entity_1.PuntoMudras)
 ], MovimientoStockPunto.prototype, "puntoDestino", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => articulo_entity_1.Articulo, { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => articulo_entity_1.Articulo),
+    (0, typeorm_1.JoinColumn)({ name: 'articulo_id' }),
+    __metadata("design:type", articulo_entity_1.Articulo)
+], MovimientoStockPunto.prototype, "articulo", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => usuario_entity_1.Usuario, { nullable: true }),
+    (0, typeorm_1.ManyToOne)(() => usuario_entity_1.Usuario),
+    (0, typeorm_1.JoinColumn)({ name: 'usuario_id' }),
+    __metadata("design:type", usuario_entity_1.Usuario)
+], MovimientoStockPunto.prototype, "usuario", void 0);
 exports.MovimientoStockPunto = MovimientoStockPunto = __decorate([
     (0, graphql_1.ObjectType)('MovimientoStockPunto'),
     (0, typeorm_1.Entity)('movimientos_stock_puntos')

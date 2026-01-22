@@ -9,6 +9,7 @@ export interface CrearUsuarioDto {
     passwordTemporal: string;
     isActive?: boolean;
     roles?: string[];
+    userType?: 'EMPRESA' | 'CLIENTE';
 }
 export interface ActualizarUsuarioDto {
     id: string;
