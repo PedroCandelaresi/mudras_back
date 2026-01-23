@@ -32,6 +32,9 @@ export class PermissionPublic {
 
     @Field({ nullable: true })
     attributes!: string;
+
+    @Field({ nullable: true })
+    description!: string;
 }
 
 @Resolver(() => RolePublic)
