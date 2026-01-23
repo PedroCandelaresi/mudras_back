@@ -44,6 +44,7 @@ let UsuariosAdminResolver = class UsuariosAdminResolver {
             passwordTemporal: input.passwordTemporal,
             isActive: input.isActive,
             roles: input.roles,
+            userType: input.userType,
         });
     }
     actualizarUsuarioAdmin(id, input) {

@@ -102,35 +102,53 @@ export class UsuarioCajaAuthModel {
 @InputType()
 export class CrearUsuarioAuthInput {
   @Field()
+  @IsString()
   username!: string;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   email?: string;
 
   @Field()
+  @IsString()
   displayName!: string;
 
   @Field()
+  @IsString()
   passwordTemporal!: string;
 
   @Field({ nullable: true })
+  @IsOptional()
   isActive?: boolean;
 
   @Field(() => [String], { nullable: true })
+  @IsOptional()
   roles?: string[];
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  userType?: 'EMPRESA' | 'CLIENTE';
 }
 
 @InputType()
 export class ActualizarUsuarioAuthInput {
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   email?: string | null;
 
   @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
   displayName?: string;
 
   @Field({ nullable: true })
+  @IsOptional()
   isActive?: boolean;
 
   @Field(() => [String], { nullable: true })
+  @IsOptional()
   roles?: string[];
 }

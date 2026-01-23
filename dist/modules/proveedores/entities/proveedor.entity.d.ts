@@ -2,6 +2,7 @@ import { Articulo } from '../../articulos/entities/articulo.entity';
 import { CuentaCorriente } from '../../cuentas-corrientes/entities/cuenta-corriente.entity';
 import { Rubro } from '../../rubros/entities/rubro.entity';
 import { OrdenCompra } from '../../compras/entities/orden-compra.entity';
+import { ProveedorRubro } from './proveedor-rubro.entity';
 export declare enum EstadoProveedor {
     ACTIVO = "activo",
     INACTIVO = "inactivo",
@@ -35,5 +36,5 @@ export declare class Proveedor {
     rubro?: Rubro;
     cuentasCorrientes?: CuentaCorriente[];
     ordenesCompra?: OrdenCompra[];
-    rubros?: Rubro[];
+    proveedorRubros?: ProveedorRubro[];
 }

@@ -194,6 +194,20 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             Compuesto: crearArticuloDto.Compuesto ?? false,
             Combustible: crearArticuloDto.Combustible ?? false,
         });
+        if (crearArticuloDto.rubroId) {
+            const rubro = await this.rubrosRepository.findOne({ where: { Id: crearArticuloDto.rubroId } });
+            if (rubro) {
+                nuevo.rubroId = rubro.Id;
+                nuevo.Rubro = rubro.Rubro;
+            }
+        }
+        else if (crearArticuloDto.Rubro) {
+            const rubro = await this.rubrosRepository.findOne({ where: { Rubro: crearArticuloDto.Rubro } });
+            if (rubro) {
+                nuevo.rubroId = rubro.Id;
+                nuevo.Rubro = rubro.Rubro;
+            }
+        }
         const saved = await this.articulosRepository.save(nuevo);
         return this.articulosRepository.findOne({ where: { id: saved.id }, relations: ['proveedor', 'rubro'] });
     }
@@ -215,8 +229,37 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         const patch = {};
         if (actualizarArticuloDto.Codigo != null)
             patch.Codigo = actualizarArticuloDto.Codigo;
-        if (actualizarArticuloDto.Rubro != null)
-            patch.Rubro = actualizarArticuloDto.Rubro;
+        if (actualizarArticuloDto.Codigo != null)
+            patch.Codigo = actualizarArticuloDto.Codigo;
+        if (actualizarArticuloDto.rubroId !== undefined) {
+            if (actualizarArticuloDto.rubroId === null) {
+                patch.rubroId = null;
+                patch.Rubro = null;
+            }
+            else {
+                const rubro = await this.rubrosRepository.findOne({ where: { Id: actualizarArticuloDto.rubroId } });
+                if (rubro) {
+                    patch.rubroId = rubro.Id;
+                    patch.Rubro = rubro.Rubro;
+                }
+            }
+        }
+        else if (actualizarArticuloDto.Rubro !== undefined) {
+            if (actualizarArticuloDto.Rubro === null) {
+                patch.rubroId = null;
+                patch.Rubro = null;
+            }
+            else {
+                const rubro = await this.rubrosRepository.findOne({ where: { Rubro: actualizarArticuloDto.Rubro } });
+                if (rubro) {
+                    patch.rubroId = rubro.Id;
+                    patch.Rubro = rubro.Rubro;
+                }
+                else {
+                    patch.Rubro = actualizarArticuloDto.Rubro;
+                }
+            }
+        }
         if (actualizarArticuloDto.ImagenUrl != null)
             patch.ImagenUrl = actualizarArticuloDto.ImagenUrl;
         if (actualizarArticuloDto.Descripcion != null)
@@ -399,6 +442,60 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             where: { Codigo: codigoBarras },
             relations: ['proveedor', 'rubro']
         });
+    }
+    async recalcularePreciosPorProveedorRubro(proveedorId, rubroId, recargo, descuento) {
+        const articulos = await this.articulosRepository.find({
+            where: { idProveedor: proveedorId, rubroId: rubroId },
+            relations: ['rubro', 'proveedor']
+        });
+        if (!articulos.length)
+            return;
+        for (const art of articulos) {
+            let baseCosto = art.PrecioListaProveedor;
+            if (!baseCosto || baseCosto === 0) {
+                baseCosto = art.CostoPromedio;
+            }
+            if (!baseCosto || baseCosto === 0) {
+                baseCosto = art.PrecioCompra;
+            }
+            if (baseCosto !== undefined && baseCosto !== null) {
+                let nuevoCosto = baseCosto;
+                if (recargo) {
+                    nuevoCosto = nuevoCosto * (1 + recargo / 100);
+                }
+                if (descuento) {
+                    nuevoCosto = nuevoCosto * (1 - descuento / 100);
+                }
+                art.PrecioCompra = parseFloat(nuevoCosto.toFixed(2));
+            }
+            let precioBaseParaVenta = art.PrecioCompra;
+            if (art.PorcentajeGanancia) {
+                precioBaseParaVenta = precioBaseParaVenta * (1 + art.PorcentajeGanancia / 100);
+            }
+            if (art.rubro) {
+                if (art.rubro.PorcentajeRecargo) {
+                    precioBaseParaVenta = precioBaseParaVenta * (1 + art.rubro.PorcentajeRecargo / 100);
+                }
+                if (art.rubro.PorcentajeDescuento) {
+                    precioBaseParaVenta = precioBaseParaVenta * (1 - art.rubro.PorcentajeDescuento / 100);
+                }
+            }
+            if (art.proveedor) {
+                if (art.proveedor.PorcentajeRecargoProveedor) {
+                    precioBaseParaVenta = precioBaseParaVenta * (1 + art.proveedor.PorcentajeRecargoProveedor / 100);
+                }
+                if (art.proveedor.PorcentajeDescuentoProveedor) {
+                    precioBaseParaVenta = precioBaseParaVenta * (1 - art.proveedor.PorcentajeDescuentoProveedor / 100);
+                }
+            }
+            if (art.AlicuotaIva) {
+                precioBaseParaVenta = precioBaseParaVenta * (1 + art.AlicuotaIva / 100);
+            }
+            art.PrecioVenta = parseFloat(precioBaseParaVenta.toFixed(2));
+            art.Calculado = true;
+            art.FechaModif = new Date();
+        }
+        await this.articulosRepository.save(articulos);
     }
 };
 exports.ArticulosService = ArticulosService;

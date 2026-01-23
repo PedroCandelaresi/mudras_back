@@ -150,28 +150,41 @@ let CrearUsuarioAuthInput = class CrearUsuarioAuthInput {
 exports.CrearUsuarioAuthInput = CrearUsuarioAuthInput;
 __decorate([
     (0, graphql_1.Field)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CrearUsuarioAuthInput.prototype, "username", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CrearUsuarioAuthInput.prototype, "email", void 0);
 __decorate([
     (0, graphql_1.Field)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CrearUsuarioAuthInput.prototype, "displayName", void 0);
 __decorate([
     (0, graphql_1.Field)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CrearUsuarioAuthInput.prototype, "passwordTemporal", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], CrearUsuarioAuthInput.prototype, "isActive", void 0);
 __decorate([
     (0, graphql_1.Field)(() => [String], { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], CrearUsuarioAuthInput.prototype, "roles", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CrearUsuarioAuthInput.prototype, "userType", void 0);
 exports.CrearUsuarioAuthInput = CrearUsuarioAuthInput = __decorate([
     (0, graphql_1.InputType)()
 ], CrearUsuarioAuthInput);
@@ -180,18 +193,24 @@ let ActualizarUsuarioAuthInput = class ActualizarUsuarioAuthInput {
 exports.ActualizarUsuarioAuthInput = ActualizarUsuarioAuthInput;
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ActualizarUsuarioAuthInput.prototype, "email", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ActualizarUsuarioAuthInput.prototype, "displayName", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], ActualizarUsuarioAuthInput.prototype, "isActive", void 0);
 __decorate([
     (0, graphql_1.Field)(() => [String], { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], ActualizarUsuarioAuthInput.prototype, "roles", void 0);
 exports.ActualizarUsuarioAuthInput = ActualizarUsuarioAuthInput = __decorate([

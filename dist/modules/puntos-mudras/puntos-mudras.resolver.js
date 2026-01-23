@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MatrizStockItem = exports.StockPunto = exports.PuntosMudrasResolver = exports.ArticuloFiltrado = exports.RubroBasico = exports.ProveedorBasico = exports.EstadisticasPuntosMudras = exports.ArticuloConStockPuntoMudras = exports.EstadisticasProveedorRubro = exports.RelacionProveedorRubro = exports.RubroInfo = void 0;
+exports.MovimientosPaginados = exports.MatrizStockItem = exports.StockPunto = exports.PuntosMudrasResolver = exports.ArticuloFiltrado = exports.RubroBasico = exports.ProveedorBasico = exports.EstadisticasPuntosMudras = exports.ArticuloConStockPuntoMudras = exports.EstadisticasProveedorRubro = exports.RelacionProveedorRubro = exports.RubroInfo = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const common_1 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
@@ -27,6 +27,8 @@ const actualizar_punto_mudras_dto_1 = require("./dto/actualizar-punto-mudras.dto
 const transferir_stock_dto_1 = require("./dto/transferir-stock.dto");
 const asignar_stock_masivo_dto_1 = require("./dto/asignar-stock-masivo.dto");
 const articulo_entity_1 = require("../articulos/entities/articulo.entity");
+const movimiento_stock_punto_entity_1 = require("./entities/movimiento-stock-punto.entity");
+const filtros_puntos_mudras_dto_1 = require("./dto/filtros-puntos-mudras.dto");
 let RubroInfo = class RubroInfo {
 };
 exports.RubroInfo = RubroInfo;
@@ -298,6 +300,9 @@ let PuntosMudrasResolver = class PuntosMudrasResolver {
     async obtenerMatrizStock(busqueda, rubro, proveedorId) {
         return await this.puntosMudrasService.obtenerMatrizStock({ busqueda, rubro, proveedorId });
     }
+    async movimientosStockFull(input, puntoMudrasId) {
+        return await this.puntosMudrasService.obtenerMovimientos(puntoMudrasId, input);
+    }
 };
 exports.PuntosMudrasResolver = PuntosMudrasResolver;
 __decorate([
@@ -445,6 +450,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Number]),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "obtenerMatrizStock", null);
+__decorate([
+    (0, graphql_1.Query)(() => MovimientosPaginados),
+    (0, permissions_decorator_1.Permisos)('stock.read'),
+    __param(0, (0, graphql_1.Args)('input', { nullable: true })),
+    __param(1, (0, graphql_1.Args)('puntoMudrasId', { type: () => graphql_1.Int, nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [filtros_puntos_mudras_dto_1.FiltrosMovimientosInput, Number]),
+    __metadata("design:returntype", Promise)
+], PuntosMudrasResolver.prototype, "movimientosStockFull", null);
 exports.PuntosMudrasResolver = PuntosMudrasResolver = __decorate([
     (0, graphql_1.Resolver)(() => punto_mudras_entity_1.PuntoMudras),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard, permissions_guard_1.PermissionsGuard),
@@ -498,4 +512,18 @@ __decorate([
 exports.MatrizStockItem = MatrizStockItem = __decorate([
     (0, graphql_1.ObjectType)()
 ], MatrizStockItem);
+let MovimientosPaginados = class MovimientosPaginados {
+};
+exports.MovimientosPaginados = MovimientosPaginados;
+__decorate([
+    (0, graphql_1.Field)(() => [movimiento_stock_punto_entity_1.MovimientoStockPunto]),
+    __metadata("design:type", Array)
+], MovimientosPaginados.prototype, "movimientos", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => graphql_1.Int),
+    __metadata("design:type", Number)
+], MovimientosPaginados.prototype, "total", void 0);
+exports.MovimientosPaginados = MovimientosPaginados = __decorate([
+    (0, graphql_1.ObjectType)()
+], MovimientosPaginados);
 //# sourceMappingURL=puntos-mudras.resolver.js.map

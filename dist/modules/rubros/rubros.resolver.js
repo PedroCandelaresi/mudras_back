@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ArticulosPorRubroResponse = exports.ArticuloRubro = exports.ProveedorRubro = exports.RubrosResolver = exports.RubrosResponse = exports.RubroConEstadisticas = void 0;
+exports.ArticulosPorRubroResponse = exports.ArticuloRubro = exports.ProveedorEnRubro = exports.RubrosResolver = exports.RubrosResponse = exports.RubroConEstadisticas = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const rubros_service_1 = require("./rubros.service");
 const rubro_entity_1 = require("./entities/rubro.entity");
@@ -39,6 +39,10 @@ __decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     __metadata("design:type", Number)
 ], RubroConEstadisticas.prototype, "porcentajeDescuento", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], RubroConEstadisticas.prototype, "unidadMedida", void 0);
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Int),
     __metadata("design:type", Number)
@@ -81,11 +85,11 @@ let RubrosResolver = class RubrosResolver {
     findByNombre(rubro) {
         return this.rubrosService.findByNombre(rubro);
     }
-    async crearRubro(nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
-        return this.rubrosService.create(nombre, codigo, porcentajeRecargo, porcentajeDescuento);
+    async crearRubro(nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida) {
+        return this.rubrosService.create(nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida);
     }
-    async actualizarRubro(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento) {
-        return this.rubrosService.update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento);
+    async actualizarRubro(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida) {
+        return this.rubrosService.update(id, nombre, codigo, porcentajeRecargo, porcentajeDescuento, unidadMedida);
     }
     async eliminarRubro(id) {
         return this.rubrosService.remove(id);
@@ -142,8 +146,9 @@ __decorate([
     __param(1, (0, graphql_1.Args)('codigo', { nullable: true })),
     __param(2, (0, graphql_1.Args)('porcentajeRecargo', { type: () => graphql_1.Float, nullable: true })),
     __param(3, (0, graphql_1.Args)('porcentajeDescuento', { type: () => graphql_1.Float, nullable: true })),
+    __param(4, (0, graphql_1.Args)('unidadMedida', { nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Number, Number]),
+    __metadata("design:paramtypes", [String, String, Number, Number, String]),
     __metadata("design:returntype", Promise)
 ], RubrosResolver.prototype, "crearRubro", null);
 __decorate([
@@ -153,8 +158,9 @@ __decorate([
     __param(2, (0, graphql_1.Args)('codigo', { nullable: true })),
     __param(3, (0, graphql_1.Args)('porcentajeRecargo', { type: () => graphql_1.Float, nullable: true })),
     __param(4, (0, graphql_1.Args)('porcentajeDescuento', { type: () => graphql_1.Float, nullable: true })),
+    __param(5, (0, graphql_1.Args)('unidadMedida', { nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, String, Number, Number]),
+    __metadata("design:paramtypes", [Number, String, String, Number, Number, String]),
     __metadata("design:returntype", Promise)
 ], RubrosResolver.prototype, "actualizarRubro", null);
 __decorate([
@@ -165,7 +171,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RubrosResolver.prototype, "eliminarRubro", null);
 __decorate([
-    (0, graphql_1.Query)(() => [ProveedorRubro], { name: 'proveedoresPorRubro' }),
+    (0, graphql_1.Query)(() => [ProveedorEnRubro], { name: 'proveedoresPorRubro' }),
     __param(0, (0, graphql_1.Args)('rubroId', { type: () => graphql_1.Int })),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -207,32 +213,32 @@ exports.RubrosResolver = RubrosResolver = __decorate([
     (0, graphql_1.Resolver)(() => rubro_entity_1.Rubro),
     __metadata("design:paramtypes", [rubros_service_1.RubrosService])
 ], RubrosResolver);
-let ProveedorRubro = class ProveedorRubro {
+let ProveedorEnRubro = class ProveedorEnRubro {
 };
-exports.ProveedorRubro = ProveedorRubro;
+exports.ProveedorEnRubro = ProveedorEnRubro;
 __decorate([
     (0, graphql_1.Field)(() => graphql_1.Int),
     __metadata("design:type", Number)
-], ProveedorRubro.prototype, "id", void 0);
+], ProveedorEnRubro.prototype, "id", void 0);
 __decorate([
     (0, graphql_1.Field)(),
     __metadata("design:type", String)
-], ProveedorRubro.prototype, "nombre", void 0);
+], ProveedorEnRubro.prototype, "nombre", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
-], ProveedorRubro.prototype, "codigo", void 0);
+], ProveedorEnRubro.prototype, "codigo", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
-], ProveedorRubro.prototype, "email", void 0);
+], ProveedorEnRubro.prototype, "email", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
-], ProveedorRubro.prototype, "telefono", void 0);
-exports.ProveedorRubro = ProveedorRubro = __decorate([
+], ProveedorEnRubro.prototype, "telefono", void 0);
+exports.ProveedorEnRubro = ProveedorEnRubro = __decorate([
     (0, graphql_1.ObjectType)()
-], ProveedorRubro);
+], ProveedorEnRubro);
 let ArticuloRubro = class ArticuloRubro {
 };
 exports.ArticuloRubro = ArticuloRubro;
@@ -257,8 +263,8 @@ __decorate([
     __metadata("design:type", Number)
 ], ArticuloRubro.prototype, "stock", void 0);
 __decorate([
-    (0, graphql_1.Field)(() => ProveedorRubro, { nullable: true }),
-    __metadata("design:type", ProveedorRubro)
+    (0, graphql_1.Field)(() => ProveedorEnRubro, { nullable: true }),
+    __metadata("design:type", ProveedorEnRubro)
 ], ArticuloRubro.prototype, "proveedor", void 0);
 exports.ArticuloRubro = ArticuloRubro = __decorate([
     (0, graphql_1.ObjectType)()

@@ -18,4 +18,5 @@ export declare class ProveedoresResolver {
     create(createProveedorInput: CreateProveedorInput): Promise<Proveedor>;
     update(updateProveedorInput: UpdateProveedorInput): Promise<Proveedor>;
     remove(id: number): Promise<boolean>;
+    configurarRubroProveedor(proveedorId: number, rubroId: number, recargo: number, descuento: number): Promise<boolean>;
 }

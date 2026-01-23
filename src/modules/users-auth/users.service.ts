@@ -14,6 +14,7 @@ export interface CrearUsuarioDto {
   passwordTemporal: string;
   isActive?: boolean;
   roles?: string[]; // slugs
+  userType?: 'EMPRESA' | 'CLIENTE'; // Defaults to EMPRESA
 }
 
 export interface ActualizarUsuarioDto {
@@ -149,7 +150,7 @@ export class UsersService {
       username: dto.username,
       email: dto.email ?? null,
       displayName: dto.displayName,
-      userType: 'EMPRESA',
+      userType: dto.userType ?? 'EMPRESA',
       mustChangePassword: true,
       isActive: dto.isActive ?? true,
       passwordHash: await bcrypt.hash(dto.passwordTemporal, 10),

@@ -1,6 +1,7 @@
 export declare class CrearArticuloDto {
     Codigo: string;
     Rubro?: string;
+    rubroId?: number;
     ImagenUrl?: string;
     Descripcion: string;
     Marca?: string;

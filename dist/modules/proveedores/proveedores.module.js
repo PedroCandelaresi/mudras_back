@@ -13,12 +13,17 @@ const proveedores_service_1 = require("./proveedores.service");
 const proveedores_resolver_1 = require("./proveedores.resolver");
 const proveedor_entity_1 = require("./entities/proveedor.entity");
 const rubro_entity_1 = require("../rubros/entities/rubro.entity");
+const proveedor_rubro_entity_1 = require("./entities/proveedor-rubro.entity");
+const articulos_module_1 = require("../articulos/articulos.module");
 let ProveedoresModule = class ProveedoresModule {
 };
 exports.ProveedoresModule = ProveedoresModule;
 exports.ProveedoresModule = ProveedoresModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([proveedor_entity_1.Proveedor, rubro_entity_1.Rubro])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([proveedor_entity_1.Proveedor, rubro_entity_1.Rubro, proveedor_rubro_entity_1.ProveedorRubro]),
+            articulos_module_1.ArticulosModule
+        ],
         providers: [proveedores_resolver_1.ProveedoresResolver, proveedores_service_1.ProveedoresService],
         exports: [proveedores_service_1.ProveedoresService],
     })

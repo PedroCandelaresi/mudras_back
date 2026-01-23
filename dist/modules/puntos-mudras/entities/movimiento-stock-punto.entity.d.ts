@@ -1,4 +1,6 @@
 import { PuntoMudras } from './punto-mudras.entity';
+import { Articulo } from '../../articulos/entities/articulo.entity';
+import { Usuario } from '../../usuarios/entities/usuario.entity';
 export declare enum TipoMovimientoStockPunto {
     ENTRADA = "entrada",
     SALIDA = "salida",
@@ -22,6 +24,6 @@ export declare class MovimientoStockPunto {
     fechaMovimiento: Date;
     puntoOrigen?: PuntoMudras;
     puntoDestino?: PuntoMudras;
-    articulo?: any;
-    usuario?: any;
+    articulo?: Articulo;
+    usuario?: Usuario;
 }

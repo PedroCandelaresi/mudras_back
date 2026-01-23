@@ -594,7 +594,9 @@ let PuntosMudrasService = class PuntosMudrasService {
     async obtenerMovimientos(puntoMudrasId, filtros) {
         const query = this.movimientosRepository.createQueryBuilder('movimiento')
             .leftJoinAndSelect('movimiento.puntoOrigen', 'origen')
-            .leftJoinAndSelect('movimiento.puntoDestino', 'destino');
+            .leftJoinAndSelect('movimiento.puntoDestino', 'destino')
+            .leftJoinAndSelect('movimiento.articulo', 'articulo')
+            .leftJoinAndSelect('movimiento.usuario', 'usuario');
         if (puntoMudrasId) {
             query.andWhere('(movimiento.puntoMudrasOrigenId = :puntoId OR movimiento.puntoMudrasDestinoId = :puntoId)', { puntoId: puntoMudrasId });
         }
