@@ -40,6 +40,9 @@ export class CrearUsuarioAuthInput {
 
     @Field({ nullable: true })
     isActive?: boolean;
+
+    @Field(() => [String], { nullable: true })
+    roles?: string[];
 }
 
 @InputType()
@@ -52,6 +55,9 @@ export class ActualizarUsuarioAuthInput {
 
     @Field({ nullable: true })
     isActive?: boolean;
+
+    @Field(() => [String], { nullable: true })
+    roles?: string[];
 }
 
 @ObjectType()
