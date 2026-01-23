@@ -7,11 +7,14 @@ import { Roles } from '../auth/decorators/roles.decorator';
 @Controller('roles')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) { }
 
   @Get()
   @Roles('administrador')
-  listar() { return this.rolesService.listar(); }
+  listar() {
+    console.log('RolesController.listar called');
+    return this.rolesService.listar();
+  }
 
   @Get('permissions')
   @Roles('administrador')
