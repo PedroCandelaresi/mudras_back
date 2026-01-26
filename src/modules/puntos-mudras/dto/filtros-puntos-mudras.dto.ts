@@ -2,6 +2,8 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsOptional, IsEnum, IsBoolean, IsString, IsInt, Min, Max } from 'class-validator';
 import { TipoPuntoMudras } from '../entities/punto-mudras.entity';
 
+import { TipoMovimientoStockPunto } from '../entities/movimiento-stock-punto.entity';
+
 @InputType()
 export class FiltrosPuntosMudrasInput {
   @Field(() => TipoPuntoMudras, { nullable: true })
@@ -76,10 +78,10 @@ export class FiltrosStockInput {
 
 @InputType()
 export class FiltrosMovimientosInput {
-  @Field(() => TipoPuntoMudras, { nullable: true })
+  @Field(() => TipoMovimientoStockPunto, { nullable: true })
   @IsOptional()
-  @IsEnum(TipoPuntoMudras)
-  tipoMovimiento?: string;
+  @IsEnum(TipoMovimientoStockPunto)
+  tipoMovimiento?: TipoMovimientoStockPunto;
 
   @Field({ nullable: true })
   @IsOptional()
