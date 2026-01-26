@@ -95,6 +95,7 @@ export class VentaCaja {
 
   @ManyToOne(() => UserAuth)
   @JoinColumn({ name: 'usuarioAuthId' })
+  @Field(() => UserAuth)
   usuarioAuth: UserAuth;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
