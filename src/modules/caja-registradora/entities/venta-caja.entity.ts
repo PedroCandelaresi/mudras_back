@@ -82,12 +82,30 @@ export class VentaCaja {
   puntoMudras: PuntoMudras;
 
   @Column({ name: 'cliente_id', nullable: true })
+  @Field({ nullable: true })
   clienteId?: number | null;
 
   @ManyToOne(() => Cliente, cliente => cliente.ventas, { nullable: true })
   @JoinColumn({ name: 'cliente_id' })
   @Field(() => Cliente, { nullable: true })
   cliente?: Cliente | null;
+
+  // Snapshot de datos de cliente (para Consumidor Final o eventuales)
+  @Column({ name: 'nombre_cliente', nullable: true, length: 150 })
+  @Field({ nullable: true })
+  nombreCliente?: string;
+
+  @Column({ name: 'cuit_cliente', nullable: true, length: 15 })
+  @Field({ nullable: true })
+  cuitCliente?: string;
+
+  @Column({ name: 'razon_social_cliente', nullable: true, length: 150 })
+  @Field({ nullable: true })
+  razonSocialCliente?: string;
+
+  @Column({ name: 'tipo_cliente_snapshot', nullable: true, length: 50 })
+  @Field({ nullable: true })
+  tipoClienteSnapshot?: string;
 
   @Column({ name: 'usuarioAuthId', type: 'char', length: 36 })
   @Field()

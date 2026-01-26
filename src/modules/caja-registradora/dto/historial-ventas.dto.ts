@@ -60,8 +60,14 @@ export class ResumenVenta {
   @Field()
   fecha: Date;
 
-  @Field()
-  nombreCliente: string;
+  @Field({ nullable: true })
+  nombreCliente?: string;
+
+  @Field({ nullable: true })
+  cuitCliente?: string;
+
+  @Field({ nullable: true })
+  razonSocialCliente?: string;
 
   @Field()
   nombreUsuario: string;

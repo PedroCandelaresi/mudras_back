@@ -182,6 +182,11 @@ export class CajaRegistradoraService {
         total,
         cambio: totalPagos - total,
         observaciones: input.observaciones,
+        // Persistir datos snapshot del cliente
+        cuitCliente: input.cuitCliente,
+        nombreCliente: input.nombreCliente,
+        razonSocialCliente: input.razonSocialCliente,
+        tipoClienteSnapshot: 'CONSUMIDOR_FINAL' // TODO: Inferir o recibir
       });
 
       const ventaGuardada = await queryRunner.manager.save(VentaCaja, venta);
@@ -331,7 +336,10 @@ export class CajaRegistradoraService {
       id: venta.id,
       numeroVenta: venta.numeroVenta,
       fecha: venta.fecha,
-      nombreCliente: venta.cliente?.nombre || 'Cliente Genérico',
+      // Priorizar datos snapshot, luego relación cliente, luego fallback
+      nombreCliente: venta.razonSocialCliente || venta.nombreCliente || venta.cliente?.nombre || 'Consumidor Final',
+      cuitCliente: venta.cuitCliente || venta.cliente?.cuit,
+      razonSocialCliente: venta.razonSocialCliente,
       nombreUsuario: (venta as any)?.usuarioAuth?.displayName || 'Usuario',
       nombrePuesto: (venta as any).puntoMudras?.nombre || 'Punto',
       total: venta.total,
