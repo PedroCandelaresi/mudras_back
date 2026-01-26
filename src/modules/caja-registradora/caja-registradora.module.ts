@@ -14,6 +14,7 @@ import { Cliente } from '../clientes/entities/cliente.entity';
 import { StockPuntoMudras } from '../puntos-mudras/entities/stock-punto-mudras.entity';
 import { MovimientoStockPunto } from '../puntos-mudras/entities/movimiento-stock-punto.entity';
 import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
+import { UsersAuthModule } from '../users-auth/users-auth.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
       PuntoMudras,
       MovimientoStockPunto,
     ]),
+    UsersAuthModule,
   ],
   providers: [
     CajaRegistradoraService,
@@ -41,4 +43,4 @@ import { PuntoMudras } from '../puntos-mudras/entities/punto-mudras.entity';
     AfipService,
   ],
 })
-export class CajaRegistradoraModule {}
+export class CajaRegistradoraModule { }
