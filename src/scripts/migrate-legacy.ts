@@ -12,6 +12,18 @@ import { Rubro } from '../modules/rubros/entities/rubro.entity';
 import { PuntoMudras, TipoPuntoMudras } from '../modules/puntos-mudras/entities/punto-mudras.entity';
 import { StockPuntoMudras } from '../modules/puntos-mudras/entities/stock-punto-mudras.entity';
 import { ProveedorRubro } from '../modules/proveedores/entities/proveedor-rubro.entity';
+// Missing Referenced Entities
+import { CuentaCorriente } from '../modules/cuentas-corrientes/entities/cuenta-corriente.entity';
+import { OrdenCompra } from '../modules/compras/entities/orden-compra.entity';
+import { MovimientoStock } from '../modules/stock/entities/movimiento-stock.entity';
+import { MovimientoStockPunto } from '../modules/puntos-mudras/entities/movimiento-stock-punto.entity';
+import { Usuario } from '../modules/usuarios/entities/usuario.entity';
+import { Cliente } from '../modules/clientes/entities/cliente.entity';
+import { DetalleOrdenCompra } from '../modules/compras/entities/detalle-orden-compra.entity';
+import { MovimientoCuentaCorriente } from '../modules/cuentas-corrientes/entities/movimiento-cuenta-corriente.entity';
+import { AsientoContable } from '../modules/contabilidad/entities/asiento-contable.entity';
+import { DetalleAsientoContable } from '../modules/contabilidad/entities/detalle-asiento-contable.entity';
+import { CuentaContable } from '../modules/contabilidad/entities/cuenta-contable.entity';
 
 // Load env vars
 config({ path: path.join(__dirname, '../../.env') });
@@ -34,7 +46,19 @@ async function main() {
             Rubro,
             PuntoMudras,
             StockPuntoMudras,
-            ProveedorRubro
+            ProveedorRubro,
+            // Added
+            CuentaCorriente,
+            OrdenCompra,
+            MovimientoStock,
+            MovimientoStockPunto,
+            Usuario,
+            Cliente,
+            DetalleOrdenCompra,
+            MovimientoCuentaCorriente,
+            AsientoContable,
+            DetalleAsientoContable,
+            CuentaContable
         ],
         synchronize: false, // Don't sync, assume schema exists
     });
