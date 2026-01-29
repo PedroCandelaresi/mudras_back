@@ -387,7 +387,7 @@ async function processFile(filename: string, callback: (line: string) => Promise
         console.warn(`File not found: ${filePath}`);
         return;
     }
-    const fileStream = fs.createReadStream(filePath);
+    const fileStream = fs.createReadStream(filePath, { encoding: 'latin1' });
     const rl = readline.createInterface({
         input: fileStream,
         crlfDelay: Infinity
