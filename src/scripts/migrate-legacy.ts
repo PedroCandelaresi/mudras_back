@@ -128,6 +128,8 @@ async function main() {
             console.log('"Mudras" POS already exists: ' + mudrasPoint.id);
         }
 
+
+
         // 2. Migrate Rubros
         const rubroRepo = dataSource.getRepository(Rubro);
         const rubrosMap = new Map<string, Rubro>(); // Name -> Entity
@@ -135,7 +137,7 @@ async function main() {
         console.log('Migrating Rubros...');
         await processFile('tbrubros.sql', async (line) => {
             // INSERT INTO tbrubros (Id, Rubro, Codigo) values (3, 'DIJES', NULL);
-            const match = line.match(/VALUES \(\d+, '([^']*)',/i);
+            const match = line.match(/values \(\d+, '([^']*)',/i);
             if (match) {
                 const nombre = match[1].trim();
                 let rubro = await rubroRepo.findOne({ where: { Rubro: nombre } });
@@ -153,17 +155,15 @@ async function main() {
         const oldProvIdMap = new Map<number, Proveedor>(); // OldId -> NewEntity
 
         console.log('Migrating Proveedores...');
-        // INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Castigo, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais) values (...)
-        // Note: The SQL dump usually has a specific order. I'll use a regex that captures "values (id, ...)"
-        // Based on head: IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais
 
         await processFile('tbproveedores.sql', async (line) => {
-            if (!line.startsWith('INSERT INTO')) return;
+            if (!line.match(/INSERT INTO/i)) return;
 
-            // Simple CSV parse of values part. 
-            // Warning: This is fragile if strings contain commas. 
-            // But for a migration script we can try to be robust enough.
-            const valuesPart = line.substring(line.indexOf('VALUES') + 7).trim().replace(/^\(/, '').replace(/\);$/, '');
+            // Robust extract 'VALUES (...)' or 'values (...)'
+            const valuesMatch = line.match(/values\s*\((.+)\);?$/i);
+            if (!valuesMatch) return;
+
+            const valuesPart = valuesMatch[1].trim();
 
             // Custom split function that respects quotes
             const parts = splitCsv(valuesPart);
@@ -172,7 +172,12 @@ async function main() {
                 const oldId = parseInt(parts[0]);
                 const nombre = cleanString(parts[2]);
                 const codProv = cleanString(parts[1]);
-                // Check existence by CUIT or Nombre
+                // ... rest of logic stays same (index-based)
+                // BUT indices might shift if logic changed? No, splitCsv is same.
+                // Indices are based on `valuesPart` containing the CSV content inside parens.
+
+                // Parts are: 0:Id, 1:Codigo, 2:Nombre, ...
+
                 const cuit = cleanString(parts[11]);
 
                 let prov = null;
@@ -193,14 +198,13 @@ async function main() {
                         Provincia: cleanString(parts[6]),
                         CP: cleanString(parts[7]),
                         Telefono: cleanString(parts[8]),
-                        // Celular is part 9? Wait, let's check header again just in case, but assuming order
                         Celular: cleanString(parts[9]),
-                        TipoIva: parseInt(parts[10]) || 1, // Default to 1 (Resp Inscripto?) or similar if null
+                        TipoIva: parseInt(parts[10]) || 1,
                         CUIT: cuit,
                         Observaciones: cleanString(parts[12]),
                         Web: cleanString(parts[13]),
                         Mail: cleanString(parts[14]),
-                        Rubro: cleanString(parts[15]), // Store string as legacy ref
+                        Rubro: cleanString(parts[15]),
                         Saldo: parseFloat(parts[16]) || 0,
                         Pais: cleanString(parts[17]),
                     });
@@ -212,22 +216,50 @@ async function main() {
         console.log(`Migrated/Loaded ${oldProvIdMap.size} Proveedores.`);
 
         // 4. Migrate Articulos
-        const artRepo = dataSource.getRepository(Articulo); // Uses 'mudras_articulos'
-        const articuloMap = new Map<string, Articulo>(); // Codigo -> Entity
-        const providerRubroPairs = new Set<string>(); // "provId|rubroId"
+        const artRepo = dataSource.getRepository(Articulo);
+        const articuloMap = new Map<string, Articulo>();
+        const providerRubroPairs = new Set<string>();
 
         console.log('Migrating Articulos...');
         // tbarticulos columns index guess based on CREATE TABLE:
-        // 0: Codigo, 1: Rubro, 2: Descripcion, 3: Marca, 4: PrecioVenta, 5: PrecioCompra, 6: StockMinimo, 7: Stock, 8: AlicuotaIva, 9: Deposito, 10: id (AutoInc), 11: FechaCompra, 12: idProveedor, 13: Lista2, 14: Lista3, 15: Unidad, 16: Lista4, 17: PorcentajeGanancia
+        // 0: Codigo, 1: Rubro, 2: Descripcion, 3: Marca ... (from values)
+        // Wait, the INSERT statement shown has columns EXPLICITLY listed. I must check order.
+        // INSERT INTO tbarticulos (Codigo, Rubro, Descripcion, Marca, PrecioVenta, PrecioCompra, StockMinimo, Stock, AlicuotaIva, Deposito, id, FechaCompra, idProveedor, Lista2, Lista3, Unidad, Lista4, PorcentajeGanancia, Calculado, CodigoProv, CostoPromedio, CostoEnDolares, FechaModif, PrecioListaProveedor, StockInicial, Ubicacion, Lista1EnDolares, Dto1, Dto2, Dto3, Impuesto, EnPromocion, UsaTalle, Compuesto, Combustible, ImpuestoPorcentual) values ...
+        // Index mapping:
+        // 0: Codigo
+        // 1: Rubro
+        // 2: Descripcion
+        // 3: Marca
+        // 4: PrecioVenta
+        // 5: PrecioCompra
+        // 6: StockMinimo
+        // 7: Stock
+        // 8: AlicuotaIva
+        // 9: Deposito
+        // 10: id
+        // 11: FechaCompra
+        // 12: idProveedor
+        // 13: Lista2
+        // 14: Lista3
+        // 15: Unidad
+        // 16: Lista4
+        // 17: PorcentajeGanancia
+        // THIS MATCHES MY PREVIOUS ASSUMPTION.
 
         let processedArts = 0;
         await processFile('tbarticulos.sql', async (line) => {
-            if (!line.startsWith('INSERT INTO')) return;
-            const valuesPart = line.substring(line.indexOf('VALUES') + 7).trim().replace(/^\(/, '').replace(/\);$/, '');
+            if (!line.match(/INSERT INTO/i)) return;
+
+            // Robust parsing
+            const valuesMatch = line.match(/values\s*\((.+)\);?$/i);
+            if (!valuesMatch) return;
+
+            const valuesPart = valuesMatch[1].trim();
             const parts = splitCsv(valuesPart);
 
             if (parts.length > 0) {
-                const codigo = cleanString(parts[0]) || 'SINCODIGO';
+                const codigo = cleanString(parts[0]);
+                if (!codigo) return; // Skip invalid lines
 
                 // Check existing
                 let art = await artRepo.findOne({ where: { Codigo: codigo } });
@@ -255,7 +287,7 @@ async function main() {
                         StockMinimo: parseFloat(parts[6]) || 0,
                         // Stock (7) IGNORED
                         AlicuotaIva: parseFloat(parts[8]) || 21,
-                        Deposito: parseFloat(parts[9]) || 0, // Is this location or stock? Assuming float -> maybe stock in deposit? Map to Deposito field
+                        Deposito: parseFloat(parts[9]) || 0,
                         FechaCompra: parts[11] ? new Date(cleanString(parts[11])) : null,
                         proveedor: provEntity,
                         Lista2: parseFloat(parts[13]) || 0,
@@ -294,13 +326,14 @@ async function main() {
         // 6. Migrate Stock
         const stockRepo = dataSource.getRepository(StockPuntoMudras);
         console.log('Migrating Stock to Point: Mudras...');
-        // tbstock columns: Fecha, Codigo, Stock, StockAnterior, Id, Usuario
-        // Indices: 0: Fecha, 1: Codigo, 2: Stock, ...
 
         let processedStock = 0;
         await processFile('tbstock.sql', async (line) => {
-            if (!line.startsWith('INSERT INTO')) return;
-            const valuesPart = line.substring(line.indexOf('VALUES') + 7).trim().replace(/^\(/, '').replace(/\);$/, '');
+            if (!line.match(/INSERT INTO/i)) return;
+
+            const valuesMatch = line.match(/values\s*\((.+)\);?$/i);
+            if (!valuesMatch) return;
+            const valuesPart = valuesMatch[1].trim();
             const parts = splitCsv(valuesPart);
 
             if (parts.length > 2) {
@@ -309,24 +342,6 @@ async function main() {
 
                 const articulo = articuloMap.get(codigo);
                 if (articulo) {
-                    // Upsert StockPuntoMudras
-                    // We use findOne to avoid dupes if running multiple times, 
-                    // essentially "Last record wins" or "Sum"?
-                    // TbStock is a history table (movements). The "Stock" column seems to be the balance at that moment?
-                    // The user said: "la tabla tbstock es la verdadera tabla de stock"
-                    // Usually a dump has the final state or logs.
-                    // The instructions say: "tbstock... que es el stock real".
-                    // If it contains multiple rows per article, it's a history.
-                    // If I look at the sample:
-                    // INSERT ... values ('2022-11-14', '9789501742046', 10, 0, 1, 0); -> Stock 10
-                    // INSERT ... values ('2022-11-14', '9789501742046', 10, 10, 2, 0); -> Stock 10 (Wait, StockAnterior 10. No change?)
-                    // INSERT ... values ('2022-11-14', '9789501742046', 0, 10, 4, 0); -> Stock becomes 0
-                    // INSERT ... values ('2022-11-14', '9789501742046', 156, 0, 6, 0); -> Stock becomes 156
-                    // It looks like a log. Unique "Id" usage confirms it.
-                    // So I should take the **LATEST** entry for each code.
-                    // BUT, since we loop through the file (usually ordered by ID), we can just update the stock.
-                    // The final update will be the current stock.
-
                     let stockEntry = await stockRepo.findOne({
                         where: { puntoMudrasId: mudrasPoint.id, articuloId: articulo.id }
                     });
@@ -336,7 +351,7 @@ async function main() {
                             puntoMudrasId: mudrasPoint.id,
                             articuloId: articulo.id,
                             cantidad: 0,
-                            stockMinimo: articulo.StockMinimo || 0 // Inherit?
+                            stockMinimo: articulo.StockMinimo || 0
                         });
                     }
 
