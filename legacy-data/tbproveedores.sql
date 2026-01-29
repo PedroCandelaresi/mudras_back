@@ -1,0 +1,68 @@
+DROP TABLE tbproveedores;
+CREATE TABLE tbproveedores (
+  IdProveedor AUTOINC NOT NULL,
+  Codigo INTEGER,
+  Nombre VARCHAR(50),
+  Contacto VARCHAR(50),
+  Direccion VARCHAR(50),
+  Localidad VARCHAR(30),
+  Provincia VARCHAR(30),
+  CP VARCHAR(8),
+  Telefono VARCHAR(50),
+  Celular VARCHAR(30),
+  TipoIva SMALLINT,
+  CUIT VARCHAR(14),
+  Observaciones MEMO,
+  Web VARCHAR(50),
+  Mail VARCHAR(50),
+  Rubro VARCHAR(20),
+  Saldo FLOAT,
+  Pais VARCHAR(30),
+  Fax VARCHAR(20),
+  FechaModif DATE, 
+  INDEX Nombre (Nombre), 
+  INDEX Codigo (Codigo), 
+  INDEX Direccion (Direccion), 
+  INDEX Cuit (CUIT), 
+  INDEX Contacto (Contacto), 
+  INDEX Teléfono (Telefono), 
+  INDEX Id (IdProveedor)
+);
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (1, 1, 'ALEJANDRO VALLARIS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (2, 2, 'AROMAS DE LA VIDA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (3, 3, 'AYURDEVAS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (4, 4, 'CENTRO HERMES', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (5, 5, 'CONSIGNACION', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (6, 6, 'ILUMINARTE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (7, 7, 'INDALI', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (8, 8, 'INVER HOUSE', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (9, 9, 'LA BOTICA MILAGROSA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (10, 10, 'LITTLE INDIA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (11, 11, 'LUZ DEL HIMALAYA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (12, 12, 'MALUCO', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (13, 13, 'MUDRAS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (14, 14, 'RODOLFO', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (15, 15, 'SER MINERAL', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (16, 16, 'TODO PIEDRAS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (17, 17, 'TALISMANIA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2022-12-27');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (18, 18, 'VALERIA PULSERAS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-09');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (19, 19, 'HECIZOS PIEDRAS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-12-09');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (20, 20, 'SAHUMO NATIVO', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-01-12');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (23, 23, 'GINTARA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-05-16');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (24, 24, 'ZAFU RELAX', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-10-23');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (25, 25, 'CUBEREN', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-11-15');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (26, 26, 'INDIA SAHUMERIOS DE LA INDIA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2023-11-23');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (27, 27, 'MIN JOYERIA', 'MIN JOYERIA', 'LIBERTAD 226', 'CAPITAL FEDERAL', 'CAPITAL FEDERAL', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ARGENTINA', NULL, '2025-05-17');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (28, 28, 'AMAMOS LAS ROSAS', 'YANINA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-05');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (29, 29, 'DAMIAN CHASCOMUS', 'DAMIAN CHASCOMUS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-11-16');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (30, 30, 'JOYAS ON LINE KEILA ', 'KEILA', 'LIBERTAD 229', 'CABA', NULL, NULL, '438102267', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-07');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (36, 36, 'LA CATEDRAL DE LOS SUEÑOS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-29');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (32, 32, 'FERA ', 'SERGIO FELPETO ', NULL, NULL, NULL, NULL, NULL, '11 6100 7756', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-16');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (33, 33, 'GRUPAL DISTRIBUIDORA', 'SERGIO FELPETO', NULL, NULL, NULL, NULL, NULL, '11 6100 7756', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-16');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (34, 34, 'KIER LIBROS', 'CARLA', 'SANTA FE 1260', 'CABA', NULL, '1059', NULL, '11 2276 7047', NULL, NULL, NULL, NULL, 'VENTAS@KIER.COM.AR', NULL, NULL, NULL, NULL, '2025-05-16');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (35, 35, 'SOMOS DE MADERA', 'DANIELA', 'AV CHORAIN 418', NULL, NULL, NULL, NULL, '1136483389', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-19');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (37, 37, 'COSTUMBRES INDIAS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-06-07');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (38, 38, 'LUCAS EL BOLSON', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-01');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (39, 39, 'JOYAS CORDOBA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-07-30');
+INSERT INTO tbproveedores (IdProveedor, Codigo, Nombre, Contacto, Direccion, Localidad, Provincia, CP, Telefono, Celular, TipoIva, CUIT, Observaciones, Web, Mail, Rubro, Saldo, Pais, Fax, FechaModif) values (40, 40, 'BOUTIQUE DE LA INDIA', 'BOUTIUQE DE LA INDIA', 'EDEN 841', 'LA FALDE ', 'CORDOBA', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'ARGENTINA', NULL, '2025-09-29');
+
