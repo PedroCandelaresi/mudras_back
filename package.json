@@ -18,7 +18,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
     "migration:revert": "ts-node ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
-    "migration:show": "ts-node ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts"
+    "migration:show": "ts-node ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts",
+    "migration:legacy": "ts-node -r tsconfig-paths/register src/scripts/migrate-legacy.ts"
   },
   "keywords": [],
   "author": "",
@@ -57,8 +58,10 @@
     "@types/passport-google-oauth20": "^2.0.14",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
+    "dotenv": "^17.2.3",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2"
   }
 }
