@@ -338,7 +338,13 @@ async function main() {
 
             if (parts.length > 2) {
                 const codigo = cleanString(parts[1]);
-                const cantidad = parseFloat(parts[2]) || 0;
+                let cantidad = parseFloat(parts[2]) || 0;
+
+                // Sanity check for bad data (e.g. barcode scanned as stock)
+                if (cantidad > 1000000) {
+                    console.warn(`WARNING: Stock suspiciously high for code ${codigo}: ${cantidad}. Clamping to 0.`);
+                    cantidad = 0;
+                }
 
                 const articulo = articuloMap.get(codigo);
                 if (articulo) {
