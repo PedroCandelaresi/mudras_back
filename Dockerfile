@@ -21,6 +21,8 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 # copiar build como usuario node
 COPY --from=build --chown=node:node /app/dist ./dist
+# Copiar legacy-data para migracion
+COPY --from=build --chown=node:node /app/legacy-data ./legacy-data
 # si necesitás archivos extra en runtime, copiálos también con --chown
 
 # correr como no-root
