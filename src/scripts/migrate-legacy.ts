@@ -24,6 +24,26 @@ import { MovimientoCuentaCorriente } from '../modules/cuentas-corrientes/entitie
 import { AsientoContable } from '../modules/contabilidad/entities/asiento-contable.entity';
 import { DetalleAsientoContable } from '../modules/contabilidad/entities/detalle-asiento-contable.entity';
 import { CuentaContable } from '../modules/contabilidad/entities/cuenta-contable.entity';
+import { Venta } from '../modules/ventas/entities/venta.entity';
+import { DetalleVenta } from '../modules/ventas/entities/detalle-venta.entity';
+import { Promocion } from '../modules/promociones/entities/promocion.entity';
+import { UserAuth } from '../modules/users-auth/entities/user.entity';
+import { Role } from '../modules/roles/entities/role.entity';
+import { Permission } from '../modules/permissions/entities/permission.entity';
+import { RolePermission } from '../modules/roles/entities/role-permission.entity';
+import { UserRole } from '../modules/users-auth/entities/user-role.entity';
+import { UserProvider } from '../modules/users-auth/entities/user-provider.entity';
+import { RefreshToken } from '../modules/users-auth/entities/refresh-token.entity';
+import { VentaCaja } from '../modules/caja-registradora/entities/venta-caja.entity';
+import { DetalleVentaCaja } from '../modules/caja-registradora/entities/detalle-venta-caja.entity';
+import { PagoCaja } from '../modules/caja-registradora/entities/pago-caja.entity';
+import { ComprobanteAfip } from '../modules/caja-registradora/entities/comprobante-afip.entity';
+import { MovimientoInventario } from '../modules/caja-registradora/entities/movimiento-inventario.entity';
+import { SnapshotInventarioMensual } from '../modules/caja-registradora/entities/snapshot-inventario.entity';
+import { Stock } from '../modules/stock/entities/stock.entity';
+import { Gasto } from '../modules/gastos/entities/gasto.entity';
+import { CategoriaGasto } from '../modules/gastos/entities/categoria-gasto.entity';
+import { UsuarioAuthMap } from '../modules/users-auth/entities/usuario-auth-map.entity';
 
 // Load env vars
 config({ path: path.join(__dirname, '../../.env') });
@@ -43,22 +63,45 @@ async function main() {
         entities: [
             Articulo,
             Proveedor,
+            Stock,
             Rubro,
-            PuntoMudras,
-            StockPuntoMudras,
-            ProveedorRubro,
-            // Added
-            CuentaCorriente,
-            OrdenCompra,
-            MovimientoStock,
-            MovimientoStockPunto,
             Usuario,
             Cliente,
-            DetalleOrdenCompra,
+            CuentaCorriente,
             MovimientoCuentaCorriente,
             AsientoContable,
             DetalleAsientoContable,
-            CuentaContable
+            CuentaContable,
+            Venta,
+            DetalleVenta,
+            Promocion,
+            MovimientoStock,
+            // RBAC entities
+            UserAuth,
+            Role,
+            Permission,
+            RolePermission,
+            UserRole,
+            UserProvider,
+            RefreshToken,
+            // Caja Registradora entities
+            VentaCaja,
+            DetalleVentaCaja,
+            PagoCaja,
+            ComprobanteAfip,
+            MovimientoInventario,
+            SnapshotInventarioMensual,
+            // Puntos Mudras entities
+            PuntoMudras,
+            StockPuntoMudras,
+            MovimientoStockPunto,
+            // Compras
+            OrdenCompra,
+            DetalleOrdenCompra,
+            Gasto,
+            CategoriaGasto,
+            ProveedorRubro,
+            UsuarioAuthMap,
         ],
         synchronize: false, // Don't sync, assume schema exists
     });
