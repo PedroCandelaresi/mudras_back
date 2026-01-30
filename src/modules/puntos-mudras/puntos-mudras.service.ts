@@ -253,6 +253,7 @@ export class PuntosMudrasService {
         'rubro.Rubro'
       ])
       .where('stock.puntoMudrasId = :puntoMudrasId', { puntoMudrasId })
+      .andWhere('stock.cantidad > 0') // SOLO STOCK POSITIVO
       .getRawMany();
 
     console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
