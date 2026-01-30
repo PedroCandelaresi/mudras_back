@@ -50,26 +50,27 @@ export class SeedService implements OnModuleInit {
         await this.seedPuntosMudras();
         await this.seedAdmin();
         await this.seedRBAC(); // New method
+        await this.seedVendedores();
         await this.seedProducoDemo();
     }
 
 
 
     private async seedPuntosMudras() {
-        // 1. Tienda Principal
-        const tiendaPrincipal = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Tienda Principal' } });
-        if (!tiendaPrincipal) {
-            this.logger.log('🆕 Creando Tienda Principal por defecto...');
+        // 1. Mudras (Tienda Principal)
+        const mudras = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Mudras' } });
+        if (!mudras) {
+            this.logger.log('🆕 Creando Mudras (Tienda Principal) por defecto...');
             await this.puntosMudrasRepo.save(this.puntosMudrasRepo.create({
-                nombre: 'Tienda Principal',
+                nombre: 'Mudras',
                 tipo: TipoPuntoMudras.venta,
-                descripcion: 'Punto de venta principal por defecto',
+                descripcion: 'Punto de venta principal Mudras',
                 direccion: 'Dirección Principal',
                 activo: true,
                 permiteVentasOnline: true,
                 manejaStockFisico: true,
             }));
-            this.logger.log('✅ Tienda Principal creada.');
+            this.logger.log('✅ Mudras creado.');
         }
 
         // 2. Depósito Primario
@@ -353,6 +354,77 @@ export class SeedService implements OnModuleInit {
         }
 
         this.logger.log('✅ RBAC Full Inicializado.');
+    }
+
+    private async seedVendedores() {
+        const vendedores = [
+            { nombre: 'Carlos', username: 'carlos', email: 'carlos@mudras.com', pass: 'Carlos123!' },
+            { nombre: 'Graciela', username: 'graciela', email: 'graciela@mudras.com', pass: 'Graciela123!' }
+        ];
+
+        // Ensure "cajero" role exists (created in seedRBAC but safety check)
+        let cajeroRole = await this.roleRepo.findOne({ where: { slug: 'cajero' } });
+        if (!cajeroRole) {
+            this.logger.warn('⚠️ Rol cajero no encontrado al crear vendedores. Creándolo...');
+            cajeroRole = this.roleRepo.create({
+                id: randomUUID(),
+                name: 'Cajero / Vendedor',
+                slug: 'cajero',
+            });
+            await this.roleRepo.save(cajeroRole);
+        }
+
+        for (const v of vendedores) {
+            // 1. UserAuth
+            let userAuth = await this.userAuthRepo.findOne({ where: { username: v.username } });
+            if (!userAuth) {
+                const hashedPassword = await bcrypt.hash(v.pass, 10);
+                userAuth = this.userAuthRepo.create({
+                    id: randomUUID(),
+                    username: v.username,
+                    email: v.email,
+                    displayName: v.nombre,
+                    passwordHash: hashedPassword,
+                    userType: 'EMPRESA',
+                    isActive: true,
+                    mustChangePassword: false,
+                } as unknown as UserAuth);
+                await this.userAuthRepo.save(userAuth);
+
+                await this.userRoleRepo.save(this.userRoleRepo.create({
+                    userId: userAuth.id,
+                    roleId: cajeroRole.id
+                }));
+                this.logger.log(`✅ UserAuth creado: ${v.username}`);
+            }
+
+            // 2. Usuario Legacy
+            let usuarioLegacy = await this.usuarioRepo.findOne({ where: { username: v.username } });
+            if (!usuarioLegacy) {
+                const hashedPassword = await bcrypt.hash(v.pass, 10);
+                usuarioLegacy = (this.usuarioRepo.create({
+                    username: v.username,
+                    nombre: v.nombre,
+                    apellido: 'Vendedor', // Generic
+                    email: v.email,
+                    password: hashedPassword,
+                    rol: RolUsuario.CAJA, // Important for legacy checks
+                    estado: EstadoUsuario.ACTIVO,
+                    salario: 0
+                }) as unknown) as Usuario;
+                await this.usuarioRepo.save(usuarioLegacy);
+                this.logger.log(`✅ Usuario legacy creado: ${v.username}`);
+            }
+
+            // 3. Map
+            const map = await this.usuarioAuthMapRepo.findOne({ where: { authUserId: userAuth.id } });
+            if (!map && usuarioLegacy) {
+                await this.usuarioAuthMapRepo.save({
+                    usuarioId: usuarioLegacy.id,
+                    authUserId: userAuth.id
+                });
+            }
+        }
     }
 
     private async seedProducoDemo() {

@@ -276,29 +276,30 @@ async function main() {
                 }
 
                 if (!art) {
-                    art = artRepo.create({
-                        Codigo: codigo,
-                        Descripcion: cleanString(parts[2]),
-                        Rubro: rubroName, // Legacy string
-                        rubro: rubroEntity, // Relation
-                        Marca: cleanString(parts[3]),
-                        PrecioVenta: parseFloat(parts[4]) || 0,
-                        PrecioCompra: parseFloat(parts[5]) || 0,
-                        StockMinimo: parseFloat(parts[6]) || 0,
-                        // Stock (7) IGNORED
-                        AlicuotaIva: parseFloat(parts[8]) || 21,
-                        Deposito: parseFloat(parts[9]) || 0,
-                        FechaCompra: parts[11] ? new Date(cleanString(parts[11])) : null,
-                        proveedor: provEntity,
-                        Lista2: parseFloat(parts[13]) || 0,
-                        Lista3: parseFloat(parts[14]) || 0,
-                        Unidad: cleanString(parts[15]),
-                        Lista4: parseFloat(parts[16]) || 0,
-                        PorcentajeGanancia: parseFloat(parts[17]) || 0,
-                        Calculado: false
-                    });
-                    await artRepo.save(art);
+                    art = artRepo.create({ Codigo: codigo });
                 }
+
+                // Update fields (Upsert logic to fix missing fields or encoding)
+                art.Descripcion = cleanString(parts[2]);
+                art.Rubro = rubroName;
+                art.rubro = rubroEntity;
+                art.Marca = cleanString(parts[3]);
+                art.PrecioVenta = parseFloat(parts[4]) || 0;
+                art.PrecioCompra = parseFloat(parts[5]) || 0;
+                art.StockMinimo = parseFloat(parts[6]) || 0;
+                // Stock (7) IGNORED
+                art.AlicuotaIva = parseFloat(parts[8]) || 21;
+                art.Deposito = parseFloat(parts[9]) || 0;
+                art.FechaCompra = parts[11] ? new Date(cleanString(parts[11])) : null;
+                art.proveedor = provEntity;
+                art.Lista2 = parseFloat(parts[13]) || 0;
+                art.Lista3 = parseFloat(parts[14]) || 0;
+                art.Unidad = cleanString(parts[15]);
+                art.Lista4 = parseFloat(parts[16]) || 0;
+                art.PorcentajeGanancia = parseFloat(parts[17]) || 0;
+                art.Calculado = false; // logic default
+
+                await artRepo.save(art);
                 articuloMap.set(codigo, art);
                 processedArts++;
                 if (processedArts % 500 === 0) process.stdout.write('.');
