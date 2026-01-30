@@ -96,13 +96,13 @@ export class SeedService implements OnModuleInit {
         const rawPassword = 'Cambiar123!';
 
         // 1. Verificar Rol Admin
-        let adminRole = await this.roleRepo.findOne({ where: { slug: 'admin' } });
+        let adminRole = await this.roleRepo.findOne({ where: { slug: 'administrador' } });
         if (!adminRole) {
             this.logger.log('Creando rol admin...');
             adminRole = this.roleRepo.create({
                 id: randomUUID(),
                 name: 'Administrador',
-                slug: 'admin',
+                slug: 'administrador',
             });
             await this.roleRepo.save(adminRole);
         }
