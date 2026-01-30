@@ -209,7 +209,8 @@ export class SeedService implements OnModuleInit {
             { r: 'roles', a: ['read', 'create', 'update', 'delete'] },
 
             // Inventario & Productos
-            { r: 'productos', a: ['read', 'create', 'update', 'delete'] }, // Catalog
+            // Granular actions for Products
+            { r: 'productos', a: ['read', 'create', 'delete', 'update', 'update:precios', 'update:costos', 'update:info', 'update:stock'] },
             { r: 'stock', a: ['read', 'update'] }, // Movements / Adjustments
             { r: 'depositos', a: ['read', 'create', 'update'] },
             { r: 'puntos_venta', a: ['read', 'create', 'update'] },
@@ -347,7 +348,9 @@ export class SeedService implements OnModuleInit {
             const targets = [
                 'promociones:read', 'promociones:create', 'promociones:update',
                 'tienda_online:read',
-                'productos:read', // Ver fotos/desc
+                'productos:read',
+                'productos:update:info', // Only allow updating info (desc, photos)
+                // NO access to update:precios or update:costos
                 'dashboard:read'
             ];
             for (const t of targets) if (permsCache[t]) await assign(roles['disenadora'], permsCache[t]);
