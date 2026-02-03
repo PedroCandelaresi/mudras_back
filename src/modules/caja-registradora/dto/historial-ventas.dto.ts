@@ -92,6 +92,15 @@ export class ResumenVenta {
 }
 
 @ObjectType()
+export class ResumenHistorialVentas {
+  @Field()
+  totalVentas: number;
+
+  @Field()
+  montoTotal: number;
+}
+
+@ObjectType()
 export class HistorialVentasResponse {
   @Field(() => [ResumenVenta])
   ventas: ResumenVenta[];
@@ -104,4 +113,7 @@ export class HistorialVentasResponse {
 
   @Field()
   paginaActual: number;
+
+  @Field(() => ResumenHistorialVentas, { nullable: true })
+  resumen?: ResumenHistorialVentas;
 }

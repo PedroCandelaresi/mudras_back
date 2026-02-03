@@ -327,12 +327,20 @@ export class CajaRegistradoraService {
     }
 
     const total = await query.getCount();
-    const ventas = await query
+
+    // Calcular totales del periodo (clone query para no afectar paginación)
+
+    const querySuma = query.clone();
+    const { montoTotal } = await querySuma
+      .select('SUM(venta.total)', 'montoTotal')
+      .getRawOne();
+
+    const ventasResult = await query
       .skip(filtros.offset)
       .take(filtros.limite)
       .getMany();
 
-    const resumenVentas: ResumenVenta[] = ventas.map(venta => ({
+    const resumenVentas: ResumenVenta[] = ventasResult.map(venta => ({
       id: venta.id,
       numeroVenta: venta.numeroVenta,
       fecha: venta.fecha,
@@ -354,6 +362,10 @@ export class CajaRegistradoraService {
       total,
       totalPaginas: Math.ceil(total / filtros.limite),
       paginaActual: Math.floor(filtros.offset / filtros.limite) + 1,
+      resumen: {
+        totalVentas: total,
+        montoTotal: Number(montoTotal || 0)
+      }
     };
   }
 
