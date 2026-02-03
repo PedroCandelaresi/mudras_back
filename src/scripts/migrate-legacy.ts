@@ -301,13 +301,34 @@ async function main() {
                 art.PorcentajeGanancia = parseFloat(parts[17]) || 0;
                 art.Calculado = false; // logic default
 
+                // Create Stock Entry directly from tbarticulos
+                const stockQty = parseFloat(parts[7]) || 0;
+
+                // Ensure stock entry exists/is updated
+                let stockEntry = await dataSource.getRepository(StockPuntoMudras).findOne({
+                    where: { puntoMudrasId: mudrasPoint.id, articuloId: art.id }
+                });
+
+                if (!stockEntry) {
+                    stockEntry = dataSource.getRepository(StockPuntoMudras).create({
+                        puntoMudrasId: mudrasPoint.id,
+                        articulo: art,
+                        cantidad: stockQty,
+                        stockMinimo: art.StockMinimo || 0
+                    });
+                } else {
+                    stockEntry.cantidad = stockQty;
+                    stockEntry.stockMinimo = art.StockMinimo || 0;
+                }
+                await dataSource.getRepository(StockPuntoMudras).save(stockEntry);
+
                 await artRepo.save(art);
                 articuloMap.set(codigo, art);
                 processedArts++;
                 if (processedArts % 500 === 0) process.stdout.write('.');
             }
         });
-        console.log(`\nprocessed ${processedArts} Articulos.`);
+        console.log(`\nprocessed ${processedArts} Articulos and Stock entries.`);
 
         // 5. Post-Process Relationships (Proveedor-Rubro)
         const provRubroRepo = dataSource.getRepository(ProveedorRubro);
@@ -326,53 +347,10 @@ async function main() {
             }
         }
 
-        // 6. Migrate Stock
-        const stockRepo = dataSource.getRepository(StockPuntoMudras);
-        console.log('Migrating Stock to Point: Mudras...');
+        // 6. Migrate Stock - REMOVED (Now integrated into Articulos)
+        console.log('Stock migration integrated into Articulos processing.');
 
-        let processedStock = 0;
-        await processFile('tbstock.sql', async (line) => {
-            if (!line.match(/INSERT INTO/i)) return;
 
-            const valuesMatch = line.match(/values\s*\((.+)\);?$/i);
-            if (!valuesMatch) return;
-            const valuesPart = valuesMatch[1].trim();
-            const parts = splitCsv(valuesPart);
-
-            if (parts.length > 2) {
-                const codigo = cleanString(parts[1]);
-                let cantidad = parseFloat(parts[2]) || 0;
-
-                // Sanity check for bad data (e.g. barcode scanned as stock)
-                if (cantidad > 1000000) {
-                    console.warn(`WARNING: Stock suspiciously high for code ${codigo}: ${cantidad}. Clamping to 0.`);
-                    cantidad = 0;
-                }
-
-                const articulo = articuloMap.get(codigo);
-                if (articulo) {
-                    let stockEntry = await stockRepo.findOne({
-                        where: { puntoMudrasId: mudrasPoint.id, articuloId: articulo.id }
-                    });
-
-                    if (!stockEntry) {
-                        stockEntry = stockRepo.create({
-                            puntoMudrasId: mudrasPoint.id,
-                            articuloId: articulo.id,
-                            cantidad: 0,
-                            stockMinimo: articulo.StockMinimo || 0
-                        });
-                    }
-
-                    // Overwrite with latest value found in line
-                    stockEntry.cantidad = cantidad;
-                    await stockRepo.save(stockEntry);
-                }
-                processedStock++;
-                if (processedStock % 1000 === 0) process.stdout.write('+');
-            }
-        });
-        console.log(`\nProcessed ${processedStock} stock entries.`);
 
         console.log('Migration Complete!');
 
