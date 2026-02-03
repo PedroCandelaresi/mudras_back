@@ -288,7 +288,9 @@ async function main() {
                 art.PrecioCompra = parseFloat(parts[5]) || 0;
                 art.StockMinimo = parseFloat(parts[6]) || 0;
                 // Stock (7) IGNORED
-                art.AlicuotaIva = parseFloat(parts[8]) || 21;
+                const rawIva = cleanString(parts[8]);
+                const parsedIva = rawIva ? parseFloat(rawIva.replace(',', '.')) : NaN;
+                art.AlicuotaIva = !isNaN(parsedIva) ? parsedIva : 21;
                 art.Deposito = parseFloat(parts[9]) || 0;
                 art.FechaCompra = parts[11] ? new Date(cleanString(parts[11])) : null;
                 art.proveedor = provEntity;
