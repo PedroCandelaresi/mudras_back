@@ -301,6 +301,9 @@ async function main() {
                 art.PorcentajeGanancia = parseFloat(parts[17]) || 0;
                 art.Calculado = false; // logic default
 
+                await artRepo.save(art);
+                articuloMap.set(codigo, art);
+
                 // Create Stock Entry directly from tbarticulos
                 const stockQty = parseFloat(parts[7]) || 0;
 
@@ -312,7 +315,7 @@ async function main() {
                 if (!stockEntry) {
                     stockEntry = dataSource.getRepository(StockPuntoMudras).create({
                         puntoMudrasId: mudrasPoint.id,
-                        articulo: art,
+                        articuloId: art.id,
                         cantidad: stockQty,
                         stockMinimo: art.StockMinimo || 0
                     });
@@ -322,8 +325,6 @@ async function main() {
                 }
                 await dataSource.getRepository(StockPuntoMudras).save(stockEntry);
 
-                await artRepo.save(art);
-                articuloMap.set(codigo, art);
                 processedArts++;
                 if (processedArts % 500 === 0) process.stdout.write('.');
             }
