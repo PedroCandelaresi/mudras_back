@@ -290,7 +290,7 @@ export class ArticulosService {
     if (actualizarArticuloDto.Impuesto != null) patch.Impuesto = actualizarArticuloDto.Impuesto;
     if (actualizarArticuloDto.ImpuestoPorcentual != null) patch.ImpuestoPorcentual = actualizarArticuloDto.ImpuestoPorcentual as any;
     if (actualizarArticuloDto.Unidad != null) patch.Unidad = actualizarArticuloDto.Unidad;
-    if (actualizarArticuloDto.idProveedor != null) patch.idProveedor = actualizarArticuloDto.idProveedor;
+    if (actualizarArticuloDto.idProveedor !== undefined) patch.idProveedor = actualizarArticuloDto.idProveedor;
     if (actualizarArticuloDto.Lista2 != null) patch.Lista2 = actualizarArticuloDto.Lista2;
     if (actualizarArticuloDto.Lista3 != null) patch.Lista3 = actualizarArticuloDto.Lista3;
     if (actualizarArticuloDto.Lista4 != null) patch.Lista4 = actualizarArticuloDto.Lista4;
