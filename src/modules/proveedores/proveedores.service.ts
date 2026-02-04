@@ -26,6 +26,7 @@ export class ProveedoresService {
   async findAll(): Promise<Proveedor[]> {
     return this.proveedoresRepository.find({
       order: { IdProveedor: 'ASC' },
+      relations: ['proveedorRubros', 'proveedorRubros.rubro'],
     });
   }
 
