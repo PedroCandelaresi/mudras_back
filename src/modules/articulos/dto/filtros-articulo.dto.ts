@@ -1,4 +1,4 @@
-import { InputType, Field, Float } from '@nestjs/graphql';
+import { InputType, Field, Float, Int } from '@nestjs/graphql';
 import { IsString, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 
 @InputType()
@@ -32,6 +32,16 @@ export class FiltrosArticuloDto {
   @IsOptional()
   @IsNumber()
   proveedorId?: number;
+
+  @Field(() => [Int], { nullable: true })
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  rubroIds?: number[];
+
+  @Field(() => [Int], { nullable: true })
+  @IsOptional()
+  @IsNumber({}, { each: true })
+  proveedorIds?: number[];
 
   @Field({ nullable: true })
   @IsOptional()

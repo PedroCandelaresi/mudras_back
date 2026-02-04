@@ -356,6 +356,7 @@ export class ArticulosService {
       queryBuilder.andWhere('articulo.Marca LIKE :marca', { marca: `%${filtros.marca}%` });
     }
 
+
     if (filtros.rubroId) {
       const rubro = await this.rubrosRepository.findOne({ where: { Id: filtros.rubroId } });
       if (!rubro) {
@@ -364,8 +365,31 @@ export class ArticulosService {
       queryBuilder.andWhere('articulo.Rubro = :rubroFiltrado', { rubroFiltrado: rubro.Rubro });
     }
 
+    if (filtros.rubroIds && filtros.rubroIds.length > 0) {
+      // Necesitamos obtener los nombres de los rubros porque el articulo guarda el nombre string 'Rubro'
+      // Ojo: Si el sistema ya migraba a usar rubroId en la tabla articulos, deberiamos usar rubroId.
+      // Pero viendo la entidad, parece que guarda ambos o se basa en string. 
+      // El codigo existente usa 'articulo.Rubro = :rubroFiltrado'.
+      // Vamos a buscar los nombres de los rubros IDs seleccionados.
+      const rubros = await this.rubrosRepository.createQueryBuilder('r')
+        .where('r.Id IN (:...ids)', { ids: filtros.rubroIds })
+        .getMany();
+
+      if (rubros.length > 0) {
+        const nombresRubros = rubros.map(r => r.Rubro);
+        queryBuilder.andWhere('articulo.Rubro IN (:...nombresRubros)', { nombresRubros });
+      } else {
+        // IDs invalidos, no coinciden con nada -> resultado vacio
+        queryBuilder.andWhere('1=0');
+      }
+    }
+
     if (filtros.proveedorId) {
       queryBuilder.andWhere('articulo.idProveedor = :proveedorId', { proveedorId: filtros.proveedorId });
+    }
+
+    if (filtros.proveedorIds && filtros.proveedorIds.length > 0) {
+      queryBuilder.andWhere('articulo.idProveedor IN (:...provIds)', { provIds: filtros.proveedorIds });
     }
 
 
