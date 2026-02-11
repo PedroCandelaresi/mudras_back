@@ -327,7 +327,6 @@ export class PuntosMudrasService {
       ${whereClause}
       GROUP BY a.id, a.Codigo, a.Descripcion, a.Rubro
       ORDER BY a.Descripcion
-      LIMIT 100
     `;
 
     const resultados = await this.stockRepository.query(query, params);
