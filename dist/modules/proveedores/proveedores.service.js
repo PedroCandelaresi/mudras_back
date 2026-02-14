@@ -32,6 +32,7 @@ let ProveedoresService = class ProveedoresService {
     async findAll() {
         return this.proveedoresRepository.find({
             order: { IdProveedor: 'ASC' },
+            relations: ['proveedorRubros', 'proveedorRubros.rubro'],
         });
     }
     async findOne(id) {

@@ -190,6 +190,7 @@ let PuntosMudrasService = class PuntosMudrasService {
             'rubro.Rubro'
         ])
             .where('stock.puntoMudrasId = :puntoMudrasId', { puntoMudrasId })
+            .andWhere('stock.cantidad > 0')
             .getRawMany();
         console.log(`📦 Encontrados ${stockRecords.length} registros de stock`);
         if (stockRecords.length > 0) {

@@ -12,6 +12,7 @@ import { Rubro } from '../modules/rubros/entities/rubro.entity';
 import { PuntoMudras, TipoPuntoMudras } from '../modules/puntos-mudras/entities/punto-mudras.entity';
 import { StockPuntoMudras } from '../modules/puntos-mudras/entities/stock-punto-mudras.entity';
 import { ProveedorRubro } from '../modules/proveedores/entities/proveedor-rubro.entity';
+import { Marca } from '../modules/marcas/entities/marca.entity';
 // Missing Referenced Entities
 import { CuentaCorriente } from '../modules/cuentas-corrientes/entities/cuenta-corriente.entity';
 import { OrdenCompra } from '../modules/compras/entities/orden-compra.entity';
@@ -102,6 +103,7 @@ async function main() {
             CategoriaGasto,
             ProveedorRubro,
             UsuarioAuthMap,
+            Marca,
         ],
         synchronize: false, // Don't sync, assume schema exists
     });
@@ -130,7 +132,39 @@ async function main() {
 
 
 
-        // 2. Migrate Rubros
+        // 2. Migrate Marcas (New)
+        const marcaRepo = dataSource.getRepository(Marca);
+        console.log('Migrating Marcas...');
+        await processFile('tbmarcas.sql', async (line) => {
+            // INSERT INTO tbmarcas (Descripcion, Id) values ('EDIS BUSCARONS', 2);
+            // Note: tbmarcas.sql order might vary, checking values
+            // INSERT INTO tbmarcas (Descripcion, Id) values ...
+            const valuesMatch = line.match(/values\s*\((.+)\);?$/i);
+            if (valuesMatch) {
+                const valuesPart = valuesMatch[1].trim();
+                const parts = splitCsv(valuesPart);
+                // Based on header: Descripcion, Id
+                // But values in sample: ('EDIS BUSCARONS', 2) -> 0: Descripcion, 1: Id
+                if (parts.length >= 2) {
+                    const desc = cleanString(parts[0]);
+                    const id = parseInt(parts[1]);
+
+                    if (desc && id) {
+                        let marca = await marcaRepo.findOne({ where: { id: id } });
+                        if (!marca) {
+                            marca = marcaRepo.create({
+                                id: id,
+                                Descripcion: desc
+                            });
+                            await marcaRepo.save(marca);
+                        }
+                    }
+                }
+            }
+        });
+        console.log('Migrated Marcas.');
+
+        // 3. Migrate Rubros
         const rubroRepo = dataSource.getRepository(Rubro);
         const rubrosMap = new Map<string, Rubro>(); // Name -> Entity
 

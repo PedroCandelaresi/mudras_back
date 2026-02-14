@@ -23,6 +23,7 @@ const cliente_entity_1 = require("../clientes/entities/cliente.entity");
 const stock_punto_mudras_entity_1 = require("../puntos-mudras/entities/stock-punto-mudras.entity");
 const movimiento_stock_punto_entity_1 = require("../puntos-mudras/entities/movimiento-stock-punto.entity");
 const punto_mudras_entity_1 = require("../puntos-mudras/entities/punto-mudras.entity");
+const users_auth_module_1 = require("../users-auth/users-auth.module");
 let CajaRegistradoraModule = class CajaRegistradoraModule {
 };
 exports.CajaRegistradoraModule = CajaRegistradoraModule;
@@ -42,6 +43,7 @@ exports.CajaRegistradoraModule = CajaRegistradoraModule = __decorate([
                 punto_mudras_entity_1.PuntoMudras,
                 movimiento_stock_punto_entity_1.MovimientoStockPunto,
             ]),
+            users_auth_module_1.UsersAuthModule,
         ],
         providers: [
             caja_registradora_service_1.CajaRegistradoraService,

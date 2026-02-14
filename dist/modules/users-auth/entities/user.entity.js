@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserAuth = void 0;
 const typeorm_1 = require("typeorm");
+const graphql_1 = require("@nestjs/graphql");
 const user_provider_entity_1 = require("../../users-auth/entities/user-provider.entity");
 const user_role_entity_1 = require("../../users-auth/entities/user-role.entity");
 const refresh_token_entity_1 = require("../../users-auth/entities/refresh-token.entity");
@@ -18,14 +19,17 @@ let UserAuth = class UserAuth {
 };
 exports.UserAuth = UserAuth;
 __decorate([
+    (0, graphql_1.Field)(() => graphql_1.ID),
     (0, typeorm_1.PrimaryColumn)({ type: 'char', length: 36 }),
     __metadata("design:type", String)
 ], UserAuth.prototype, "id", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 191, nullable: true, unique: true }),
     __metadata("design:type", String)
 ], UserAuth.prototype, "username", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
     (0, typeorm_1.Column)({ type: 'varchar', length: 191, nullable: true, unique: true }),
     __metadata("design:type", String)
 ], UserAuth.prototype, "email", void 0);
@@ -34,6 +38,7 @@ __decorate([
     __metadata("design:type", String)
 ], UserAuth.prototype, "passwordHash", void 0);
 __decorate([
+    (0, graphql_1.Field)(),
     (0, typeorm_1.Column)({ name: 'display_name', type: 'varchar', length: 191 }),
     __metadata("design:type", String)
 ], UserAuth.prototype, "displayName", void 0);
@@ -70,6 +75,7 @@ __decorate([
     __metadata("design:type", Array)
 ], UserAuth.prototype, "refreshTokens", void 0);
 exports.UserAuth = UserAuth = __decorate([
+    (0, graphql_1.ObjectType)(),
     (0, typeorm_1.Entity)({ name: 'mudras_usuarios_auth' })
 ], UserAuth);
 //# sourceMappingURL=user.entity.js.map

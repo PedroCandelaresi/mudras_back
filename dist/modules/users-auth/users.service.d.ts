@@ -46,7 +46,7 @@ export declare class UsersService {
     private readonly userRolesRepo;
     private readonly rolesRepo;
     constructor(usersRepo: Repository<UserAuth>, userRolesRepo: Repository<UserRole>, rolesRepo: Repository<Role>);
-    listarEmpresaPorRolSlug(rolSlug: string): Promise<UserAuth[]>;
+    listarEmpresaPorRolSlug(rolSlug?: string): Promise<UserAuth[]>;
     listar(entrada?: ListarUsuariosInput): Promise<{
         items: UsuarioAuthResumen[];
         total: number;

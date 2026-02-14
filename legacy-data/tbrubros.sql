@@ -68,4 +68,7 @@ INSERT INTO tbrubros (Id, Rubro, Codigo) values (69, 'ORACULOS', NULL);
 INSERT INTO tbrubros (Id, Rubro, Codigo) values (70, 'RUNAS', NULL);
 INSERT INTO tbrubros (Id, Rubro, Codigo) values (71, 'AROMATIZANTES', NULL);
 INSERT INTO tbrubros (Id, Rubro, Codigo) values (72, 'TOBILLERA', NULL);
+INSERT INTO tbrubros (Id, Rubro, Codigo) values (73, 'PAÑOS ', NULL);
+INSERT INTO tbrubros (Id, Rubro, Codigo) values (74, 'ALMOHADILLA TERAPEUTICA', NULL);
+INSERT INTO tbrubros (Id, Rubro, Codigo) values (75, 'BANDERINES', NULL);
 

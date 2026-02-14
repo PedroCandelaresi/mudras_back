@@ -58,6 +58,10 @@ __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], PermissionPublic.prototype, "attributes", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], PermissionPublic.prototype, "description", void 0);
 exports.PermissionPublic = PermissionPublic = __decorate([
     (0, graphql_1.ObjectType)()
 ], PermissionPublic);

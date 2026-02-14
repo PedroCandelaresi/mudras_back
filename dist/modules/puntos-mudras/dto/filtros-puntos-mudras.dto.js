@@ -13,6 +13,7 @@ exports.FiltrosMovimientosInput = exports.FiltrosStockInput = exports.FiltrosPun
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
 const punto_mudras_entity_1 = require("../entities/punto-mudras.entity");
+const movimiento_stock_punto_entity_1 = require("../entities/movimiento-stock-punto.entity");
 let FiltrosPuntosMudrasInput = class FiltrosPuntosMudrasInput {
 };
 exports.FiltrosPuntosMudrasInput = FiltrosPuntosMudrasInput;
@@ -107,9 +108,9 @@ let FiltrosMovimientosInput = class FiltrosMovimientosInput {
 };
 exports.FiltrosMovimientosInput = FiltrosMovimientosInput;
 __decorate([
-    (0, graphql_1.Field)(() => punto_mudras_entity_1.TipoPuntoMudras, { nullable: true }),
+    (0, graphql_1.Field)(() => movimiento_stock_punto_entity_1.TipoMovimientoStockPunto, { nullable: true }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(punto_mudras_entity_1.TipoPuntoMudras),
+    (0, class_validator_1.IsEnum)(movimiento_stock_punto_entity_1.TipoMovimientoStockPunto),
     __metadata("design:type", String)
 ], FiltrosMovimientosInput.prototype, "tipoMovimiento", void 0);
 __decorate([

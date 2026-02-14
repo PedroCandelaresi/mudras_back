@@ -136,6 +136,10 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                 total,
                 cambio: totalPagos - total,
                 observaciones: input.observaciones,
+                cuitCliente: input.cuitCliente,
+                nombreCliente: input.nombreCliente,
+                razonSocialCliente: input.razonSocialCliente,
+                tipoClienteSnapshot: 'CONSUMIDOR_FINAL'
             });
             const ventaGuardada = await queryRunner.manager.save(venta_caja_entity_1.VentaCaja, venta);
             for (const detalleInput of input.detalles) {
@@ -223,15 +227,21 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             query.andWhere('pagos.medioPago = :medioPago', { medioPago: filtros.medioPago });
         }
         const total = await query.getCount();
-        const ventas = await query
+        const querySuma = query.clone();
+        const { montoTotal } = await querySuma
+            .select('SUM(venta.total)', 'montoTotal')
+            .getRawOne();
+        const ventasResult = await query
             .skip(filtros.offset)
             .take(filtros.limite)
             .getMany();
-        const resumenVentas = ventas.map(venta => ({
+        const resumenVentas = ventasResult.map(venta => ({
             id: venta.id,
             numeroVenta: venta.numeroVenta,
             fecha: venta.fecha,
-            nombreCliente: venta.cliente?.nombre || 'Cliente Genérico',
+            nombreCliente: venta.razonSocialCliente || venta.nombreCliente || venta.cliente?.nombre || 'Consumidor Final',
+            cuitCliente: venta.cuitCliente || venta.cliente?.cuit,
+            razonSocialCliente: venta.razonSocialCliente,
             nombreUsuario: venta?.usuarioAuth?.displayName || 'Usuario',
             nombrePuesto: venta.puntoMudras?.nombre || 'Punto',
             total: venta.total,
@@ -245,6 +255,10 @@ let CajaRegistradoraService = class CajaRegistradoraService {
             total,
             totalPaginas: Math.ceil(total / filtros.limite),
             paginaActual: Math.floor(filtros.offset / filtros.limite) + 1,
+            resumen: {
+                totalVentas: total,
+                montoTotal: Number(montoTotal || 0)
+            }
         };
     }
     async calcularStockDisponible(articuloId, _puestoVentaId, puntoMudrasId) {

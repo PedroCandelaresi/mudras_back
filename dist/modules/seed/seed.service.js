@@ -50,22 +50,23 @@ let SeedService = SeedService_1 = class SeedService {
         await this.seedPuntosMudras();
         await this.seedAdmin();
         await this.seedRBAC();
+        await this.seedVendedores();
         await this.seedProducoDemo();
     }
     async seedPuntosMudras() {
-        const tiendaPrincipal = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Tienda Principal' } });
-        if (!tiendaPrincipal) {
-            this.logger.log('🆕 Creando Tienda Principal por defecto...');
+        const mudras = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Mudras' } });
+        if (!mudras) {
+            this.logger.log('🆕 Creando Mudras (Tienda Principal) por defecto...');
             await this.puntosMudrasRepo.save(this.puntosMudrasRepo.create({
-                nombre: 'Tienda Principal',
+                nombre: 'Mudras',
                 tipo: punto_mudras_entity_1.TipoPuntoMudras.venta,
-                descripcion: 'Punto de venta principal por defecto',
+                descripcion: 'Punto de venta principal Mudras',
                 direccion: 'Dirección Principal',
                 activo: true,
                 permiteVentasOnline: true,
                 manejaStockFisico: true,
             }));
-            this.logger.log('✅ Tienda Principal creada.');
+            this.logger.log('✅ Mudras creado.');
         }
         const depositoPrimario = await this.puntosMudrasRepo.findOne({ where: { nombre: 'Depósito Primario' } });
         if (!depositoPrimario) {
@@ -86,13 +87,13 @@ let SeedService = SeedService_1 = class SeedService {
         const adminEmail = 'administrador@mudras.com';
         const adminUsername = 'administrador.mudras';
         const rawPassword = 'Cambiar123!';
-        let adminRole = await this.roleRepo.findOne({ where: { slug: 'admin' } });
+        let adminRole = await this.roleRepo.findOne({ where: { slug: 'administrador' } });
         if (!adminRole) {
             this.logger.log('Creando rol admin...');
             adminRole = this.roleRepo.create({
                 id: (0, crypto_1.randomUUID)(),
                 name: 'Administrador',
-                slug: 'admin',
+                slug: 'administrador',
             });
             await this.roleRepo.save(adminRole);
         }
@@ -178,7 +179,7 @@ let SeedService = SeedService_1 = class SeedService {
             { r: 'dashboard', a: ['read'] },
             { r: 'usuarios', a: ['read', 'create', 'update', 'delete'] },
             { r: 'roles', a: ['read', 'create', 'update', 'delete'] },
-            { r: 'productos', a: ['read', 'create', 'update', 'delete'] },
+            { r: 'productos', a: ['read', 'create', 'delete', 'update', 'update:precios', 'update:costos', 'update:info', 'update:stock'] },
             { r: 'stock', a: ['read', 'update'] },
             { r: 'depositos', a: ['read', 'create', 'update'] },
             { r: 'puntos_venta', a: ['read', 'create', 'update'] },
@@ -301,6 +302,7 @@ let SeedService = SeedService_1 = class SeedService {
                 'promociones:read', 'promociones:create', 'promociones:update',
                 'tienda_online:read',
                 'productos:read',
+                'productos:update:info',
                 'dashboard:read'
             ];
             for (const t of targets)
@@ -308,6 +310,67 @@ let SeedService = SeedService_1 = class SeedService {
                     await assign(roles['disenadora'], permsCache[t]);
         }
         this.logger.log('✅ RBAC Full Inicializado.');
+    }
+    async seedVendedores() {
+        const vendedores = [
+            { nombre: 'Carlos', username: 'carlos', email: 'carlos@mudras.com', pass: 'Carlos123!' },
+            { nombre: 'Graciela', username: 'graciela', email: 'graciela@mudras.com', pass: 'Graciela123!' }
+        ];
+        let cajeroRole = await this.roleRepo.findOne({ where: { slug: 'cajero' } });
+        if (!cajeroRole) {
+            this.logger.warn('⚠️ Rol cajero no encontrado al crear vendedores. Creándolo...');
+            cajeroRole = this.roleRepo.create({
+                id: (0, crypto_1.randomUUID)(),
+                name: 'Cajero / Vendedor',
+                slug: 'cajero',
+            });
+            await this.roleRepo.save(cajeroRole);
+        }
+        for (const v of vendedores) {
+            let userAuth = await this.userAuthRepo.findOne({ where: { username: v.username } });
+            if (!userAuth) {
+                const hashedPassword = await bcrypt.hash(v.pass, 10);
+                userAuth = this.userAuthRepo.create({
+                    id: (0, crypto_1.randomUUID)(),
+                    username: v.username,
+                    email: v.email,
+                    displayName: v.nombre,
+                    passwordHash: hashedPassword,
+                    userType: 'EMPRESA',
+                    isActive: true,
+                    mustChangePassword: false,
+                });
+                await this.userAuthRepo.save(userAuth);
+                await this.userRoleRepo.save(this.userRoleRepo.create({
+                    userId: userAuth.id,
+                    roleId: cajeroRole.id
+                }));
+                this.logger.log(`✅ UserAuth creado: ${v.username}`);
+            }
+            let usuarioLegacy = await this.usuarioRepo.findOne({ where: { username: v.username } });
+            if (!usuarioLegacy) {
+                const hashedPassword = await bcrypt.hash(v.pass, 10);
+                usuarioLegacy = this.usuarioRepo.create({
+                    username: v.username,
+                    nombre: v.nombre,
+                    apellido: 'Vendedor',
+                    email: v.email,
+                    password: hashedPassword,
+                    rol: usuario_entity_1.RolUsuario.CAJA,
+                    estado: usuario_entity_1.EstadoUsuario.ACTIVO,
+                    salario: 0
+                });
+                await this.usuarioRepo.save(usuarioLegacy);
+                this.logger.log(`✅ Usuario legacy creado: ${v.username}`);
+            }
+            const map = await this.usuarioAuthMapRepo.findOne({ where: { authUserId: userAuth.id } });
+            if (!map && usuarioLegacy) {
+                await this.usuarioAuthMapRepo.save({
+                    usuarioId: usuarioLegacy.id,
+                    authUserId: userAuth.id
+                });
+            }
+        }
     }
     async seedProducoDemo() {
         const demoCodigo = 'DEMO001';

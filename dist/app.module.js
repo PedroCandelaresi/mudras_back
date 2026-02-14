@@ -33,6 +33,7 @@ const users_auth_module_1 = require("./modules/users-auth/users-auth.module");
 const roles_module_1 = require("./modules/roles/roles.module");
 const permissions_module_1 = require("./modules/permissions/permissions.module");
 const seed_module_1 = require("./modules/seed/seed.module");
+const marcas_module_1 = require("./modules/marcas/marcas.module");
 const articulo_entity_1 = require("./modules/articulos/entities/articulo.entity");
 const proveedor_entity_1 = require("./modules/proveedores/entities/proveedor.entity");
 const stock_entity_1 = require("./modules/stock/entities/stock.entity");
@@ -162,6 +163,7 @@ exports.AppModule = AppModule = __decorate([
             roles_module_1.RolesModule,
             permissions_module_1.PermissionsModule,
             seed_module_1.SeedModule,
+            marcas_module_1.MarcasModule,
         ],
         providers: [date_scalar_1.DateTimeScalar],
     })

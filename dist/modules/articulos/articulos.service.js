@@ -284,7 +284,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             patch.ImpuestoPorcentual = actualizarArticuloDto.ImpuestoPorcentual;
         if (actualizarArticuloDto.Unidad != null)
             patch.Unidad = actualizarArticuloDto.Unidad;
-        if (actualizarArticuloDto.idProveedor != null)
+        if (actualizarArticuloDto.idProveedor !== undefined)
             patch.idProveedor = actualizarArticuloDto.idProveedor;
         if (actualizarArticuloDto.Lista2 != null)
             patch.Lista2 = actualizarArticuloDto.Lista2;
@@ -363,8 +363,23 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             }
             queryBuilder.andWhere('articulo.Rubro = :rubroFiltrado', { rubroFiltrado: rubro.Rubro });
         }
+        if (filtros.rubroIds && filtros.rubroIds.length > 0) {
+            const rubros = await this.rubrosRepository.createQueryBuilder('r')
+                .where('r.Id IN (:...ids)', { ids: filtros.rubroIds })
+                .getMany();
+            if (rubros.length > 0) {
+                const nombresRubros = rubros.map(r => r.Rubro);
+                queryBuilder.andWhere('articulo.Rubro IN (:...nombresRubros)', { nombresRubros });
+            }
+            else {
+                queryBuilder.andWhere('1=0');
+            }
+        }
         if (filtros.proveedorId) {
             queryBuilder.andWhere('articulo.idProveedor = :proveedorId', { proveedorId: filtros.proveedorId });
+        }
+        if (filtros.proveedorIds && filtros.proveedorIds.length > 0) {
+            queryBuilder.andWhere('articulo.idProveedor IN (:...provIds)', { provIds: filtros.proveedorIds });
         }
         const totalStockSubquery = this.stockSumSubquery;
         if (filtros.soloConStock) {

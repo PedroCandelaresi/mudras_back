@@ -10,6 +10,7 @@ export declare class PermissionPublic {
     resource: string;
     action: string;
     attributes: string;
+    description: string;
 }
 export declare class RolesResolver {
     private readonly rolesService;

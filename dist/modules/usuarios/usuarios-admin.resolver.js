@@ -85,8 +85,7 @@ let UsuariosAdminResolver = class UsuariosAdminResolver {
         }
     }
     async usuariosCajaAuth(rolSlug) {
-        const slug = (rolSlug && rolSlug.trim()) || 'caja_registradora';
-        const users = await this.usersService.listarEmpresaPorRolSlug(slug);
+        const users = await this.usersService.listarEmpresaPorRolSlug(rolSlug);
         return users.map((u) => ({ id: u.id, username: u.username, email: u.email, displayName: u.displayName }));
     }
 };

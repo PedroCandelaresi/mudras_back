@@ -5,6 +5,8 @@ export declare class FiltrosArticuloDto {
     marca?: string;
     rubroId?: number;
     proveedorId?: number;
+    rubroIds?: number[];
+    proveedorIds?: number[];
     soloConStock?: boolean;
     soloStockBajo?: boolean;
     soloSinStock?: boolean;

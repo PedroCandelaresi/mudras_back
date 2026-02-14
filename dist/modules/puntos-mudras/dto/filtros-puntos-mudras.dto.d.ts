@@ -1,4 +1,5 @@
 import { TipoPuntoMudras } from '../entities/punto-mudras.entity';
+import { TipoMovimientoStockPunto } from '../entities/movimiento-stock-punto.entity';
 export declare class FiltrosPuntosMudrasInput {
     tipo?: TipoPuntoMudras;
     activo?: boolean;
@@ -16,7 +17,7 @@ export declare class FiltrosStockInput {
     offset?: number;
 }
 export declare class FiltrosMovimientosInput {
-    tipoMovimiento?: string;
+    tipoMovimiento?: TipoMovimientoStockPunto;
     fechaDesde?: string;
     fechaHasta?: string;
     articuloId?: number;

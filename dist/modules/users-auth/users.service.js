@@ -28,13 +28,16 @@ let UsersService = class UsersService {
         this.rolesRepo = rolesRepo;
     }
     async listarEmpresaPorRolSlug(rolSlug) {
-        const rows = await this.usersRepo
+        const qb = this.usersRepo
             .createQueryBuilder('u')
             .leftJoin('u.userRoles', 'ur')
             .leftJoin('ur.role', 'r')
             .where('u.userType = :typ', { typ: 'EMPRESA' })
-            .andWhere('u.isActive = :act', { act: true })
-            .andWhere('r.slug = :slug', { slug: rolSlug })
+            .andWhere('u.isActive = :act', { act: true });
+        if (rolSlug) {
+            qb.andWhere('r.slug = :slug', { slug: rolSlug });
+        }
+        const rows = await qb
             .orderBy('u.displayName', 'ASC')
             .getMany();
         return rows;

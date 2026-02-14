@@ -92,6 +92,7 @@ __decorate([
 ], VentaCaja.prototype, "puntoMudras", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'cliente_id', nullable: true }),
+    (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", Number)
 ], VentaCaja.prototype, "clienteId", void 0);
 __decorate([
@@ -101,6 +102,26 @@ __decorate([
     __metadata("design:type", cliente_entity_1.Cliente)
 ], VentaCaja.prototype, "cliente", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'nombre_cliente', nullable: true, length: 150 }),
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], VentaCaja.prototype, "nombreCliente", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'cuit_cliente', nullable: true, length: 15 }),
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], VentaCaja.prototype, "cuitCliente", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'razon_social_cliente', nullable: true, length: 150 }),
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], VentaCaja.prototype, "razonSocialCliente", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'tipo_cliente_snapshot', nullable: true, length: 50 }),
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], VentaCaja.prototype, "tipoClienteSnapshot", void 0);
+__decorate([
     (0, typeorm_1.Column)({ name: 'usuarioAuthId', type: 'char', length: 36 }),
     (0, graphql_1.Field)(),
     __metadata("design:type", String)
@@ -108,6 +129,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.UserAuth),
     (0, typeorm_1.JoinColumn)({ name: 'usuarioAuthId' }),
+    (0, graphql_1.Field)(() => user_entity_1.UserAuth),
     __metadata("design:type", user_entity_1.UserAuth)
 ], VentaCaja.prototype, "usuarioAuth", void 0);
 __decorate([

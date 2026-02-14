@@ -15,7 +15,9 @@ export declare class ResumenVenta {
     id: number;
     numeroVenta: string;
     fecha: Date;
-    nombreCliente: string;
+    nombreCliente?: string;
+    cuitCliente?: string;
+    razonSocialCliente?: string;
     nombreUsuario: string;
     nombrePuesto: string;
     total: number;
@@ -24,9 +26,14 @@ export declare class ResumenVenta {
     cantidadItems: number;
     mediosPago: string[];
 }
+export declare class ResumenHistorialVentas {
+    totalVentas: number;
+    montoTotal: number;
+}
 export declare class HistorialVentasResponse {
     ventas: ResumenVenta[];
     total: number;
     totalPaginas: number;
     paginaActual: number;
+    resumen?: ResumenHistorialVentas;
 }

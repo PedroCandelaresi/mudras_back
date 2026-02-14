@@ -28,6 +28,10 @@ export declare class VentaCaja {
     puntoMudras: PuntoMudras;
     clienteId?: number | null;
     cliente?: Cliente | null;
+    nombreCliente?: string;
+    cuitCliente?: string;
+    razonSocialCliente?: string;
+    tipoClienteSnapshot?: string;
     usuarioAuthId: string;
     usuarioAuth: UserAuth;
     subtotal: number;

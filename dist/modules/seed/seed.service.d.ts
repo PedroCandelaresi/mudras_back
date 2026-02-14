@@ -29,5 +29,6 @@ export declare class SeedService implements OnModuleInit {
     private seedPuntosMudras;
     private seedAdmin;
     private seedRBAC;
+    private seedVendedores;
     private seedProducoDemo;
 }

@@ -29,5 +29,7 @@ export declare class CrearVentaCajaInput {
     observaciones?: string;
     generarFactura: boolean;
     cuitCliente?: string;
+    nombreCliente?: string;
+    razonSocialCliente?: string;
     usuarioAuthId?: string;
 }

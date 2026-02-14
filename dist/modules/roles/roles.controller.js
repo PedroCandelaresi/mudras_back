@@ -22,7 +22,10 @@ let RolesController = class RolesController {
     constructor(rolesService) {
         this.rolesService = rolesService;
     }
-    listar() { return this.rolesService.listar(); }
+    listar() {
+        console.log('RolesController.listar called');
+        return this.rolesService.listar();
+    }
     listarPermisos() { return this.rolesService.listarPermisos(); }
     crear(dto) { return this.rolesService.crear(dto); }
     actualizar(id, dto) {

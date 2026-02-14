@@ -52,6 +52,18 @@ __decorate([
     __metadata("design:type", Number)
 ], FiltrosArticuloDto.prototype, "proveedorId", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => [graphql_1.Int], { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)({}, { each: true }),
+    __metadata("design:type", Array)
+], FiltrosArticuloDto.prototype, "rubroIds", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => [graphql_1.Int], { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)({}, { each: true }),
+    __metadata("design:type", Array)
+], FiltrosArticuloDto.prototype, "proveedorIds", void 0);
+__decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsBoolean)(),

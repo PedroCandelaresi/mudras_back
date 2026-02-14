@@ -181,6 +181,18 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
+], CrearVentaCajaInput.prototype, "nombreCliente", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CrearVentaCajaInput.prototype, "razonSocialCliente", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
 ], CrearVentaCajaInput.prototype, "usuarioAuthId", void 0);
 exports.CrearVentaCajaInput = CrearVentaCajaInput = __decorate([
     (0, graphql_1.InputType)()

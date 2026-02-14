@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HistorialVentasResponse = exports.ResumenVenta = exports.FiltrosHistorialInput = void 0;
+exports.HistorialVentasResponse = exports.ResumenHistorialVentas = exports.ResumenVenta = exports.FiltrosHistorialInput = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
 const venta_caja_entity_1 = require("../entities/venta-caja.entity");
@@ -92,9 +92,17 @@ __decorate([
     __metadata("design:type", Date)
 ], ResumenVenta.prototype, "fecha", void 0);
 __decorate([
-    (0, graphql_1.Field)(),
+    (0, graphql_1.Field)({ nullable: true }),
     __metadata("design:type", String)
 ], ResumenVenta.prototype, "nombreCliente", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], ResumenVenta.prototype, "cuitCliente", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], ResumenVenta.prototype, "razonSocialCliente", void 0);
 __decorate([
     (0, graphql_1.Field)(),
     __metadata("design:type", String)
@@ -126,6 +134,20 @@ __decorate([
 exports.ResumenVenta = ResumenVenta = __decorate([
     (0, graphql_1.ObjectType)()
 ], ResumenVenta);
+let ResumenHistorialVentas = class ResumenHistorialVentas {
+};
+exports.ResumenHistorialVentas = ResumenHistorialVentas;
+__decorate([
+    (0, graphql_1.Field)(),
+    __metadata("design:type", Number)
+], ResumenHistorialVentas.prototype, "totalVentas", void 0);
+__decorate([
+    (0, graphql_1.Field)(),
+    __metadata("design:type", Number)
+], ResumenHistorialVentas.prototype, "montoTotal", void 0);
+exports.ResumenHistorialVentas = ResumenHistorialVentas = __decorate([
+    (0, graphql_1.ObjectType)()
+], ResumenHistorialVentas);
 let HistorialVentasResponse = class HistorialVentasResponse {
 };
 exports.HistorialVentasResponse = HistorialVentasResponse;
@@ -145,6 +167,10 @@ __decorate([
     (0, graphql_1.Field)(),
     __metadata("design:type", Number)
 ], HistorialVentasResponse.prototype, "paginaActual", void 0);
+__decorate([
+    (0, graphql_1.Field)(() => ResumenHistorialVentas, { nullable: true }),
+    __metadata("design:type", ResumenHistorialVentas)
+], HistorialVentasResponse.prototype, "resumen", void 0);
 exports.HistorialVentasResponse = HistorialVentasResponse = __decorate([
     (0, graphql_1.ObjectType)()
 ], HistorialVentasResponse);
