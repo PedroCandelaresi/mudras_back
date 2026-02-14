@@ -94,7 +94,7 @@ async function main() {
             usuario_auth_map_entity_1.UsuarioAuthMap,
             marca_entity_1.Marca,
         ],
-        synchronize: false,
+        synchronize: true,
     });
     try {
         await dataSource.initialize();

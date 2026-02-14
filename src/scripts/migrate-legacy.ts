@@ -105,7 +105,7 @@ async function main() {
             UsuarioAuthMap,
             Marca,
         ],
-        synchronize: false, // Don't sync, assume schema exists
+        synchronize: true, // Sync schema to ensure tables exist
     });
 
     try {
