@@ -326,6 +326,10 @@ export class CajaRegistradoraService {
       query.andWhere('pagos.medioPago = :medioPago', { medioPago: filtros.medioPago });
     }
 
+    if (filtros.numeroVenta) {
+      query.andWhere('venta.numeroVenta LIKE :numeroVenta', { numeroVenta: `%${filtros.numeroVenta}%` });
+    }
+
     const total = await query.getCount();
 
     // Calcular totales del periodo (clone query para no afectar paginación)

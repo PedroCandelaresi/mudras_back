@@ -40,6 +40,11 @@ export class FiltrosHistorialInput {
   @IsEnum(TipoVentaCaja)
   tipoVenta?: TipoVentaCaja;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  numeroVenta?: string;
+
   @Field({ defaultValue: 50 })
   @IsNumber()
   limite: number = 50;
