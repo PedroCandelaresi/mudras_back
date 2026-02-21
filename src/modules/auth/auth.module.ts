@@ -39,7 +39,7 @@ if (
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'change_me',
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1d' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '12h' },
     }),
   ],
   controllers: [AuthController],

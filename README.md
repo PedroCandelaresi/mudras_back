@@ -44,7 +44,7 @@ npm run start:dev
 ## Autenticación y OAuth
 
 ### JWT + Refresh Tokens
-- Access token firmado con `JWT_SECRET` (expira según `JWT_EXPIRES_IN`, p.ej. `15m`).
+- Access token firmado con `JWT_SECRET` (expira según `JWT_EXPIRES_IN`, p.ej. `12h`).
 - Refresh token opaco persistido en tabla `mudras_auth_refresh_tokens` con hash y rotación (expira según `JWT_REFRESH_EXPIRES_IN`, p.ej. `7d`).
 - Endpoints:
   - `POST /auth/login` (internos EMPRESA, usuario/contraseña)
@@ -55,7 +55,7 @@ npm run start:dev
 Variables (.env):
 ```
 JWT_SECRET=change_me
-JWT_EXPIRES_IN=15m
+JWT_EXPIRES_IN=12h
 JWT_REFRESH_EXPIRES_IN=7d
 ```
 
