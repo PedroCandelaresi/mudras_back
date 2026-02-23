@@ -128,12 +128,6 @@ export class CajaRegistradoraService {
         }
       }
 
-      // Validación: si hay pagos no efectivos, requerir DNI/CUIT del cliente
-      const hayNoEfectivo = (input.pagos || []).some((p) => String(p.medioPago).toLowerCase() !== 'efectivo');
-      if (hayNoEfectivo && !(input.cuitCliente && String(input.cuitCliente).trim().length >= 7)) {
-        throw new BadRequestException('DNI/CUIT del cliente requerido para pagos no en efectivo');
-      }
-
       // Generar número de venta
       const numeroVenta = await this.generarNumeroVenta(queryRunner);
       const clienteVentaId = await this.obtenerClienteParaVenta(queryRunner, input.clienteId);
