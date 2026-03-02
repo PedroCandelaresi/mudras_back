@@ -31,6 +31,11 @@ export class CrearArticuloDto {
   @IsString()
   Marca?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Autor?: string;
+
   @Field(() => Float)
   @IsNumber()
   @Min(0)
@@ -139,6 +144,16 @@ export class CrearArticuloDto {
   @IsOptional()
   @IsString()
   Ubicacion?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Estanteria?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Estante?: string;
 
   @Field({ nullable: true })
   @IsOptional()

@@ -6,6 +6,7 @@ export declare class ActualizarArticuloDto {
     ImagenUrl?: string;
     Descripcion?: string;
     Marca?: string;
+    Autor?: string;
     precioVenta?: number;
     PrecioCompra?: number;
     stock?: number;
@@ -27,6 +28,8 @@ export declare class ActualizarArticuloDto {
     PrecioListaProveedor?: number;
     StockInicial?: number;
     Ubicacion?: string;
+    Estanteria?: string;
+    Estante?: string;
     Lista1EnDolares?: boolean;
     Dto1?: number;
     Dto2?: number;

@@ -8,6 +8,7 @@ export declare class FiltrosHistorialInput {
     medioPago?: MedioPagoCaja;
     estado?: EstadoVentaCaja;
     tipoVenta?: TipoVentaCaja;
+    numeroVenta?: string;
     limite: number;
     offset: number;
 }

@@ -25,6 +25,11 @@ export class FiltrosArticuloDto {
 
   @Field({ nullable: true })
   @IsOptional()
+  @IsString()
+  autor?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
   @IsNumber()
   rubroId?: number;
 

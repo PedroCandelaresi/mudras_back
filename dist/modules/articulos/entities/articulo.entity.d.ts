@@ -8,6 +8,7 @@ export declare class Articulo {
     Rubro: string;
     Descripcion: string;
     Marca: string;
+    Autor: string;
     PrecioVenta: number;
     PrecioCompra: number;
     StockMinimo: number;
@@ -30,6 +31,8 @@ export declare class Articulo {
     PrecioListaProveedor: number;
     StockInicial: number;
     Ubicacion: string;
+    Estanteria: string;
+    Estante: string;
     Lista1EnDolares: boolean;
     Dto1: number;
     Dto2: number;

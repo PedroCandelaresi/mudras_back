@@ -59,6 +59,12 @@ __decorate([
     __metadata("design:type", String)
 ], ActualizarArticuloDto.prototype, "Marca", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ActualizarArticuloDto.prototype, "Autor", void 0);
+__decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsNumber)(),
@@ -191,6 +197,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ActualizarArticuloDto.prototype, "Ubicacion", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ActualizarArticuloDto.prototype, "Estanteria", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ActualizarArticuloDto.prototype, "Estante", void 0);
 __decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),

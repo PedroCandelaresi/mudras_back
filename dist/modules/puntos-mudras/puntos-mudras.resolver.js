@@ -26,6 +26,7 @@ const crear_punto_mudras_dto_1 = require("./dto/crear-punto-mudras.dto");
 const actualizar_punto_mudras_dto_1 = require("./dto/actualizar-punto-mudras.dto");
 const transferir_stock_dto_1 = require("./dto/transferir-stock.dto");
 const asignar_stock_masivo_dto_1 = require("./dto/asignar-stock-masivo.dto");
+const actualizar_stock_punto_dto_1 = require("./dto/actualizar-stock-punto.dto");
 const articulo_entity_1 = require("../articulos/entities/articulo.entity");
 const movimiento_stock_punto_entity_1 = require("./entities/movimiento-stock-punto.entity");
 const filtros_puntos_mudras_dto_1 = require("./dto/filtros-puntos-mudras.dto");
@@ -277,8 +278,8 @@ let PuntosMudrasResolver = class PuntosMudrasResolver {
         await this.puntosMudrasService.eliminar(id);
         return true;
     }
-    async modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad) {
-        return await this.puntosMudrasService.modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad);
+    async modificarStockPunto(input) {
+        return await this.puntosMudrasService.modificarStockPunto(input.puntoMudrasId, input.articuloId, input.nuevaCantidad, input.estanteria, input.estante);
     }
     async transferirStock(input) {
         await this.puntosMudrasService.transferirStock(input);
@@ -392,11 +393,9 @@ __decorate([
     (0, graphql_1.Mutation)(() => Boolean),
     (0, secret_key_decorator_1.RequireSecretKey)(),
     (0, permissions_decorator_1.Permisos)('stock.update'),
-    __param(0, (0, graphql_1.Args)('puntoMudrasId', { type: () => graphql_1.Int })),
-    __param(1, (0, graphql_1.Args)('articuloId', { type: () => graphql_1.Int })),
-    __param(2, (0, graphql_1.Args)('nuevaCantidad', { type: () => graphql_1.Float })),
+    __param(0, (0, graphql_1.Args)('input', new common_1.ValidationPipe())),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number, Number]),
+    __metadata("design:paramtypes", [actualizar_stock_punto_dto_1.ActualizarStockPuntoInput]),
     __metadata("design:returntype", Promise)
 ], PuntosMudrasResolver.prototype, "modificarStockPunto", null);
 __decorate([

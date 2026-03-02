@@ -171,6 +171,7 @@ export class ArticulosService {
       ImagenUrl: crearArticuloDto.ImagenUrl ?? null,
       Descripcion: crearArticuloDto.Descripcion,
       Marca: crearArticuloDto.Marca ?? null,
+      Autor: crearArticuloDto.Autor ?? null,
       PrecioVenta: crearArticuloDto.precioVenta,
       PrecioCompra: crearArticuloDto.PrecioCompra ?? null,
       StockMinimo: crearArticuloDto.stockMinimo,
@@ -280,6 +281,7 @@ export class ArticulosService {
     if (actualizarArticuloDto.ImagenUrl != null) patch.ImagenUrl = actualizarArticuloDto.ImagenUrl;
     if (actualizarArticuloDto.Descripcion != null) patch.Descripcion = actualizarArticuloDto.Descripcion;
     if (actualizarArticuloDto.Marca != null) patch.Marca = actualizarArticuloDto.Marca;
+    if (actualizarArticuloDto.Autor != null) patch.Autor = actualizarArticuloDto.Autor;
     if (actualizarArticuloDto.precioVenta != null) patch.PrecioVenta = actualizarArticuloDto.precioVenta;
     if (actualizarArticuloDto.PrecioCompra != null) patch.PrecioCompra = actualizarArticuloDto.PrecioCompra;
 
@@ -339,7 +341,7 @@ export class ArticulosService {
     // Aplicar filtros
     if (filtros.busqueda) {
       queryBuilder.andWhere(
-        '(articulo.Descripcion LIKE :busqueda OR articulo.Codigo LIKE :busqueda OR articulo.Marca LIKE :busqueda)',
+        '(articulo.Descripcion LIKE :busqueda OR articulo.Codigo LIKE :busqueda OR articulo.Marca LIKE :busqueda OR articulo.Autor LIKE :busqueda)',
         { busqueda: `%${filtros.busqueda}%` }
       );
     }
@@ -354,6 +356,10 @@ export class ArticulosService {
 
     if (filtros.marca) {
       queryBuilder.andWhere('articulo.Marca LIKE :marca', { marca: `%${filtros.marca}%` });
+    }
+
+    if (filtros.autor) {
+      queryBuilder.andWhere('articulo.Autor LIKE :autor', { autor: `%${filtros.autor}%` });
     }
 
 

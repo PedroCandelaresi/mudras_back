@@ -96,10 +96,6 @@ let CajaRegistradoraService = class CajaRegistradoraService {
                     await this.verificarStockDisponible(queryRunner, detalle.articuloId, cantidad, puntoMudrasId);
                 }
             }
-            const hayNoEfectivo = (input.pagos || []).some((p) => String(p.medioPago).toLowerCase() !== 'efectivo');
-            if (hayNoEfectivo && !(input.cuitCliente && String(input.cuitCliente).trim().length >= 7)) {
-                throw new common_1.BadRequestException('DNI/CUIT del cliente requerido para pagos no en efectivo');
-            }
             const numeroVenta = await this.generarNumeroVenta(queryRunner);
             const clienteVentaId = await this.obtenerClienteParaVenta(queryRunner, input.clienteId);
             let subtotal = 0;
@@ -225,6 +221,9 @@ let CajaRegistradoraService = class CajaRegistradoraService {
         }
         if (filtros.medioPago) {
             query.andWhere('pagos.medioPago = :medioPago', { medioPago: filtros.medioPago });
+        }
+        if (filtros.numeroVenta) {
+            query.andWhere('venta.numeroVenta LIKE :numeroVenta', { numeroVenta: `%${filtros.numeroVenta}%` });
         }
         const total = await query.getCount();
         const querySuma = query.clone();

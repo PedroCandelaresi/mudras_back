@@ -460,9 +460,11 @@ export class PuntosMudrasService {
   async modificarStockPunto(
     puntoMudrasId: number,
     articuloId: number,
-    nuevaCantidad: number
+    nuevaCantidad: number,
+    estanteria?: string,
+    estante?: string
   ): Promise<boolean> {
-    console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}`);
+    console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}, Estantería: ${estanteria}, Estante: ${estante}`);
 
     let stockRecord = await this.stockRepository.findOne({
       where: {
@@ -479,9 +481,17 @@ export class PuntosMudrasService {
         cantidad: Math.max(0, nuevaCantidad),
         stockMinimo: 0,
         stockMaximo: null,
+        estanteria,
+        estante,
       });
     } else {
       stockRecord.cantidad = Math.max(0, nuevaCantidad);
+      if (estanteria !== undefined) {
+        stockRecord.estanteria = estanteria;
+      }
+      if (estante !== undefined) {
+        stockRecord.estante = estante;
+      }
     }
 
     await this.stockRepository.save(stockRecord);

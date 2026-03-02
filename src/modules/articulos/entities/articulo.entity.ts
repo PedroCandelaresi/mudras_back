@@ -31,6 +31,10 @@ export class Articulo {
   @Column({ type: 'varchar', length: 20, nullable: true })
   Marca: string;
 
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  Autor: string;
+
   @Field(() => Float, { nullable: true })
   @Column({ type: 'float', nullable: true })
   PrecioVenta: number;
@@ -119,6 +123,14 @@ export class Articulo {
   @Field({ nullable: true })
   @Column({ type: 'varchar', length: 6, nullable: true })
   Ubicacion: string;
+
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  Estanteria: string;
+
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  Estante: string;
 
   @Field(() => Boolean, { nullable: true })
   @Column({ type: 'tinyint', default: 0 })

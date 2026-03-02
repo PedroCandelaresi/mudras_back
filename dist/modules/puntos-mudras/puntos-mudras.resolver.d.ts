@@ -4,6 +4,7 @@ import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
+import { ActualizarStockPuntoInput } from './dto/actualizar-stock-punto.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
 import { MovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
 import { FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
@@ -76,7 +77,7 @@ export declare class PuntosMudrasResolver {
     crearPuntoMudras(input: CrearPuntoMudrasDto): Promise<PuntoMudras>;
     actualizarPuntoMudras(input: ActualizarPuntoMudrasDto): Promise<PuntoMudras>;
     eliminarPuntoMudras(id: number): Promise<boolean>;
-    modificarStockPunto(puntoMudrasId: number, articuloId: number, nuevaCantidad: number): Promise<boolean>;
+    modificarStockPunto(input: ActualizarStockPuntoInput): Promise<boolean>;
     transferirStock(input: TransferirStockInput): Promise<boolean>;
     ajustarStock(input: AjustarStockInput): Promise<boolean>;
     asignarStockMasivo(input: AsignarStockMasivoInput): Promise<boolean>;

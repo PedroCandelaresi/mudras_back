@@ -47,6 +47,16 @@ __decorate([
     __metadata("design:type", Number)
 ], StockPuntoMudras.prototype, "stockMaximo", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true, name: 'estanteria' }),
+    __metadata("design:type", String)
+], StockPuntoMudras.prototype, "estanteria", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true, name: 'estante' }),
+    __metadata("design:type", String)
+], StockPuntoMudras.prototype, "estante", void 0);
+__decorate([
     (0, graphql_1.Field)(),
     (0, typeorm_1.UpdateDateColumn)({ name: 'fecha_actualizacion' }),
     __metadata("design:type", Date)

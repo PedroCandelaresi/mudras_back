@@ -39,6 +39,11 @@ export class ActualizarArticuloDto {
   @IsString()
   Marca?: string;
 
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Autor?: string;
+
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
@@ -150,6 +155,16 @@ export class ActualizarArticuloDto {
   @IsOptional()
   @IsString()
   Ubicacion?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Estanteria?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  Estante?: string;
 
   @Field({ nullable: true })
   @IsOptional()

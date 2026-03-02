@@ -11,6 +11,7 @@ import { CrearPuntoMudrasDto } from './dto/crear-punto-mudras.dto';
 import { ActualizarPuntoMudrasDto } from './dto/actualizar-punto-mudras.dto';
 import { TransferirStockInput, AjustarStockInput } from './dto/transferir-stock.dto';
 import { AsignarStockMasivoInput } from './dto/asignar-stock-masivo.dto';
+import { ActualizarStockPuntoInput } from './dto/actualizar-stock-punto.dto';
 import { Articulo } from '../articulos/entities/articulo.entity';
 import { MovimientoStockPunto } from './entities/movimiento-stock-punto.entity';
 import { FiltrosMovimientosInput } from './dto/filtros-puntos-mudras.dto';
@@ -255,11 +256,15 @@ export class PuntosMudrasResolver {
   @RequireSecretKey()
   @Permisos('stock.update')
   async modificarStockPunto(
-    @Args('puntoMudrasId', { type: () => Int }) puntoMudrasId: number,
-    @Args('articuloId', { type: () => Int }) articuloId: number,
-    @Args('nuevaCantidad', { type: () => Float }) nuevaCantidad: number,
+    @Args('input', new ValidationPipe()) input: ActualizarStockPuntoInput,
   ): Promise<boolean> {
-    return await this.puntosMudrasService.modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad);
+    return await this.puntosMudrasService.modificarStockPunto(
+      input.puntoMudrasId,
+      input.articuloId,
+      input.nuevaCantidad,
+      input.estanteria,
+      input.estante
+    );
   }
 
   @Mutation(() => Boolean)

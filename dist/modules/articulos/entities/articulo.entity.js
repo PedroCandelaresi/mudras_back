@@ -49,6 +49,11 @@ __decorate([
     __metadata("design:type", String)
 ], Articulo.prototype, "Marca", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 150, nullable: true }),
+    __metadata("design:type", String)
+], Articulo.prototype, "Autor", void 0);
+__decorate([
     (0, graphql_1.Field)(() => graphql_1.Float, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'float', nullable: true }),
     __metadata("design:type", Number)
@@ -157,6 +162,16 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'varchar', length: 6, nullable: true }),
     __metadata("design:type", String)
 ], Articulo.prototype, "Ubicacion", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Articulo.prototype, "Estanteria", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Articulo.prototype, "Estante", void 0);
 __decorate([
     (0, graphql_1.Field)(() => Boolean, { nullable: true }),
     (0, typeorm_1.Column)({ type: 'tinyint', default: 0 }),

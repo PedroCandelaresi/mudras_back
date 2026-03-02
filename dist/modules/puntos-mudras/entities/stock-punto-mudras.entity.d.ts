@@ -6,6 +6,8 @@ export declare class StockPuntoMudras {
     cantidad: number;
     stockMinimo: number;
     stockMaximo?: number;
+    estanteria?: string;
+    estante?: string;
     fechaActualizacion: Date;
     puntoMudras: PuntoMudras;
     articulo?: any;

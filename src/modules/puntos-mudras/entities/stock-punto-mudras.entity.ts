@@ -30,6 +30,14 @@ export class StockPuntoMudras {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'stock_maximo' })
   stockMaximo?: number;
 
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true, name: 'estanteria' })
+  estanteria?: string;
+
+  @Field({ nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true, name: 'estante' })
+  estante?: string;
+
   @Field()
   @UpdateDateColumn({ name: 'fecha_actualizacion' })
   fechaActualizacion: Date;

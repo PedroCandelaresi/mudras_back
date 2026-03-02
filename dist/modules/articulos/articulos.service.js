@@ -163,6 +163,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             ImagenUrl: crearArticuloDto.ImagenUrl ?? null,
             Descripcion: crearArticuloDto.Descripcion,
             Marca: crearArticuloDto.Marca ?? null,
+            Autor: crearArticuloDto.Autor ?? null,
             PrecioVenta: crearArticuloDto.precioVenta,
             PrecioCompra: crearArticuloDto.PrecioCompra ?? null,
             StockMinimo: crearArticuloDto.stockMinimo,
@@ -266,6 +267,8 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             patch.Descripcion = actualizarArticuloDto.Descripcion;
         if (actualizarArticuloDto.Marca != null)
             patch.Marca = actualizarArticuloDto.Marca;
+        if (actualizarArticuloDto.Autor != null)
+            patch.Autor = actualizarArticuloDto.Autor;
         if (actualizarArticuloDto.precioVenta != null)
             patch.PrecioVenta = actualizarArticuloDto.precioVenta;
         if (actualizarArticuloDto.PrecioCompra != null)
@@ -345,7 +348,7 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         const queryBuilder = this.articulosRepository.createQueryBuilder('articulo')
             .leftJoinAndSelect('articulo.proveedor', 'proveedor');
         if (filtros.busqueda) {
-            queryBuilder.andWhere('(articulo.Descripcion LIKE :busqueda OR articulo.Codigo LIKE :busqueda OR articulo.Marca LIKE :busqueda)', { busqueda: `%${filtros.busqueda}%` });
+            queryBuilder.andWhere('(articulo.Descripcion LIKE :busqueda OR articulo.Codigo LIKE :busqueda OR articulo.Marca LIKE :busqueda OR articulo.Autor LIKE :busqueda)', { busqueda: `%${filtros.busqueda}%` });
         }
         if (filtros.codigo) {
             queryBuilder.andWhere('articulo.Codigo LIKE :codigo', { codigo: `%${filtros.codigo}%` });
@@ -355,6 +358,9 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         }
         if (filtros.marca) {
             queryBuilder.andWhere('articulo.Marca LIKE :marca', { marca: `%${filtros.marca}%` });
+        }
+        if (filtros.autor) {
+            queryBuilder.andWhere('articulo.Autor LIKE :autor', { autor: `%${filtros.autor}%` });
         }
         if (filtros.rubroId) {
             const rubro = await this.rubrosRepository.findOne({ where: { Id: filtros.rubroId } });

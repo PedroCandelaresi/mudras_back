@@ -351,8 +351,8 @@ let PuntosMudrasService = class PuntosMudrasService {
             proveedor: record.proveedorNombre || 'Sin proveedor'
         }));
     }
-    async modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad) {
-        console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}`);
+    async modificarStockPunto(puntoMudrasId, articuloId, nuevaCantidad, estanteria, estante) {
+        console.log(`🔄 Modificando stock: Punto ${puntoMudrasId}, Artículo ${articuloId}, Nueva cantidad: ${nuevaCantidad}, Estantería: ${estanteria}, Estante: ${estante}`);
         let stockRecord = await this.stockRepository.findOne({
             where: {
                 puntoMudrasId: puntoMudrasId,
@@ -367,10 +367,18 @@ let PuntosMudrasService = class PuntosMudrasService {
                 cantidad: Math.max(0, nuevaCantidad),
                 stockMinimo: 0,
                 stockMaximo: null,
+                estanteria,
+                estante,
             });
         }
         else {
             stockRecord.cantidad = Math.max(0, nuevaCantidad);
+            if (estanteria !== undefined) {
+                stockRecord.estanteria = estanteria;
+            }
+            if (estante !== undefined) {
+                stockRecord.estante = estante;
+            }
         }
         await this.stockRepository.save(stockRecord);
         console.log(`✅ Stock actualizado exitosamente`);

@@ -64,6 +64,12 @@ __decorate([
     __metadata("design:type", String)
 ], FiltrosHistorialInput.prototype, "tipoVenta", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], FiltrosHistorialInput.prototype, "numeroVenta", void 0);
+__decorate([
     (0, graphql_1.Field)({ defaultValue: 50 }),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
