@@ -184,6 +184,8 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             PrecioListaProveedor: crearArticuloDto.PrecioListaProveedor ?? null,
             StockInicial: crearArticuloDto.StockInicial ?? crearArticuloDto.stock ?? null,
             Ubicacion: crearArticuloDto.Ubicacion ?? null,
+            Estanteria: crearArticuloDto.Estanteria ?? null,
+            Estante: crearArticuloDto.Estante ?? null,
             Lista1EnDolares: crearArticuloDto.Lista1EnDolares ?? false,
             Dto1: crearArticuloDto.Dto1 ?? null,
             Dto2: crearArticuloDto.Dto2 ?? null,
@@ -313,6 +315,10 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             patch.StockInicial = actualizarArticuloDto.StockInicial;
         if (actualizarArticuloDto.Ubicacion != null)
             patch.Ubicacion = actualizarArticuloDto.Ubicacion;
+        if (actualizarArticuloDto.Estanteria != null)
+            patch.Estanteria = actualizarArticuloDto.Estanteria;
+        if (actualizarArticuloDto.Estante != null)
+            patch.Estante = actualizarArticuloDto.Estante;
         if (actualizarArticuloDto.Lista1EnDolares != null)
             patch.Lista1EnDolares = actualizarArticuloDto.Lista1EnDolares;
         if (actualizarArticuloDto.Dto1 != null)
