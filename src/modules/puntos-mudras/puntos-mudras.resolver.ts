@@ -78,6 +78,12 @@ export class ArticuloConStockPuntoMudras {
   @Field(() => Float)
   stockTotal: number;
 
+  @Field({ nullable: true })
+  estanteria?: string;
+
+  @Field({ nullable: true })
+  estante?: string;
+
   @Field(() => RubroInfo, { nullable: true })
   rubro?: RubroInfo;
 

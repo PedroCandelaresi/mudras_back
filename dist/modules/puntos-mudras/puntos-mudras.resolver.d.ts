@@ -32,6 +32,8 @@ export declare class ArticuloConStockPuntoMudras {
     precio: number;
     stockAsignado: number;
     stockTotal: number;
+    estanteria?: string;
+    estante?: string;
     rubro?: RubroInfo;
     articulo?: Articulo;
 }

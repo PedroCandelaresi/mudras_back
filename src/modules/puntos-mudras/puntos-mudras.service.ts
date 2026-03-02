@@ -244,6 +244,8 @@ export class PuntosMudrasService {
         'stock.articuloId',
         'stock.cantidad',
         'stock.stockMinimo',
+        'stock.estanteria',
+        'stock.estante',
         'articulo.id',
         'articulo.Codigo',
         'articulo.Descripcion',
@@ -268,6 +270,8 @@ export class PuntosMudrasService {
       precio: parseFloat(record.articulo_PrecioVenta || '0'),
       stockAsignado: parseFloat(record.stock_cantidad || '0'),
       stockTotal: 0, // Deprecated global stock
+      estanteria: record.stock_estanteria ?? null,
+      estante: record.stock_estante ?? null,
       rubro: record.articulo_Rubro || record.rubro_Rubro
         ? {
           id: record.rubro_Id || 0,

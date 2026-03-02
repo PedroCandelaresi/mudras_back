@@ -120,6 +120,14 @@ __decorate([
     __metadata("design:type", Number)
 ], ArticuloConStockPuntoMudras.prototype, "stockTotal", void 0);
 __decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], ArticuloConStockPuntoMudras.prototype, "estanteria", void 0);
+__decorate([
+    (0, graphql_1.Field)({ nullable: true }),
+    __metadata("design:type", String)
+], ArticuloConStockPuntoMudras.prototype, "estante", void 0);
+__decorate([
     (0, graphql_1.Field)(() => RubroInfo, { nullable: true }),
     __metadata("design:type", RubroInfo)
 ], ArticuloConStockPuntoMudras.prototype, "rubro", void 0);
