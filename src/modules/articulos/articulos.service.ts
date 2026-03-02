@@ -366,6 +366,15 @@ export class ArticulosService {
       queryBuilder.andWhere('articulo.Autor LIKE :autor', { autor: `%${filtros.autor}%` });
     }
 
+    if (filtros.autores && filtros.autores.length > 0) {
+      const autoresNormalizados = filtros.autores
+        .map((autor) => (autor ?? '').trim())
+        .filter((autor) => autor.length > 0);
+      if (autoresNormalizados.length > 0) {
+        queryBuilder.andWhere('articulo.Autor IN (:...autores)', { autores: autoresNormalizados });
+      }
+    }
+
 
     if (filtros.rubroId) {
       const rubro = await this.rubrosRepository.findOne({ where: { Id: filtros.rubroId } });

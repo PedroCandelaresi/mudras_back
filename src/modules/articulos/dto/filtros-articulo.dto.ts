@@ -28,6 +28,11 @@ export class FiltrosArticuloDto {
   @IsString()
   autor?: string;
 
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsString({ each: true })
+  autores?: string[];
+
   @Field({ nullable: true })
   @IsOptional()
   @IsNumber()
