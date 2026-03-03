@@ -19,7 +19,8 @@
     "migration:run": "ts-node ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
     "migration:revert": "ts-node ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
     "migration:show": "ts-node ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts",
-    "migration:legacy": "node -r tsconfig-paths/register dist/scripts/migrate-legacy.js"
+    "migration:legacy": "node -r tsconfig-paths/register dist/scripts/migrate-legacy.js",
+    "script:fix-libros-autor": "ts-node src/scripts/fix-libros-autor.ts"
   },
   "keywords": [],
   "author": "",
