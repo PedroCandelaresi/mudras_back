@@ -23,6 +23,11 @@ export class FiltrosArticuloDto {
   @IsString()
   marca?: string;
 
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsString({ each: true })
+  marcas?: string[];
+
   @Field({ nullable: true })
   @IsOptional()
   @IsString()

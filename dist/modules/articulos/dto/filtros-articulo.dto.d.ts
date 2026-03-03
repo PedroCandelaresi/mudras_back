@@ -3,6 +3,7 @@ export declare class FiltrosArticuloDto {
     codigo?: string;
     descripcion?: string;
     marca?: string;
+    marcas?: string[];
     autor?: string;
     autores?: string[];
     rubroId?: number;

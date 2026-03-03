@@ -40,6 +40,12 @@ __decorate([
     __metadata("design:type", String)
 ], FiltrosArticuloDto.prototype, "marca", void 0);
 __decorate([
+    (0, graphql_1.Field)(() => [String], { nullable: true }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], FiltrosArticuloDto.prototype, "marcas", void 0);
+__decorate([
     (0, graphql_1.Field)({ nullable: true }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

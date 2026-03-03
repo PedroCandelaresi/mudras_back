@@ -365,6 +365,16 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
         if (filtros.marca) {
             queryBuilder.andWhere('articulo.Marca LIKE :marca', { marca: `%${filtros.marca}%` });
         }
+        if (filtros.marcas && filtros.marcas.length > 0) {
+            const marcasNormalizadas = filtros.marcas
+                .map((marca) => (marca ?? '').trim().toLowerCase())
+                .filter((marca) => marca.length > 0);
+            if (marcasNormalizadas.length > 0) {
+                queryBuilder.andWhere('LOWER(TRIM(COALESCE(articulo.Marca, \'\'))) IN (:...marcas)', {
+                    marcas: marcasNormalizadas,
+                });
+            }
+        }
         if (filtros.autor) {
             queryBuilder.andWhere('articulo.Autor LIKE :autor', { autor: `%${filtros.autor}%` });
         }
