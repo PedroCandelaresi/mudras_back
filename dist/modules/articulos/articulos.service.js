@@ -267,9 +267,9 @@ let ArticulosService = ArticulosService_1 = class ArticulosService {
             patch.ImagenUrl = actualizarArticuloDto.ImagenUrl;
         if (actualizarArticuloDto.Descripcion != null)
             patch.Descripcion = actualizarArticuloDto.Descripcion;
-        if (actualizarArticuloDto.Marca != null)
+        if (actualizarArticuloDto.Marca !== undefined)
             patch.Marca = actualizarArticuloDto.Marca;
-        if (actualizarArticuloDto.Autor != null)
+        if (actualizarArticuloDto.Autor !== undefined)
             patch.Autor = actualizarArticuloDto.Autor;
         if (actualizarArticuloDto.precioVenta != null)
             patch.PrecioVenta = actualizarArticuloDto.precioVenta;
