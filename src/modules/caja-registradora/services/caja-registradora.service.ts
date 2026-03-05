@@ -39,7 +39,8 @@ export class CajaRegistradoraService {
   async buscarArticulos(input: BuscarArticuloInput): Promise<ArticuloConStock[]> {
     const query = this.articuloRepository.createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.rubro', 'rubro')
-      .leftJoinAndSelect('articulo.proveedor', 'proveedor');
+      .leftJoinAndSelect('articulo.proveedor', 'proveedor')
+      .where('articulo.Activo = true');
 
     if (input.codigoBarras) {
       query.andWhere('articulo.Codigo = :codigoBarras', { codigoBarras: input.codigoBarras });
@@ -119,6 +120,14 @@ export class CajaRegistradoraService {
           if (cantidad <= 0) {
             throw new BadRequestException('La cantidad de cada artículo debe ser mayor a 0');
           }
+
+          const articuloActivo = await queryRunner.manager.findOne(Articulo, {
+            where: { id: detalle.articuloId, Activo: true },
+          });
+          if (!articuloActivo) {
+            throw new BadRequestException(`El artículo ${detalle.articuloId} está inactivo o no existe`);
+          }
+
           await this.verificarStockDisponible(
             queryRunner,
             detalle.articuloId,

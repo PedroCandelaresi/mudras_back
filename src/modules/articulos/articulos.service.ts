@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Articulo } from './entities/articulo.entity';
 import { CrearArticuloDto } from './dto/crear-articulo.dto';
 import { ActualizarArticuloDto } from './dto/actualizar-articulo.dto';
 import { FiltrosArticuloDto } from './dto/filtros-articulo.dto';
 import { Rubro } from '../rubros/entities/rubro.entity';
 import { StockPuntoMudras } from '../puntos-mudras/entities/stock-punto-mudras.entity';
+import { MovimientoStockPunto, TipoMovimientoStockPunto } from '../puntos-mudras/entities/movimiento-stock-punto.entity';
 
 @Injectable()
 export class ArticulosService {
@@ -27,6 +28,40 @@ export class ArticulosService {
     }
 
     return value instanceof Date ? value : new Date(value);
+  }
+
+  private async resolveLegacyUsuarioId(manager: EntityManager, usuarioAuthId?: string): Promise<number | undefined> {
+    if (!usuarioAuthId) return undefined;
+
+    try {
+      const rows = await manager.query(
+        'SELECT usuario_id AS usuarioId FROM usuarios_auth_map WHERE auth_user_id = ? LIMIT 1',
+        [usuarioAuthId],
+      );
+      const usuarioIdRaw = rows?.[0]?.usuarioId;
+      const usuarioId = Number(usuarioIdRaw);
+      return Number.isFinite(usuarioId) ? usuarioId : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async registrarMovimientoStockLegacyBaja(
+    manager: EntityManager,
+    codigoArticulo: string,
+    stockAnterior: number,
+    usuarioId?: number,
+  ): Promise<void> {
+    try {
+      const codigo = String(codigoArticulo || '').substring(0, 20);
+      const fechaSql = new Date().toISOString().slice(0, 10);
+      await manager.query(
+        'INSERT INTO tbStock (Fecha, Codigo, Stock, StockAnterior, Usuario) VALUES (DATE(?), ?, ?, ?, ?)',
+        [fechaSql, codigo, 0, stockAnterior, usuarioId ?? null],
+      );
+    } catch {
+      // Evitar romper la baja lógica por una falla de compatibilidad legacy.
+    }
   }
 
   private async hydrateTotalStock(items?: Articulo | Articulo[] | null): Promise<void> {
@@ -57,6 +92,7 @@ export class ArticulosService {
 
   async findAll(): Promise<Articulo[]> {
     const articulos = await this.articulosRepository.find({
+      where: { Activo: true },
       relations: ['proveedor', 'rubro'],
       order: { id: 'ASC' },
     });
@@ -66,7 +102,7 @@ export class ArticulosService {
 
   async findOne(id: number): Promise<Articulo> {
     const articulo = await this.articulosRepository.findOne({
-      where: { id },
+      where: { id, Activo: true },
       relations: ['proveedor', 'rubro'],
     });
     await this.hydrateTotalStock(articulo);
@@ -75,7 +111,7 @@ export class ArticulosService {
 
   async findByCodigo(codigo: string): Promise<Articulo> {
     const articulo = await this.articulosRepository.findOne({
-      where: { Codigo: codigo },
+      where: { Codigo: codigo, Activo: true },
       relations: ['proveedor', 'rubro'],
     });
     await this.hydrateTotalStock(articulo);
@@ -84,7 +120,7 @@ export class ArticulosService {
 
   async findByRubro(rubro: string): Promise<Articulo[]> {
     const articulos = await this.articulosRepository.find({
-      where: { Rubro: rubro },
+      where: { Rubro: rubro, Activo: true },
       relations: ['proveedor', 'rubro'],
       order: { Descripcion: 'ASC' },
     });
@@ -96,7 +132,8 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where('articulo.Descripcion LIKE :descripcion', { descripcion: `%${descripcion}%` })
+      .where('articulo.Activo = true')
+      .andWhere('articulo.Descripcion LIKE :descripcion', { descripcion: `%${descripcion}%` })
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -105,7 +142,7 @@ export class ArticulosService {
 
   async findByProveedor(idProveedor: number): Promise<Articulo[]> {
     const articulos = await this.articulosRepository.find({
-      where: { idProveedor },
+      where: { idProveedor, Activo: true },
       relations: ['proveedor', 'rubro'],
       order: { Descripcion: 'ASC' },
     });
@@ -117,7 +154,8 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where(`${this.stockSumSubquery} > 0`)
+      .where('articulo.Activo = true')
+      .andWhere(`${this.stockSumSubquery} > 0`)
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -128,7 +166,8 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where(`${this.stockSumSubquery} = 0`)
+      .where('articulo.Activo = true')
+      .andWhere(`${this.stockSumSubquery} = 0`)
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -139,7 +178,8 @@ export class ArticulosService {
     const articulos = await this.articulosRepository
       .createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where(`${this.stockSumSubquery} > 0 AND ${this.stockSumSubquery} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
+      .where('articulo.Activo = true')
+      .andWhere(`${this.stockSumSubquery} > 0 AND ${this.stockSumSubquery} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
       .orderBy('articulo.Descripcion', 'ASC')
       .getMany();
     await this.hydrateTotalStock(articulos);
@@ -148,7 +188,7 @@ export class ArticulosService {
 
   async findEnPromocion(): Promise<Articulo[]> {
     const articulos = await this.articulosRepository.find({
-      where: { EnPromocion: true },
+      where: { EnPromocion: true, Activo: true },
       relations: ['proveedor', 'rubro'],
       order: { Descripcion: 'ASC' },
     });
@@ -205,6 +245,8 @@ export class ArticulosService {
       UsaTalle: crearArticuloDto.UsaTalle ?? false,
       Compuesto: crearArticuloDto.Compuesto ?? false,
       Combustible: crearArticuloDto.Combustible ?? false,
+      Activo: true,
+      FechaBaja: null,
     } as Partial<Articulo>);
 
     // Lógica de sincronización Rubro <-> rubroId
@@ -325,22 +367,84 @@ export class ArticulosService {
     });
   }
 
-  async eliminar(id: number): Promise<boolean> {
-    const articulo = await this.articulosRepository.findOne({ where: { id } });
+  async eliminar(id: number, usuarioAuthId?: string): Promise<boolean> {
+    return this.articulosRepository.manager.transaction(async (manager) => {
+      const articulosRepo = manager.getRepository(Articulo);
+      const stockRepo = manager.getRepository(StockPuntoMudras);
+      const movimientosRepo = manager.getRepository(MovimientoStockPunto);
 
-    if (!articulo) {
-      throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
-    }
+      const articulo = await articulosRepo.findOne({ where: { id } });
+      if (!articulo) {
+        throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
+      }
+      if (articulo.Activo === false) {
+        throw new BadRequestException(`El artículo con ID ${id} ya se encuentra dado de baja`);
+      }
 
-    // Eliminar físicamente ya que no tenemos campo estado
-    await this.articulosRepository.delete(id);
-    return true;
+      const usuarioId = await this.resolveLegacyUsuarioId(manager, usuarioAuthId);
+      const stockRegistros = await stockRepo.find({ where: { articuloId: id } });
+      const movimientos: Partial<MovimientoStockPunto>[] = [];
+
+      let stockTotalAnterior = 0;
+      for (const registro of stockRegistros) {
+        const cantidadAnterior = Number(registro.cantidad || 0);
+        stockTotalAnterior += cantidadAnterior;
+
+        if (cantidadAnterior !== 0) {
+          movimientos.push({
+            puntoMudrasDestinoId: registro.puntoMudrasId,
+            articuloId: id,
+            tipoMovimiento: TipoMovimientoStockPunto.AJUSTE,
+            cantidad: 0 - cantidadAnterior,
+            cantidadAnterior,
+            cantidadNueva: 0,
+            motivo: `Baja lógica del artículo ${articulo.Codigo || articulo.id}`,
+            referenciaExterna: `BAJA_ARTICULO_${id}`,
+            usuarioId,
+          });
+
+          registro.cantidad = 0;
+        }
+      }
+
+      if (movimientos.length === 0) {
+        movimientos.push({
+          articuloId: id,
+          tipoMovimiento: TipoMovimientoStockPunto.AJUSTE,
+          cantidad: 0,
+          cantidadAnterior: 0,
+          cantidadNueva: 0,
+          motivo: `Baja lógica del artículo ${articulo.Codigo || articulo.id}`,
+          referenciaExterna: `BAJA_ARTICULO_${id}`,
+          usuarioId,
+        });
+      }
+
+      await movimientosRepo.save(movimientos);
+      if (stockRegistros.length > 0) {
+        await stockRepo.save(stockRegistros);
+      }
+
+      articulo.Activo = false;
+      articulo.FechaBaja = new Date();
+      await articulosRepo.save(articulo);
+
+      await this.registrarMovimientoStockLegacyBaja(
+        manager,
+        articulo.Codigo ?? String(articulo.id),
+        stockTotalAnterior,
+        usuarioId,
+      );
+
+      return true;
+    });
   }
 
   async buscarConFiltros(filtros: FiltrosArticuloDto): Promise<{ articulos: Articulo[], total: number }> {
     this.logger.debug(`buscarConFiltros -> pagina=${filtros.pagina} limite=${filtros.limite} ordenarPor=${filtros.ordenarPor} dir=${filtros.direccionOrden} busqueda=${filtros.busqueda ?? ''}`);
     const queryBuilder = this.articulosRepository.createQueryBuilder('articulo')
-      .leftJoinAndSelect('articulo.proveedor', 'proveedor');
+      .leftJoinAndSelect('articulo.proveedor', 'proveedor')
+      .where('articulo.Activo = true');
 
     // Aplicar filtros
     if (filtros.busqueda) {
@@ -491,23 +595,27 @@ export class ArticulosService {
       valorTotalStock
     ] = await Promise.all([
       this.articulosRepository.count(),
-      this.articulosRepository.count(),
+      this.articulosRepository.count({ where: { Activo: true } }),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .where(`${stockSum} > 0`)
+        .where('articulo.Activo = true')
+        .andWhere(`${stockSum} > 0`)
         .getCount(),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .where(`${stockSum} = 0`)
+        .where('articulo.Activo = true')
+        .andWhere(`${stockSum} = 0`)
         .getCount(),
       this.articulosRepository
         .createQueryBuilder('articulo')
-        .where(`${stockSum} > 0 AND ${stockSum} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
+        .where('articulo.Activo = true')
+        .andWhere(`${stockSum} > 0 AND ${stockSum} <= articulo.StockMinimo AND articulo.StockMinimo > 0`)
         .getCount(),
-      this.articulosRepository.count({ where: { EnPromocion: true } }),
-      this.articulosRepository.count({ where: { EnPromocion: true } }),
+      this.articulosRepository.count({ where: { EnPromocion: true, Activo: true } }),
+      this.articulosRepository.count({ where: { EnPromocion: true, Activo: true } }),
       this.articulosRepository
         .createQueryBuilder('articulo')
+        .where('articulo.Activo = true')
         .select(`COALESCE(SUM(${stockSum} * articulo.PrecioVenta), 0)`, 'total')
         .getRawOne()
         .then(result => parseFloat(result.total) || 0)
@@ -536,7 +644,7 @@ export class ArticulosService {
 
   async buscarPorCodigoBarras(codigoBarras: string): Promise<Articulo> {
     return this.articulosRepository.findOne({
-      where: { Codigo: codigoBarras },
+      where: { Codigo: codigoBarras, Activo: true },
       relations: ['proveedor', 'rubro']
     });
   }
@@ -549,7 +657,7 @@ export class ArticulosService {
     descuento: number
   ): Promise<void> {
     const articulos = await this.articulosRepository.find({
-      where: { idProveedor: proveedorId, rubroId: rubroId },
+      where: { idProveedor: proveedorId, rubroId: rubroId, Activo: true },
       relations: ['rubro', 'proveedor'] // Traemos relaciones por si se necesitan para otros cálculos
     });
 

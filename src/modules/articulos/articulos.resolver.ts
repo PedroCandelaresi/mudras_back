@@ -8,6 +8,7 @@ import { FiltrosArticuloDto } from './dto/filtros-articulo.dto';
 import { RequireSecretKey } from '../../common/decorators/secret-key.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Permisos } from '../auth/decorators/permissions.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
@@ -98,8 +99,12 @@ export class ArticulosResolver {
   @Roles('administrador')
   @Permisos('productos.delete')
   @Mutation(() => Boolean)
-  eliminarArticulo(@Args('id', { type: () => Int }) id: number) {
-    return this.articulosService.eliminar(id);
+  eliminarArticulo(
+    @Args('id', { type: () => Int }) id: number,
+    @CurrentUser() usuario?: any,
+  ) {
+    const usuarioAuthId = typeof usuario?.sub === 'string' ? usuario.sub : undefined;
+    return this.articulosService.eliminar(id, usuarioAuthId);
   }
 
   @Query(() => ArticulosConPaginacion)

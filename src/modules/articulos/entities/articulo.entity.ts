@@ -172,6 +172,12 @@ export class Articulo {
   @Column({ type: 'tinyint', nullable: true })
   ImpuestoPorcentual: boolean;
 
+  @Column({ type: 'tinyint', default: 1 })
+  Activo: boolean;
+
+  @Column({ type: 'datetime', nullable: true })
+  FechaBaja?: Date;
+
 
   // Relaciones
   @Field(() => Proveedor, { nullable: true })

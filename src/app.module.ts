@@ -130,7 +130,8 @@ import { UsuarioAuthMap } from './modules/users-auth/entities/usuario-auth-map.e
         ProveedorRubro,
         UsuarioAuthMap,
       ],
-      synchronize: true, // Auto-create tables as requested
+      // En producción debe quedar desactivado para evitar cambios automáticos de esquema.
+      synchronize: (process.env.TYPEORM_SYNCHRONIZE ?? (process.env.NODE_ENV === 'production' ? 'false' : 'true')) === 'true',
     }),
 
     // Configuración GraphQL

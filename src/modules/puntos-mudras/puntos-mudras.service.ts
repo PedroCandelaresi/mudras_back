@@ -237,7 +237,7 @@ export class PuntosMudrasService {
     const stockRecords = await this.stockRepository
       .createQueryBuilder('stock')
       .leftJoinAndSelect('stock.puntoMudras', 'punto')
-      .innerJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId')
+      .innerJoin('mudras_articulos', 'articulo', 'articulo.id = stock.articuloId AND COALESCE(articulo.Activo, 1) = 1')
       .leftJoin('mudras_rubros', 'rubro', 'rubro.Rubro COLLATE utf8mb4_unicode_ci = articulo.Rubro COLLATE utf8mb4_unicode_ci')
       .select([
         'stock.id',
@@ -300,7 +300,7 @@ export class PuntosMudrasService {
       selectPuntos += `, COALESCE(SUM(CASE WHEN spm.punto_mudras_id = ${punto.id} THEN spm.cantidad END), 0) as 'stock_punto_${punto.id}'`;
     });
 
-    let whereClause = 'WHERE 1=1';
+    let whereClause = 'WHERE COALESCE(a.Activo, 1) = 1';
     const params: any[] = [];
 
     if (filtros?.busqueda) {
@@ -364,7 +364,7 @@ export class PuntosMudrasService {
         p.Nombre as nombre,
         p.Codigo as codigo
       FROM mudras_proveedores p
-      INNER JOIN mudras_articulos a ON a.idProveedor = p.IdProveedor
+      INNER JOIN mudras_articulos a ON a.idProveedor = p.IdProveedor AND COALESCE(a.Activo, 1) = 1
       INNER JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
       GROUP BY p.IdProveedor, p.Nombre, p.Codigo
       HAVING SUM(spm.cantidad) > 0
@@ -417,7 +417,7 @@ export class PuntosMudrasService {
       FROM mudras_articulos a
       LEFT JOIN mudras_proveedores p ON a.idProveedor = p.IdProveedor
       LEFT JOIN stock_puntos_mudras spm ON a.id = spm.articulo_id
-      WHERE 1=1
+      WHERE COALESCE(a.Activo, 1) = 1
     `;
 
     const params: any[] = [destinoId ?? 0];
@@ -857,8 +857,10 @@ export class PuntosMudrasService {
   private async inicializarStockPunto(puntoMudrasId: number): Promise<void> {
     console.log(`🔄 Inicializando stock para punto ${puntoMudrasId}`);
 
-    // Obtener todos los artículos (no hay campo Estado en la entidad actual)
-    const articulos = await this.articulosRepository.find();
+    // Solo inicializar stock de artículos activos.
+    const articulos = await this.articulosRepository.find({
+      where: { Activo: true },
+    });
 
     console.log(`📦 Encontrados ${articulos.length} artículos activos`);
 
