@@ -76,6 +76,11 @@ export class FiltrosArticuloDto {
   @Field({ nullable: true })
   @IsOptional()
   @IsBoolean()
+  soloBaja?: boolean;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
   soloEnPromocion?: boolean;
 
   @Field({ nullable: true })

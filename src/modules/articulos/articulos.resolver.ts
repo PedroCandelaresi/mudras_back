@@ -107,6 +107,14 @@ export class ArticulosResolver {
     return this.articulosService.eliminar(id, usuarioAuthId);
   }
 
+  @RequireSecretKey()
+  @Roles('administrador')
+  @Permisos('productos.update')
+  @Mutation(() => Boolean)
+  reactivarArticulo(@Args('id', { type: () => Int }) id: number) {
+    return this.articulosService.reactivar(id);
+  }
+
   @Query(() => ArticulosConPaginacion)
   @Permisos('productos.read')
   buscarArticulos(@Args('filtros') filtros: FiltrosArticuloDto) {

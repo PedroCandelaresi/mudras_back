@@ -440,11 +440,28 @@ export class ArticulosService {
     });
   }
 
+  async reactivar(id: number): Promise<boolean> {
+    const articulo = await this.articulosRepository.findOne({ where: { id } });
+    if (!articulo) {
+      throw new NotFoundException(`Artículo con ID ${id} no encontrado`);
+    }
+
+    if (articulo.Activo === true) {
+      return true;
+    }
+
+    articulo.Activo = true;
+    articulo.FechaBaja = null;
+    await this.articulosRepository.save(articulo);
+    return true;
+  }
+
   async buscarConFiltros(filtros: FiltrosArticuloDto): Promise<{ articulos: Articulo[], total: number }> {
     this.logger.debug(`buscarConFiltros -> pagina=${filtros.pagina} limite=${filtros.limite} ordenarPor=${filtros.ordenarPor} dir=${filtros.direccionOrden} busqueda=${filtros.busqueda ?? ''}`);
+    const soloBaja = filtros.soloBaja === true;
     const queryBuilder = this.articulosRepository.createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.proveedor', 'proveedor')
-      .where('articulo.Activo = true');
+      .where('articulo.Activo = :activo', { activo: !soloBaja });
 
     // Aplicar filtros
     if (filtros.busqueda) {
