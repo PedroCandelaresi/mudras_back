@@ -37,55 +37,77 @@ export class CreateUsuariosFromAuth20251014090000 implements MigrationInterface 
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
-    // Sembrar usuarios basados en mudras_auth_users (solo EMPRESA)
-    // Nota: usamos un hash por defecto (mismo del dump) para cumplir NOT NULL en password.
-    await queryRunner.query(`
-      INSERT INTO usuarios (nombre, apellido, username, email, password, rol, estado, salario)
-      SELECT
-        SUBSTRING_INDEX(COALESCE(u.display_name, u.username, 'Usuario'), ' ', 1) AS nombre,
-        TRIM(SUBSTRING(COALESCE(u.display_name, u.username, ''), LENGTH(SUBSTRING_INDEX(COALESCE(u.display_name, u.username, ''), ' ', 1)) + 1)) AS apellido,
-        COALESCE(u.username, CONCAT('user_', LEFT(u.id, 8))) AS username,
-        COALESCE(u.email, CONCAT(COALESCE(u.username, LEFT(u.id, 8)), '@mudras.local')) AS email,
-        '$2b$10$TU7AIbl2xuQxjV82whRkIe/D6c1q5MNszBnvos3jVRn3sKRV18nY2' AS password,
-        CASE
-          WHEN EXISTS (
-            SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
-            WHERE ur.user_id = u.id AND r.slug = 'administrador'
-          ) THEN 'administrador'
-          WHEN EXISTS (
-            SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
-            WHERE ur.user_id = u.id AND r.slug = 'caja_registradora'
-          ) THEN 'caja'
-          WHEN EXISTS (
-            SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
-            WHERE ur.user_id = u.id AND r.slug = 'deposito'
-          ) THEN 'deposito'
-          WHEN EXISTS (
-            SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
-            WHERE ur.user_id = u.id AND r.slug = 'disenadora'
-          ) THEN 'dis_grafico'
-          ELSE 'caja'
-        END AS rol,
-        CASE WHEN u.is_active = 1 THEN 'activo' ELSE 'inactivo' END AS estado,
-        0.00 AS salario
-      FROM mudras_auth_users u
-      WHERE u.user_type = 'EMPRESA'
-      ON DUPLICATE KEY UPDATE
-        nombre = VALUES(nombre),
-        apellido = VALUES(apellido),
-        email = VALUES(email),
-        rol = VALUES(rol),
-        estado = VALUES(estado),
-        actualizadoEn = CURRENT_TIMESTAMP(6);
+    const [authUsersExists] = await queryRunner.query(`
+      SELECT 1 AS ok
+      FROM INFORMATION_SCHEMA.TABLES
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mudras_auth_users'
+      LIMIT 1
+    `);
+    const [authRolesExists] = await queryRunner.query(`
+      SELECT 1 AS ok
+      FROM INFORMATION_SCHEMA.TABLES
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mudras_auth_roles'
+      LIMIT 1
+    `);
+    const [authUserRolesExists] = await queryRunner.query(`
+      SELECT 1 AS ok
+      FROM INFORMATION_SCHEMA.TABLES
+      WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'mudras_auth_user_roles'
+      LIMIT 1
     `);
 
-    // Mapear usuarios creados con sus IDs de auth por username
-    await queryRunner.query(`
-      INSERT IGNORE INTO usuarios_auth_map (usuario_id, auth_user_id)
-      SELECT u.id, au.id
-      FROM usuarios u
-      JOIN mudras_auth_users au ON au.username = u.username;
-    `);
+    // Si el esquema legacy de auth no existe, no intentamos migrar datos.
+    if (authUsersExists && authRolesExists && authUserRolesExists) {
+      // Sembrar usuarios basados en mudras_auth_users (solo EMPRESA)
+      // Nota: usamos un hash por defecto (mismo del dump) para cumplir NOT NULL en password.
+      await queryRunner.query(`
+        INSERT INTO usuarios (nombre, apellido, username, email, password, rol, estado, salario)
+        SELECT
+          SUBSTRING_INDEX(COALESCE(u.display_name, u.username, 'Usuario'), ' ', 1) AS nombre,
+          TRIM(SUBSTRING(COALESCE(u.display_name, u.username, ''), LENGTH(SUBSTRING_INDEX(COALESCE(u.display_name, u.username, ''), ' ', 1)) + 1)) AS apellido,
+          COALESCE(u.username, CONCAT('user_', LEFT(u.id, 8))) AS username,
+          COALESCE(u.email, CONCAT(COALESCE(u.username, LEFT(u.id, 8)), '@mudras.local')) AS email,
+          '$2b$10$TU7AIbl2xuQxjV82whRkIe/D6c1q5MNszBnvos3jVRn3sKRV18nY2' AS password,
+          CASE
+            WHEN EXISTS (
+              SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
+              WHERE ur.user_id = u.id AND r.slug = 'administrador'
+            ) THEN 'administrador'
+            WHEN EXISTS (
+              SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
+              WHERE ur.user_id = u.id AND r.slug = 'caja_registradora'
+            ) THEN 'caja'
+            WHEN EXISTS (
+              SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
+              WHERE ur.user_id = u.id AND r.slug = 'deposito'
+            ) THEN 'deposito'
+            WHEN EXISTS (
+              SELECT 1 FROM mudras_auth_user_roles ur JOIN mudras_auth_roles r ON r.id = ur.role_id
+              WHERE ur.user_id = u.id AND r.slug = 'disenadora'
+            ) THEN 'dis_grafico'
+            ELSE 'caja'
+          END AS rol,
+          CASE WHEN u.is_active = 1 THEN 'activo' ELSE 'inactivo' END AS estado,
+          0.00 AS salario
+        FROM mudras_auth_users u
+        WHERE u.user_type = 'EMPRESA'
+        ON DUPLICATE KEY UPDATE
+          nombre = VALUES(nombre),
+          apellido = VALUES(apellido),
+          email = VALUES(email),
+          rol = VALUES(rol),
+          estado = VALUES(estado),
+          actualizadoEn = CURRENT_TIMESTAMP(6);
+      `);
+
+      // Mapear usuarios creados con sus IDs de auth por username
+      await queryRunner.query(`
+        INSERT IGNORE INTO usuarios_auth_map (usuario_id, auth_user_id)
+        SELECT u.id, au.id
+        FROM usuarios u
+        JOIN mudras_auth_users au ON au.username = u.username;
+      `);
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -93,4 +115,3 @@ export class CreateUsuariosFromAuth20251014090000 implements MigrationInterface 
     await queryRunner.query(`DROP TABLE IF EXISTS usuarios`);
   }
 }
-
