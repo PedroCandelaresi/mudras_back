@@ -2,7 +2,7 @@ import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsEnum, IsNumber, IsString, IsOptional, IsArray, ValidateNested, Min, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TipoVentaCaja } from '../entities/venta-caja.entity';
-import { MedioPagoCaja } from '../entities/pago-caja.entity';
+import { MedioPagoCaja, SubmedioPagoCaja } from '../entities/pago-caja.entity';
 
 @InputType()
 export class DetalleVentaCajaInput {
@@ -43,6 +43,11 @@ export class PagoCajaInput {
   @Field(() => MedioPagoCaja)
   @IsEnum(MedioPagoCaja)
   medioPago: MedioPagoCaja;
+
+  @Field(() => SubmedioPagoCaja, { nullable: true })
+  @IsOptional()
+  @IsEnum(SubmedioPagoCaja)
+  submedioPago?: SubmedioPagoCaja;
 
   @Field()
   @IsNumber()

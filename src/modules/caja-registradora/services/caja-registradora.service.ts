@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, QueryRunner, Brackets } from 'typeorm';
 import { VentaCaja, EstadoVentaCaja, TipoVentaCaja } from '../entities/venta-caja.entity';
 import { DetalleVentaCaja } from '../entities/detalle-venta-caja.entity';
-import { PagoCaja } from '../entities/pago-caja.entity';
+import { PagoCaja, MedioPagoCaja, SubmedioPagoCaja } from '../entities/pago-caja.entity';
 import { MovimientoInventario, TipoMovimientoInventario } from '../entities/movimiento-inventario.entity';
 // import { PuestoVenta } from '../entities/puesto-venta.entity';
 import { PuntoMudras, TipoPuntoMudras } from '../../puntos-mudras/entities/punto-mudras.entity';
@@ -257,9 +257,13 @@ export class CajaRegistradoraService {
 
       // Crear pagos
       for (const pagoInput of input.pagos) {
+        const submedioPago = pagoInput.medioPago === MedioPagoCaja.QR
+          ? pagoInput.submedioPago
+          : undefined;
         const pago = queryRunner.manager.create(PagoCaja, {
           ventaId: ventaGuardada.id,
           medioPago: pagoInput.medioPago,
+          submedioPago,
           monto: Number(pagoInput.monto),
           marcaTarjeta: pagoInput.marcaTarjeta,
           ultimos4Digitos: pagoInput.ultimos4Digitos,
@@ -329,13 +333,20 @@ export class CajaRegistradoraService {
       query.andWhere('pagos.medioPago = :medioPago', { medioPago: filtros.medioPago });
     }
 
+    if (filtros.submedioPago) {
+      query.andWhere('pagos.submedioPago = :submedioPago', { submedioPago: filtros.submedioPago });
+    }
+
     if (filtros.numeroVenta?.trim()) {
-      const busqueda = `%${filtros.numeroVenta.trim()}%`;
+      query.andWhere('venta.numeroVenta LIKE :numeroVenta', { numeroVenta: `%${filtros.numeroVenta.trim()}%` });
+    }
+
+    if (filtros.busquedaArticulo?.trim()) {
+      const busquedaArticulo = `%${filtros.busquedaArticulo.trim()}%`;
       query.leftJoin('detalles.articulo', 'articulo');
       query.andWhere(new Brackets((qb) => {
-        qb.where('venta.numeroVenta LIKE :busqueda', { busqueda })
-          .orWhere('articulo.Codigo LIKE :busqueda', { busqueda })
-          .orWhere('articulo.Descripcion LIKE :busqueda', { busqueda });
+        qb.where('articulo.Codigo LIKE :busquedaArticulo', { busquedaArticulo })
+          .orWhere('articulo.Descripcion LIKE :busquedaArticulo', { busquedaArticulo });
       }));
     }
 
@@ -367,7 +378,14 @@ export class CajaRegistradoraService {
       estado: venta.estado,
       tipoVenta: venta.tipoVenta,
       cantidadItems: venta.detalles?.length || 0,
-      mediosPago: [...new Set(venta.pagos?.map(p => p.medioPago) || [])],
+      mediosPago: [...new Set((venta.pagos || []).map((p) => {
+        if (p.medioPago === MedioPagoCaja.QR) {
+          if (p.submedioPago === SubmedioPagoCaja.QR_MODO) return 'QR_MODO';
+          if (p.submedioPago === SubmedioPagoCaja.QR_MERCADOPAGO) return 'QR_MERCADOPAGO';
+          return 'QR';
+        }
+        return p.medioPago;
+      }))],
     }));
 
     return {

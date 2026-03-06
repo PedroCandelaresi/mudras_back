@@ -1,7 +1,7 @@
 import { InputType, Field, ObjectType } from '@nestjs/graphql';
 import { IsOptional, IsString, IsNumber, IsEnum, IsDateString } from 'class-validator';
 import { VentaCaja, EstadoVentaCaja, TipoVentaCaja } from '../entities/venta-caja.entity';
-import { MedioPagoCaja } from '../entities/pago-caja.entity';
+import { MedioPagoCaja, SubmedioPagoCaja } from '../entities/pago-caja.entity';
 
 @InputType()
 export class FiltrosHistorialInput {
@@ -30,6 +30,11 @@ export class FiltrosHistorialInput {
   @IsEnum(MedioPagoCaja)
   medioPago?: MedioPagoCaja;
 
+  @Field(() => SubmedioPagoCaja, { nullable: true })
+  @IsOptional()
+  @IsEnum(SubmedioPagoCaja)
+  submedioPago?: SubmedioPagoCaja;
+
   @Field(() => EstadoVentaCaja, { nullable: true })
   @IsOptional()
   @IsEnum(EstadoVentaCaja)
@@ -44,6 +49,11 @@ export class FiltrosHistorialInput {
   @IsOptional()
   @IsString()
   numeroVenta?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  busquedaArticulo?: string;
 
   @Field({ defaultValue: 50 })
   @IsNumber()
