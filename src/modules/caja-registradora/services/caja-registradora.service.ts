@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, QueryRunner } from 'typeorm';
+import { Repository, DataSource, QueryRunner, Brackets } from 'typeorm';
 import { VentaCaja, EstadoVentaCaja, TipoVentaCaja } from '../entities/venta-caja.entity';
 import { DetalleVentaCaja } from '../entities/detalle-venta-caja.entity';
 import { PagoCaja } from '../entities/pago-caja.entity';
@@ -329,8 +329,14 @@ export class CajaRegistradoraService {
       query.andWhere('pagos.medioPago = :medioPago', { medioPago: filtros.medioPago });
     }
 
-    if (filtros.numeroVenta) {
-      query.andWhere('venta.numeroVenta LIKE :numeroVenta', { numeroVenta: `%${filtros.numeroVenta}%` });
+    if (filtros.numeroVenta?.trim()) {
+      const busqueda = `%${filtros.numeroVenta.trim()}%`;
+      query.leftJoin('detalles.articulo', 'articulo');
+      query.andWhere(new Brackets((qb) => {
+        qb.where('venta.numeroVenta LIKE :busqueda', { busqueda })
+          .orWhere('articulo.Codigo LIKE :busqueda', { busqueda })
+          .orWhere('articulo.Descripcion LIKE :busqueda', { busqueda });
+      }));
     }
 
     const total = await query.getCount();
