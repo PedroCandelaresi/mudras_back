@@ -36,6 +36,34 @@ export class CajaRegistradoraService {
     private dataSource: DataSource,
   ) { }
 
+  private resolveQrSubmedioPago(submedioPago?: SubmedioPagoCaja | null): SubmedioPagoCaja {
+    return submedioPago || SubmedioPagoCaja.QR_MERCADOPAGO;
+  }
+
+  private mapPagoToHistorialMedio(pago?: Pick<PagoCaja, 'medioPago' | 'submedioPago'> | null): string | null {
+    if (!pago?.medioPago) return null;
+
+    if (pago.medioPago === MedioPagoCaja.QR) {
+      const submedioPago = this.resolveQrSubmedioPago(pago.submedioPago);
+      return submedioPago === SubmedioPagoCaja.QR_MODO ? 'QR_MODO' : 'QR_MERCADOPAGO';
+    }
+
+    return pago.medioPago;
+  }
+
+  private normalizeLegacyQrPagos<T extends { pagos?: PagoCaja[] | null }>(venta: T | null): T | null {
+    if (!venta?.pagos?.length) return venta;
+
+    venta.pagos = venta.pagos.map((pago) => {
+      if (pago.medioPago === MedioPagoCaja.QR && !pago.submedioPago) {
+        pago.submedioPago = SubmedioPagoCaja.QR_MERCADOPAGO;
+      }
+      return pago;
+    });
+
+    return venta;
+  }
+
   async buscarArticulos(input: BuscarArticuloInput): Promise<ArticuloConStock[]> {
     const query = this.articuloRepository.createQueryBuilder('articulo')
       .leftJoinAndSelect('articulo.rubro', 'rubro')
@@ -334,7 +362,16 @@ export class CajaRegistradoraService {
     }
 
     if (filtros.submedioPago) {
-      query.andWhere('pagos.submedioPago = :submedioPago', { submedioPago: filtros.submedioPago });
+      if (filtros.medioPago === MedioPagoCaja.QR && filtros.submedioPago === SubmedioPagoCaja.QR_MERCADOPAGO) {
+        query.andWhere(new Brackets((qb) => {
+          qb.where('pagos.submedioPago = :submedioPago', { submedioPago: filtros.submedioPago })
+            .orWhere('(pagos.medioPago = :medioPagoQr AND pagos.submedioPago IS NULL)', {
+              medioPagoQr: MedioPagoCaja.QR,
+            });
+        }));
+      } else {
+        query.andWhere('pagos.submedioPago = :submedioPago', { submedioPago: filtros.submedioPago });
+      }
     }
 
     if (filtros.numeroVenta?.trim()) {
@@ -378,14 +415,9 @@ export class CajaRegistradoraService {
       estado: venta.estado,
       tipoVenta: venta.tipoVenta,
       cantidadItems: venta.detalles?.length || 0,
-      mediosPago: [...new Set((venta.pagos || []).map((p) => {
-        if (p.medioPago === MedioPagoCaja.QR) {
-          if (p.submedioPago === SubmedioPagoCaja.QR_MODO) return 'QR_MODO';
-          if (p.submedioPago === SubmedioPagoCaja.QR_MERCADOPAGO) return 'QR_MERCADOPAGO';
-          return 'QR';
-        }
-        return p.medioPago;
-      }))],
+      mediosPago: [...new Set((venta.pagos || [])
+        .map((p) => this.mapPagoToHistorialMedio(p))
+        .filter((medio): medio is string => Boolean(medio)))],
     }));
 
     return {
@@ -665,7 +697,7 @@ export class CajaRegistradoraService {
   // obtenerPuestosVenta eliminado en flujo con puntos_mudras
 
   async obtenerDetalleVenta(id: number): Promise<VentaCaja | null> {
-    return await this.ventaCajaRepository.findOne({
+    const venta = await this.ventaCajaRepository.findOne({
       where: { id },
       relations: [
         'puntoMudras',
@@ -678,6 +710,8 @@ export class CajaRegistradoraService {
         'ventaOriginal'
       ]
     });
+
+    return this.normalizeLegacyQrPagos(venta);
   }
 
   async cancelarVenta(id: number, usuarioAuthId?: string, motivo?: string): Promise<VentaCaja> {
