@@ -24,7 +24,7 @@ export class Articulo {
   Rubro: string;
 
   @Field({ nullable: true })
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   Descripcion: string;
 
   @Field({ nullable: true })

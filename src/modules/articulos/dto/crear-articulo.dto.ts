@@ -1,5 +1,5 @@
 import { InputType, Field, Float, Int } from '@nestjs/graphql';
-import { IsString, IsNumber, IsOptional, IsBoolean, IsDateString, Min, Max } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsBoolean, IsDateString, Min, Max, MaxLength } from 'class-validator';
 
 @InputType()
 export class CrearArticuloDto {
@@ -24,6 +24,7 @@ export class CrearArticuloDto {
 
   @Field()
   @IsString()
+  @MaxLength(255, { message: 'La descripción no puede exceder 255 caracteres' })
   Descripcion: string;
 
   @Field({ nullable: true })
